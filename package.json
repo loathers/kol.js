@@ -23,6 +23,7 @@
     "data-of-loathing": "3.2",
     "prettier": "^3.8.1",
     "typescript": "^5.9.3",
+    "undici": "^8.3.0",
     "vitest": "^4.0.18"
   },
   "peerDependencies": {
