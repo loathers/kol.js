@@ -7,8 +7,9 @@
     "strict": true,
     "skipLibCheck": true,
     "declaration": true,
+    "declarationMap": true,
     "outDir": "dist",
-    "noEmit": true
+    "rootDir": "src"
   },
   "include": ["src"]
 }
