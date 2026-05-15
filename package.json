@@ -10,8 +10,9 @@
   "files": [
     "/src"
   ],
-  "repository": "https://github.com/loathers/oaf.git",
+  "repository": "https://github.com/loathers/kol.js",
   "license": "MIT",
+  "packageManager": "yarn@4.4.1",
   "scripts": {
     "build": "tsc",
     "test": "vitest",
