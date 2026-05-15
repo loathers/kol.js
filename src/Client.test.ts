@@ -1,4 +1,4 @@
-import { MockAgent } from "node:undici";
+import { MockAgent } from "undici";
 import { describe, expect, it, test, vi } from "vitest";
 
 import { Client } from "./Client.js";

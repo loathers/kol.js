@@ -551,6 +551,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node@npm:^22.0.0":
+  version: 22.19.19
+  resolution: "@types/node@npm:22.19.19"
+  dependencies:
+    undici-types: "npm:~6.21.0"
+  checksum: 10c0/402e0f088c94cabda3cd721546bd8e4e75e098e0b342f6e03b90ca1e19c28986f9650112c64fcfd09fc8cebc0f8b20291a513153e90489331cf666e1e5503e16
+  languageName: node
+  linkType: hard
+
 "@typescript-eslint/eslint-plugin@npm:8.59.3":
   version: 8.59.3
   resolution: "@typescript-eslint/eslint-plugin@npm:8.59.3"
@@ -1461,6 +1470,7 @@ __metadata:
     "@eslint/js": "npm:^10.0.1"
     "@trivago/prettier-plugin-sort-imports": "npm:^6.0.2"
     "@types/debug": "npm:^4.1.13"
+    "@types/node": "npm:^22.0.0"
     async-mutex: "npm:^0.5.0"
     css-select: "npm:^6.0.0"
     data-of-loathing: "npm:3.2"
@@ -1481,6 +1491,7 @@ __metadata:
     ts-dedent: "npm:^2.2.0"
     typescript: "npm:^5.9.3"
     typescript-eslint: "npm:^8.56.1"
+    undici: "npm:^6.21.0"
     vitest: "npm:^4.0.18"
   peerDependencies:
     data-of-loathing: 3.2
@@ -2172,7 +2183,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici@npm:^6.25.0":
+"undici-types@npm:~6.21.0":
+  version: 6.21.0
+  resolution: "undici-types@npm:6.21.0"
+  checksum: 10c0/c01ed51829b10aa72fc3ce64b747f8e74ae9b60eafa19a7b46ef624403508a54c526ffab06a14a26b3120d055e1104d7abe7c9017e83ced038ea5cf52f8d5e04
+  languageName: node
+  linkType: hard
+
+"undici@npm:^6.21.0, undici@npm:^6.25.0":
   version: 6.25.0
   resolution: "undici@npm:6.25.0"
   checksum: 10c0/2597cc6689bdb02c210c557b1f85febbfda65becae6e6fc1061508e2f33734d25207f81cd8af56ada9956329eb3a7bd7431e87dcfeceba20ee87059b57dcf985
