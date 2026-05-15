@@ -1,7 +1,7 @@
 import { selectAll, selectOne } from "css-select";
-import { parseDocument } from "htmlparser2";
-import { Element, isComment, Text } from "domhandler";
+import { Element, Text, isComment } from "domhandler";
 import { innerText } from "domutils";
+import { parseDocument } from "htmlparser2";
 
 import type { Client } from "../Client.js";
 

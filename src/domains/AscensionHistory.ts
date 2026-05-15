@@ -33,9 +33,7 @@ export class AscensionHistory {
     const rows = page.matchAll(
       /<\/tr>(?:<td.*?>.*?<\/td>){2}(?:<td colspan.*?>.*?<\/td>|(?:<td.*?>.*?<\/td>){7})/gs,
     );
-    return [...rows].map((row) =>
-      AscensionHistory.#parseRow(playerId, row[0]),
-    );
+    return [...rows].map((row) => AscensionHistory.#parseRow(playerId, row[0]));
   }
 
   static parseAscensions(
@@ -52,7 +50,10 @@ export class AscensionHistory {
   async getAscensions(
     playerId: number,
     options: { includePreNS13?: boolean } = {},
-  ): Promise<{ player: { id: number; name: string }; ascensions: Ascension[] } | null> {
+  ): Promise<{
+    player: { id: number; name: string };
+    ascensions: Ascension[];
+  } | null> {
     if (!options.includePreNS13) {
       const post = await this.#client.fetchText("ascensionhistory.php", {
         query: { who: playerId },
@@ -118,10 +119,12 @@ export class AscensionHistory {
   }
 
   static #parsePath(path: string): [string, Record<string, number>] {
-    const parts =
-      path.match(/(.*?) \((.*?)\)/) ||
+    const parts = path.match(/(.*?) \((.*?)\)/) ||
       path.match(/(.*?)\s*\n\s*(.*)/s) || [null, path, ""];
-    return [parts[1] as string, AscensionHistory.#parseExtra(parts[2] as string)];
+    return [
+      parts[1] as string,
+      AscensionHistory.#parseExtra(parts[2] as string),
+    ];
   }
 
   static #parseDate(d: string): Date {

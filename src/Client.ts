@@ -1,24 +1,29 @@
 import { Mutex } from "async-mutex";
+import { Item } from "data-of-loathing";
 import Emittery from "emittery";
 import makeFetchCookie from "fetch-cookie";
-import { ofetch, type FetchOptions } from "ofetch";
+import { type FetchOptions, ofetch } from "ofetch";
 import { CookieJar } from "tough-cookie";
 import type { Dispatcher } from "undici";
 
-import { CharSheet } from "./domains/CharSheet.js";
+import pkg from "../package.json" with { type: "json" };
+import { gameData } from "./GameData.js";
 import "./domains/Bookshelf.js";
-import { Skills } from "./domains/Skills.js";
+import { CharSheet } from "./domains/CharSheet.js";
 import { ChatMailbox, type ChatMessage } from "./domains/ChatMailbox.js";
 import { Closet } from "./domains/Closet.js";
 import { Inventory } from "./domains/Inventory.js";
 import { KmailMailbox, type KmailMessage } from "./domains/KmailMailbox.js";
 import { Players } from "./domains/Players.js";
+import { Skills } from "./domains/Skills.js";
 import { Storage } from "./domains/Storage.js";
-import pkg from "../package.json" with { type: "json" };
+import { AuthError, JoinClanError, RolloverError } from "./errors.js";
+import { Flags, type FlagsBackend } from "./flags/Flags.js";
+import { ProxyServer } from "./proxy/ProxyServer.js";
+import { runRequestPipeline, runResponsePipeline } from "./proxy/pipeline.js";
 import { deduplicate } from "./utils/deduplicate.js";
 import { sanitiseBlueText, wait } from "./utils/utils.js";
-import { runRequestPipeline, runResponsePipeline } from "./proxy/pipeline.js";
-import { ProxyServer } from "./proxy/ProxyServer.js";
+import { resolveEntityId } from "./utils/utils.js";
 
 export type MallPrice = {
   formattedMallPrice: string;
@@ -29,13 +34,9 @@ export type MallPrice = {
   minPrice: number | null;
 };
 
-export type Result<T = void> = { success: true; data?: T } | { success: false; reason: string };
-
-import { Item } from "data-of-loathing";
-import { Flags, type FlagsBackend } from "./flags/Flags.js";
-import { gameData } from "./GameData.js";
-import { resolveEntityId } from "./utils/utils.js";
-import { AuthError, JoinClanError, RolloverError } from "./errors.js";
+export type Result<T = void> =
+  | { success: true; data?: T }
+  | { success: false; reason: string };
 
 class LoginRedirectError extends Error {}
 
@@ -269,7 +270,10 @@ export class Client extends Emittery<Events> {
     { fetch: makeFetchCookie(fetch, this.#cookieJar) },
   );
 
-  async proxyFetch(url: string, init: RequestInit): Promise<{ status: number; headers: Headers; url: string; body: Buffer }> {
+  async proxyFetch(
+    url: string,
+    init: RequestInit,
+  ): Promise<{ status: number; headers: Headers; url: string; body: Buffer }> {
     const options: FetchOptions<"arrayBuffer"> = {
       method: init.method,
       headers: init.headers,
@@ -278,7 +282,12 @@ export class Client extends Emittery<Events> {
       responseType: "arrayBuffer",
     };
     const res = await this.#proxySession.raw<any, "arrayBuffer">(url, options);
-    return { status: res.status, headers: res.headers, url: res.url, body: Buffer.from(res._data ?? new ArrayBuffer(0)) };
+    return {
+      status: res.status,
+      headers: res.headers,
+      url: res.url,
+      body: Buffer.from(res._data ?? new ArrayBuffer(0)),
+    };
   }
 
   createProxyServer(): ProxyServer {
@@ -562,7 +571,10 @@ export class Client extends Emittery<Events> {
         confirm: "on",
       },
     });
-    if (result.includes("clanhalltop.gif") || result.includes("a clan you're already in"))
+    if (
+      result.includes("clanhalltop.gif") ||
+      result.includes("a clan you're already in")
+    )
       return { success: true };
     if (result.includes("leader of an existing clan"))
       return { success: false, reason: "Already leader of a clan" };
@@ -573,10 +585,12 @@ export class Client extends Emittery<Events> {
 
   async getClanWhitelists(): Promise<{ id: number; name: string }[]> {
     const html = await this.fetchText("clan_signup.php");
-    const select = html.match(/<select name=whichclan>(.*?)<\/select>/s)?.[1] ?? "";
-    return [...select.matchAll(/<option value=(\d+)>([^<]+)/g)].map(
-      (m) => ({ id: Number(m[1]), name: m[2] }),
-    );
+    const select =
+      html.match(/<select name=whichclan>(.*?)<\/select>/s)?.[1] ?? "";
+    return [...select.matchAll(/<option value=(\d+)>([^<]+)/g)].map((m) => ({
+      id: Number(m[1]),
+      name: m[2],
+    }));
   }
 
   async ensureClan(clanId: number): Promise<void> {

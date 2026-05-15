@@ -1,8 +1,8 @@
 import {
   ClanDungeon,
   PLAYER_PREFIX,
-  parseLine,
   type RaidLogEvent,
+  parseLine,
 } from "./ClanDungeon.js";
 
 export type { RaidLogEvent };

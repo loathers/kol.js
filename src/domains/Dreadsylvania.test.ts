@@ -1,8 +1,9 @@
-import { describe, expect, test } from "vitest";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { describe, expect, test } from "vitest";
+
 import { loadFixture } from "../testUtils.js";
-import { DreadsylvaniaRaid, type DreadEvent } from "./Dreadsylvania.js";
+import { type DreadEvent, DreadsylvaniaRaid } from "./Dreadsylvania.js";
 
 function loadDreadFixture(name: string): string {
   return readFileSync(

@@ -1,5 +1,11 @@
 import { describe, expect, test, vi } from "vitest";
-import { Flags, type FlagsBackend, type FlagValue, type FlagsSnapshot } from "./Flags.js";
+
+import {
+  type FlagValue,
+  Flags,
+  type FlagsBackend,
+  type FlagsSnapshot,
+} from "./Flags.js";
 import type { FlagDescriptor } from "./registry.js";
 
 // Local registry for tests — keeps test flag names out of the production registry.
@@ -94,14 +100,24 @@ describe("export / import", () => {
 
   test("import followed by sync with advanced day clears daily", () => {
     const flags = makeFlags();
-    flags.import(makeSnapshot({ daynumber: 5, daily: { foo: true } as Record<string, FlagValue> }));
+    flags.import(
+      makeSnapshot({
+        daynumber: 5,
+        daily: { foo: true } as Record<string, FlagValue>,
+      }),
+    );
     flags.sync(6, 5);
     expect(flags.daily.get("foo")).toBeUndefined();
   });
 
   test("import followed by sync on same day preserves daily", () => {
     const flags = makeFlags();
-    flags.import(makeSnapshot({ daynumber: 5, daily: { foo: true } as Record<string, FlagValue> }));
+    flags.import(
+      makeSnapshot({
+        daynumber: 5,
+        daily: { foo: true } as Record<string, FlagValue>,
+      }),
+    );
     flags.sync(5, 5);
     expect(flags.daily.get("foo")).toBe(true);
   });

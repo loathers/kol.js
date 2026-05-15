@@ -7,11 +7,17 @@ import { DisplayCase } from "./DisplayCase.js";
 describe("parseOwn", () => {
   test("empty display case returns empty lists", async () => {
     const html = await loadFixture(__dirname, "displaycase_own_empty.html");
-    expect(DisplayCase.parseOwn(html)).toStrictEqual({ shelves: [], items: [] });
+    expect(DisplayCase.parseOwn(html)).toStrictEqual({
+      shelves: [],
+      items: [],
+    });
   });
 
   test("parses single shelf with all items on -none-", async () => {
-    const html = await loadFixture(__dirname, "displaycase_own_no_shelves.html");
+    const html = await loadFixture(
+      __dirname,
+      "displaycase_own_no_shelves.html",
+    );
     const { shelves, items } = DisplayCase.parseOwn(html);
     expect(shelves).toStrictEqual([{ id: 0, name: "-none-" }]);
     expect(items).toHaveLength(37);
@@ -36,26 +42,45 @@ describe("parseOwn", () => {
   });
 
   test("decodes HTML entities in item names", async () => {
-    const html = await loadFixture(__dirname, "displaycase_own_no_shelves.html");
+    const html = await loadFixture(
+      __dirname,
+      "displaycase_own_no_shelves.html",
+    );
     const { items } = DisplayCase.parseOwn(html);
-    expect(items.find((i) => i.id === 5867)?.name).toBe("papier-mâché toothpicks");
+    expect(items.find((i) => i.id === 5867)?.name).toBe(
+      "papier-mâché toothpicks",
+    );
   });
 
   test("parses quantity from item name", async () => {
-    const html = await loadFixture(__dirname, "displaycase_own_no_shelves.html");
+    const html = await loadFixture(
+      __dirname,
+      "displaycase_own_no_shelves.html",
+    );
     const { items } = DisplayCase.parseOwn(html);
-    expect(items.find((i) => i.id === 4448)).toMatchObject({ name: "Instant Karma", quantity: 10 });
-    expect(items.find((i) => i.id === 10601)).toMatchObject({ name: "Thwaitgold slug statuette", quantity: 78 });
+    expect(items.find((i) => i.id === 4448)).toMatchObject({
+      name: "Instant Karma",
+      quantity: 10,
+    });
+    expect(items.find((i) => i.id === 10601)).toMatchObject({
+      name: "Thwaitgold slug statuette",
+      quantity: 78,
+    });
   });
 });
 
 describe("parsePlayer", () => {
   test("returns null when page has no display case header", () => {
-    expect(DisplayCase.parsePlayer("<html>not a display case</html>", 99)).toBeNull();
+    expect(
+      DisplayCase.parsePlayer("<html>not a display case</html>", 99),
+    ).toBeNull();
   });
 
   test("returns null when player has no display case", async () => {
-    const html = await loadFixture(__dirname, "displaycase_player_no_case.html");
+    const html = await loadFixture(
+      __dirname,
+      "displaycase_player_no_case.html",
+    );
     expect(DisplayCase.parsePlayer(html, 1199739)).toBeNull();
   });
 
@@ -89,18 +114,26 @@ describe("parsePlayer", () => {
     const html = await loadFixture(__dirname, "displaycase_player1.html");
     const result = DisplayCase.parsePlayer(html, 1);
     expect(result?.playerName).toBe("Jick");
-    expect(result?.description).toBe("This is my collection of flyswatter.I'm so proud.");
+    expect(result?.description).toBe(
+      "This is my collection of flyswatter.I'm so proud.",
+    );
   });
 
   test("strips HTML tags from description", async () => {
-    const html = await loadFixture(__dirname, "displaycase_holderofsecrets.html");
+    const html = await loadFixture(
+      __dirname,
+      "displaycase_holderofsecrets.html",
+    );
     const result = DisplayCase.parsePlayer(html, 216194);
     expect(result?.description).not.toMatch(/<[^>]+>/);
     expect(result?.description).toContain("This DC is dedicated to the admins");
   });
 
   test("parses large display case correctly", async () => {
-    const html = await loadFixture(__dirname, "displaycase_holderofsecrets.html");
+    const html = await loadFixture(
+      __dirname,
+      "displaycase_holderofsecrets.html",
+    );
     const result = DisplayCase.parsePlayer(html, 216194);
     expect(result?.playerName).toBe("HOldeRofSecrEts");
     expect(result?.shelves).toHaveLength(2);
@@ -143,7 +176,9 @@ describe("deposit", () => {
   });
 
   test("returns unknown failure on unexpected response", async () => {
-    vi.spyOn(client, "fetchText").mockResolvedValueOnce("<html>something went wrong</html>");
+    vi.spyOn(client, "fetchText").mockResolvedValueOnce(
+      "<html>something went wrong</html>",
+    );
     expect(await displayCase.deposit(4448, 1)).toStrictEqual({
       success: false,
       reason: "Unknown",
@@ -159,7 +194,9 @@ describe("withdraw", () => {
     vi.spyOn(client, "fetchText").mockResolvedValueOnce(
       "<b>Instant Karma</b> moved from case to inventory",
     );
-    expect(await displayCase.withdraw(4448, 1)).toStrictEqual({ success: true });
+    expect(await displayCase.withdraw(4448, 1)).toStrictEqual({
+      success: true,
+    });
   });
 
   test("returns no display case failure", async () => {

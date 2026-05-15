@@ -1,8 +1,12 @@
 import { describe, expect, test } from "vitest";
-import { SqliteFlagsBackend } from "./SqliteFlagsBackend.js";
-import type { FlagsSnapshot } from "./Flags.js";
 
-function makeSnapshot(username: string, overrides: Partial<FlagsSnapshot> = {}): FlagsSnapshot {
+import type { FlagsSnapshot } from "./Flags.js";
+import { SqliteFlagsBackend } from "./SqliteFlagsBackend.js";
+
+function makeSnapshot(
+  username: string,
+  overrides: Partial<FlagsSnapshot> = {},
+): FlagsSnapshot {
   return {
     username,
     daynumber: 10,
@@ -57,7 +61,12 @@ describe("SqliteFlagsBackend", () => {
       }),
     );
     const loaded = backend.load("alice");
-    expect(loaded?.daily).toStrictEqual({ bool: true, num: 99, str: "hello", nil: null });
+    expect(loaded?.daily).toStrictEqual({
+      bool: true,
+      num: 99,
+      str: "hello",
+      nil: null,
+    });
   });
 
   test("flags appear in the correct type buckets", () => {

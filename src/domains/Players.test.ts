@@ -1,9 +1,9 @@
 import * as path from "node:path";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { loadFixture } from "../testUtils.js";
 import { Client } from "../Client.js";
 import { Player } from "../Player.js";
+import { loadFixture } from "../testUtils.js";
 
 const fixturesDir = path.resolve(import.meta.dirname, "..");
 

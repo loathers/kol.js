@@ -13,9 +13,12 @@ export class Closet {
   }
 
   get = cached(async (): Promise<Map<Item, number>> => {
-    const raw = await this.#client.fetchJson<Record<string, string>>("api.php", {
-      query: { what: "closet", for: `${this.#client.username} bot` },
-    });
+    const raw = await this.#client.fetchJson<Record<string, string>>(
+      "api.php",
+      {
+        query: { what: "closet", for: `${this.#client.username} bot` },
+      },
+    );
     const ids = Object.keys(raw).map(Number);
     const items = await gameData.findItemsByIds(ids);
     return new Map(items.map((item) => [item, Number(raw[String(item.id)])]));

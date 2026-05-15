@@ -1,6 +1,17 @@
-import type { AscensionFlags, DailyFlags, FlagDescriptor, PermanentFlags } from "./registry.js";
+import type {
+  AscensionFlags,
+  DailyFlags,
+  FlagDescriptor,
+  PermanentFlags,
+} from "./registry.js";
 
-export type FlagValue = boolean | number | string | null | FlagValue[] | { [key: string]: FlagValue };
+export type FlagValue =
+  | boolean
+  | number
+  | string
+  | null
+  | FlagValue[]
+  | { [key: string]: FlagValue };
 export type FlagType = "daily" | "ascension" | "permanent";
 
 export type FlagsSnapshot = {
@@ -76,7 +87,9 @@ export class Flags<
     if (snapshot) this.#restore(snapshot);
   }
 
-  get daynumber(): number { return this.#daynumber; }
+  get daynumber(): number {
+    return this.#daynumber;
+  }
 
   sync(daynumber: number, ascensions: number): void {
     if (daynumber > this.#daynumber) {
@@ -105,9 +118,11 @@ export class Flags<
     this.#restore(snapshot);
   }
 
-  get<S extends FlagType, K extends string, V extends FlagValue>(
-    { store, key, defaultValue }: FlagDescriptor<S, K, V>,
-  ): V {
+  get<S extends FlagType, K extends string, V extends FlagValue>({
+    store,
+    key,
+    defaultValue,
+  }: FlagDescriptor<S, K, V>): V {
     const s = this[store] as FlagStore<Record<string, FlagValue>>;
     return (s.get(key) ?? defaultValue) as V;
   }

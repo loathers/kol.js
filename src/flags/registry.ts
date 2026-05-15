@@ -1,6 +1,10 @@
 import type { FlagType, FlagValue } from "./Flags.js";
 
-export type FlagDescriptor<S extends FlagType, K extends string, V extends FlagValue> = {
+export type FlagDescriptor<
+  S extends FlagType,
+  K extends string,
+  V extends FlagValue,
+> = {
   readonly store: S;
   readonly key: K;
   readonly defaultValue: V;
@@ -23,7 +27,9 @@ const ascension = makeFlag("ascension");
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const permanent = makeFlag("permanent");
 
-type RegistryFromKeys<T extends Record<string, FlagDescriptor<FlagType, string, FlagValue>>> = {
+type RegistryFromKeys<
+  T extends Record<string, FlagDescriptor<FlagType, string, FlagValue>>,
+> = {
   [K in keyof T as T[K]["key"]]: T[K]["defaultValue"];
 };
 

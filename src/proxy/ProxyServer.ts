@@ -1,9 +1,12 @@
+import createDebug from "debug";
 import * as http from "node:http";
 
-import createDebug from "debug";
-
-import { runDecoratePipeline, runRequestPipeline, runResponsePipeline } from "./pipeline.js";
 import type { Client } from "../Client.js";
+import {
+  runDecoratePipeline,
+  runRequestPipeline,
+  runResponsePipeline,
+} from "./pipeline.js";
 import type { ProxyRequest, ProxyResponse } from "./types.js";
 
 const debug = createDebug("kol.js:proxy");
@@ -19,7 +22,9 @@ function buildProxyRequest(
   const params = new URLSearchParams(url.search);
   if (
     incoming.method === "POST" &&
-    incoming.headers["content-type"]?.includes("application/x-www-form-urlencoded")
+    incoming.headers["content-type"]?.includes(
+      "application/x-www-form-urlencoded",
+    )
   ) {
     for (const [k, v] of new URLSearchParams(body.toString())) {
       params.set(k, v);
@@ -34,7 +39,10 @@ function buildProxyRequest(
 
 function rewriteHtml(html: string, port: number): string {
   return html
-    .replace(/https?:\/\/www\.kingdomofloathing\.com/g, `http://localhost:${port}`)
+    .replace(
+      /https?:\/\/www\.kingdomofloathing\.com/g,
+      `http://localhost:${port}`,
+    )
     .replace(/\/\/www\.kingdomofloathing\.com/g, `//localhost:${port}`);
 }
 
@@ -61,13 +69,17 @@ export class ProxyServer {
       const proxyReq = buildProxyRequest(incoming, body);
 
       if (STATIC_HOSTS.has(host)) {
-        await this.#pipeStatic(`https://${host}${url.pathname}${url.search}`, outgoing);
+        await this.#pipeStatic(
+          `https://${host}${url.pathname}${url.search}`,
+          outgoing,
+        );
         return;
       }
 
-
       if (proxyReq.path === "" || proxyReq.path === "index.php") {
-        outgoing.writeHead(302, { location: `http://localhost:${this.#port}/game.php` });
+        outgoing.writeHead(302, {
+          location: `http://localhost:${this.#port}/game.php`,
+        });
         outgoing.end();
         return;
       }
@@ -83,11 +95,15 @@ export class ProxyServer {
       const upstream = await this.#client.proxyFetch(upstreamUrl, {
         method: incoming.method,
         headers: forwardHeaders,
-        body: incoming.method !== "GET" && incoming.method !== "HEAD" ? new Uint8Array(body) : undefined,
+        body:
+          incoming.method !== "GET" && incoming.method !== "HEAD"
+            ? new Uint8Array(body)
+            : undefined,
         redirect: "follow",
       });
 
-      const contentType = upstream.headers.get("content-type") ?? "application/octet-stream";
+      const contentType =
+        upstream.headers.get("content-type") ?? "application/octet-stream";
       const isHtml = contentType.includes("text/html");
 
       const proxyRes: ProxyResponse = {
@@ -104,10 +120,13 @@ export class ProxyServer {
       }
 
       // If KoL followed a redirect to a different page, tell the browser to follow suit.
-      const finalPath = new URL(upstream.url).pathname + new URL(upstream.url).search;
+      const finalPath =
+        new URL(upstream.url).pathname + new URL(upstream.url).search;
       const browserPath = `/${proxyReq.path}${url.search}`;
       if (isHtml && finalPath !== browserPath && finalPath !== "/") {
-        outgoing.writeHead(302, { location: `http://localhost:${this.#port}${finalPath}` });
+        outgoing.writeHead(302, {
+          location: `http://localhost:${this.#port}${finalPath}`,
+        });
         outgoing.end();
         return;
       }
@@ -127,7 +146,8 @@ export class ProxyServer {
   async #pipeStatic(url: string, outgoing: http.ServerResponse): Promise<void> {
     const resp = await fetch(url);
     outgoing.writeHead(resp.status, {
-      "content-type": resp.headers.get("content-type") ?? "application/octet-stream",
+      "content-type":
+        resp.headers.get("content-type") ?? "application/octet-stream",
     });
     outgoing.end(Buffer.from(await resp.arrayBuffer()));
   }

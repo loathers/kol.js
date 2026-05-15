@@ -1,12 +1,12 @@
 import { selectAll, selectOne } from "css-select";
+import { Item } from "data-of-loathing";
 import { type AnyNode, Element } from "domhandler";
 import { decodeHTML } from "entities";
 import { parseDocument } from "htmlparser2";
 
-import { Item } from "data-of-loathing";
 import { gameData } from "../GameData.js";
 import { Player } from "../Player.js";
-import { type Message, Mailbox } from "./Mailbox.js";
+import { Mailbox, type Message } from "./Mailbox.js";
 
 type RawKmailItem = {
   id: number;

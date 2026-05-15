@@ -1,8 +1,9 @@
 import { describe, expect, test, vi } from "vitest";
-import { resolveKoLImage } from "./utils/utils.js";
+
+import { Client } from "./Client.js";
 import { Player } from "./Player.js";
 import { expectNotNull, loadFixture } from "./testUtils.js";
-import { Client } from "./Client.js";
+import { resolveKoLImage } from "./utils/utils.js";
 
 const { json, text } = vi.hoisted(() => ({ json: vi.fn(), text: vi.fn() }));
 

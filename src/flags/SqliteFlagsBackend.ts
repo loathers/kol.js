@@ -1,6 +1,11 @@
 import { DatabaseSync } from "node:sqlite";
 
-import type { FlagsBackend, FlagsSnapshot, FlagType, FlagValue } from "./Flags.js";
+import type {
+  FlagType,
+  FlagValue,
+  FlagsBackend,
+  FlagsSnapshot,
+} from "./Flags.js";
 
 export class SqliteFlagsBackend implements FlagsBackend {
   #db: DatabaseSync;
@@ -60,7 +65,9 @@ export class SqliteFlagsBackend implements FlagsBackend {
       )
       .run(snapshot.username, snapshot.daynumber, snapshot.ascensions);
 
-    this.#db.prepare("DELETE FROM flags WHERE player = ?").run(snapshot.username);
+    this.#db
+      .prepare("DELETE FROM flags WHERE player = ?")
+      .run(snapshot.username);
 
     const insert = this.#db.prepare(
       "INSERT INTO flags (player, name, type, value) VALUES (?,?,?,?)",

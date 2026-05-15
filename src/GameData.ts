@@ -1,10 +1,10 @@
 import {
-  createClient,
   Effect,
   Familiar,
   Item,
   Monster,
   Skill,
+  createClient,
 } from "data-of-loathing";
 
 export class GameData {

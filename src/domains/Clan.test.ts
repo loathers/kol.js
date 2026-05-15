@@ -2,7 +2,13 @@ import { describe, expect, test, vi } from "vitest";
 
 import { Client } from "../Client.js";
 import { loadFixture } from "../testUtils.js";
-import { type ClanInfo, type ClanRank, Clan, DungeonPrivilege, Privilege } from "./Clan.js";
+import {
+  Clan,
+  type ClanInfo,
+  type ClanRank,
+  DungeonPrivilege,
+  Privilege,
+} from "./Clan.js";
 
 describe("getInfo", () => {
   const client = new Client("", "");
@@ -16,7 +22,8 @@ describe("getInfo", () => {
         id: 2047008362,
         name: "Collaborative Dungeon Running 1",
         leader: { id: 1382257, name: "UberJew" },
-        credo: "Dungeon running managed by the Ascension Speed Society.  Management and coordination is done here: https://discord.gg/KphxvKa",
+        credo:
+          "Dungeon running managed by the Ascension Speed Society.  Management and coordination is done here: https://discord.gg/KphxvKa",
         website: null,
         memberCount: 7,
         trophies: { "Space Shadow": 1 },
@@ -74,29 +81,82 @@ describe("getRanks", () => {
     vi.spyOn(client, "fetchText").mockResolvedValueOnce(
       await loadFixture(__dirname, "clan_editranks.html"),
     );
-    const allDungeons = DungeonPrivilege.AdventureAllDungeons | DungeonPrivilege.AdministerAllDungeons;
+    const allDungeons =
+      DungeonPrivilege.AdventureAllDungeons |
+      DungeonPrivilege.AdministerAllDungeons;
     expect(await clan.getRanks()).toStrictEqual<ClanRank[]>([
       {
-        id: 1, name: "ASS Admin", degree: 100, karmaLimit: 0, zeroKarmaLimit: 0,
-        privileges: Privilege.Approve | Privilege.ChangeRank | Privilege.Boot | Privilege.KarmaExempt | Privilege.BuyFurniture | Privilege.ViewLog | Privilege.PostAnnouncement | Privilege.Attack | Privilege.EditWhitelist | Privilege.WithdrawZeroKarmaItems | Privilege.ChangeTitles | Privilege.DeleteMessages | Privilege.DeleteAnnouncement | Privilege.ChangeAllTitles | Privilege.ViewWhitelist | Privilege.BuyClanBoosts | Privilege.BuyWarStuff,
+        id: 1,
+        name: "ASS Admin",
+        degree: 100,
+        karmaLimit: 0,
+        zeroKarmaLimit: 0,
+        privileges:
+          Privilege.Approve |
+          Privilege.ChangeRank |
+          Privilege.Boot |
+          Privilege.KarmaExempt |
+          Privilege.BuyFurniture |
+          Privilege.ViewLog |
+          Privilege.PostAnnouncement |
+          Privilege.Attack |
+          Privilege.EditWhitelist |
+          Privilege.WithdrawZeroKarmaItems |
+          Privilege.ChangeTitles |
+          Privilege.DeleteMessages |
+          Privilege.DeleteAnnouncement |
+          Privilege.ChangeAllTitles |
+          Privilege.ViewWhitelist |
+          Privilege.BuyClanBoosts |
+          Privilege.BuyWarStuff,
         dungeonPrivileges: allDungeons | DungeonPrivilege.EditWhiteboard,
       },
       {
-        id: 3, name: "Dungeon Admin", degree: 50, karmaLimit: 0, zeroKarmaLimit: 0,
-        privileges: Privilege.Approve | Privilege.ChangeRank | Privilege.Boot | Privilege.ChangeTitles | Privilege.ViewWhitelist | Privilege.EditWhitelist | Privilege.PostAnnouncement | Privilege.KarmaExempt | Privilege.WithdrawZeroKarmaItems,
+        id: 3,
+        name: "Dungeon Admin",
+        degree: 50,
+        karmaLimit: 0,
+        zeroKarmaLimit: 0,
+        privileges:
+          Privilege.Approve |
+          Privilege.ChangeRank |
+          Privilege.Boot |
+          Privilege.ChangeTitles |
+          Privilege.ViewWhitelist |
+          Privilege.EditWhitelist |
+          Privilege.PostAnnouncement |
+          Privilege.KarmaExempt |
+          Privilege.WithdrawZeroKarmaItems,
         dungeonPrivileges: allDungeons | DungeonPrivilege.EditWhiteboard,
       },
       {
-        id: 4, name: "Dungeon Automation", degree: 40, karmaLimit: 0, zeroKarmaLimit: 1,
-        privileges: Privilege.ViewLog | Privilege.ViewWhitelist | Privilege.EditWhitelist,
+        id: 4,
+        name: "Dungeon Automation",
+        degree: 40,
+        karmaLimit: 0,
+        zeroKarmaLimit: 1,
+        privileges:
+          Privilege.ViewLog | Privilege.ViewWhitelist | Privilege.EditWhitelist,
         dungeonPrivileges: allDungeons,
       },
       {
-        id: 2, name: "Dungeon Runner", degree: 25, karmaLimit: 0, zeroKarmaLimit: 1,
+        id: 2,
+        name: "Dungeon Runner",
+        degree: 25,
+        karmaLimit: 0,
+        zeroKarmaLimit: 1,
         privileges: Privilege.ViewLog,
         dungeonPrivileges: DungeonPrivilege.AdventureAllDungeons,
       },
-      { id: 0, name: "Normal Member", degree: 0, privileges: 0, dungeonPrivileges: 0, karmaLimit: 0, zeroKarmaLimit: 0 },
+      {
+        id: 0,
+        name: "Normal Member",
+        degree: 0,
+        privileges: 0,
+        dungeonPrivileges: 0,
+        karmaLimit: 0,
+        zeroKarmaLimit: 0,
+      },
     ]);
   });
 });
@@ -109,27 +169,37 @@ describe("setPlayerRank", () => {
     vi.spyOn(client, "fetchText").mockResolvedValueOnce(
       await loadFixture(__dirname, "clan_members_set_rank_success.html"),
     );
-    expect(await clan.setPlayerRank(437479, 1)).toStrictEqual({ success: true });
+    expect(await clan.setPlayerRank(437479, 1)).toStrictEqual({
+      success: true,
+    });
   });
 
   test("failure when player not in clan", async () => {
     vi.spyOn(client, "fetchText").mockResolvedValueOnce(
       await loadFixture(__dirname, "clan_members_set_rank_not_in_clan.html"),
     );
-    expect(await clan.setPlayerRank(13, 2)).toStrictEqual({ success: false, reason: "Player not in clan" });
+    expect(await clan.setPlayerRank(13, 2)).toStrictEqual({
+      success: false,
+      reason: "Player not in clan",
+    });
   });
 
   test("failure with unknown response", async () => {
     vi.spyOn(client, "fetchText").mockResolvedValueOnce(
       await loadFixture(__dirname, "clan_admin_changeleader_failure.html"),
     );
-    expect(await clan.setPlayerRank(437479, 1)).toStrictEqual({ success: false, reason: "Unknown" });
+    expect(await clan.setPlayerRank(437479, 1)).toStrictEqual({
+      success: false,
+      reason: "Unknown",
+    });
   });
 
   test("omits level field when rankId not provided", async () => {
-    const spy = vi.spyOn(client, "fetchText").mockResolvedValueOnce(
-      await loadFixture(__dirname, "clan_members_set_rank_success.html"),
-    );
+    const spy = vi
+      .spyOn(client, "fetchText")
+      .mockResolvedValueOnce(
+        await loadFixture(__dirname, "clan_members_set_rank_success.html"),
+      );
     await clan.setPlayerRank(437479);
     expect(spy).toHaveBeenCalledWith("clan_members.php", {
       method: "POST",
@@ -138,13 +208,21 @@ describe("setPlayerRank", () => {
   });
 
   test("includes title field when title provided", async () => {
-    const spy = vi.spyOn(client, "fetchText").mockResolvedValueOnce(
-      await loadFixture(__dirname, "clan_members_set_rank_success.html"),
-    );
+    const spy = vi
+      .spyOn(client, "fetchText")
+      .mockResolvedValueOnce(
+        await loadFixture(__dirname, "clan_members_set_rank_success.html"),
+      );
     await clan.setPlayerRank(437479, 2, "Runner");
     expect(spy).toHaveBeenCalledWith("clan_members.php", {
       method: "POST",
-      form: { action: "modify", begin: 1, "pids[]": 437479, level437479: 2, title437479: "Runner" },
+      form: {
+        action: "modify",
+        begin: 1,
+        "pids[]": 437479,
+        level437479: 2,
+        title437479: "Runner",
+      },
     });
   });
 });
@@ -157,7 +235,9 @@ describe("transferLeadership", () => {
     vi.spyOn(client, "fetchText").mockResolvedValueOnce(
       await loadFixture(__dirname, "clan_admin_changeleader_success.html"),
     );
-    expect(await clan.transferLeadership(3366354)).toStrictEqual({ success: true });
+    expect(await clan.transferLeadership(3366354)).toStrictEqual({
+      success: true,
+    });
   });
 
   test("failure with no admin rights", async () => {

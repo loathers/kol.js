@@ -1,7 +1,8 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { Client } from "../Client.js";
 import { loadFixture } from "../testUtils.js";
-import { AscensionHistory, type Ascension } from "./AscensionHistory.js";
+import { type Ascension, AscensionHistory } from "./AscensionHistory.js";
 
 const { text } = vi.hoisted(() => ({ text: vi.fn() }));
 
@@ -42,10 +43,9 @@ describe("AscensionHistory.parseAscensions", () => {
   });
 
   it("recognises a dropped run", () => {
-    expect(gausieAscensions.find((a) => a.ascensionNumber === 13)).toHaveProperty(
-      "dropped",
-      true,
-    );
+    expect(
+      gausieAscensions.find((a) => a.ascensionNumber === 13),
+    ).toHaveProperty("dropped", true);
   });
 
   it("parses a pre-NS13 run with no sign", async () => {
@@ -88,7 +88,9 @@ describe("AscensionHistory.parseAscensions", () => {
         import.meta.dirname,
         `ascensionhistory_none_${relativeToNS13}_ns13.html`,
       );
-      expect(AscensionHistory.parseAscensions(page)?.ascensions).toHaveLength(0);
+      expect(AscensionHistory.parseAscensions(page)?.ascensions).toHaveLength(
+        0,
+      );
     },
   );
 
@@ -117,15 +119,15 @@ describe("AscensionHistory.parseAscensions", () => {
   });
 
   it("parses a Grey Goo Goo Score", () => {
-    expect(gausieAscensions.find((a) => a.ascensionNumber === 275)?.extra).toEqual(
-      { "Goo Score": 9950 },
-    );
+    expect(
+      gausieAscensions.find((a) => a.ascensionNumber === 275)?.extra,
+    ).toEqual({ "Goo Score": 9950 });
   });
 
   it("parses an OCRS Fun score", () => {
-    expect(gausieAscensions.find((a) => a.ascensionNumber === 279)?.extra).toEqual(
-      { Fun: 7018 },
-    );
+    expect(
+      gausieAscensions.find((a) => a.ascensionNumber === 279)?.extra,
+    ).toEqual({ Fun: 7018 });
   });
 
   it("returns null for a manually elided account", async () => {

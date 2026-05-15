@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { loadFixture } from "../testUtils.js";
 import { generateAvatarSvg } from "./avatar.js";
 

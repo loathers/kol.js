@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+
 import { loadFixture } from "../testUtils.js";
 import { Leaderboard } from "./Leaderboard.js";
 

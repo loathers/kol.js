@@ -54,7 +54,8 @@ export class Tome extends Bookshelf {
 
   /** If the page shows the pool is exhausted, bring our total up to 3. */
   static syncFromPage(client: Client, html: string): void {
-    if (!html.includes("You've already used up your Tome summons for the day")) return;
+    if (!html.includes("You've already used up your Tome summons for the day"))
+      return;
     const casts = client.flags.get(DailyFlag.skillCasts);
     const total = TOME_IDS.reduce((n, id) => n + (casts[id] ?? 0), 0);
     if (total < 3) {
@@ -93,8 +94,15 @@ export class Libram extends Bookshelf {
       const castsToday = n - 1;
       const casts = client.flags.get(DailyFlag.skillCasts);
       if ((casts[instance.skillId] ?? 0) !== castsToday) {
-        debug("synced skill %d casts to %d from page", instance.skillId, castsToday);
-        client.flags.set(DailyFlag.skillCasts, { ...casts, [instance.skillId]: castsToday });
+        debug(
+          "synced skill %d casts to %d from page",
+          instance.skillId,
+          castsToday,
+        );
+        client.flags.set(DailyFlag.skillCasts, {
+          ...casts,
+          [instance.skillId]: castsToday,
+        });
       }
     }
   }

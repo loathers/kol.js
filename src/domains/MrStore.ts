@@ -6,7 +6,8 @@ export const MrStoreUrgency = {
   Today: 2,
 } as const;
 
-export type MrStoreUrgency = (typeof MrStoreUrgency)[keyof typeof MrStoreUrgency];
+export type MrStoreUrgency =
+  (typeof MrStoreUrgency)[keyof typeof MrStoreUrgency];
 
 export type MrStoreItem = {
   name: string;

@@ -1,6 +1,6 @@
 import { selectAll, selectOne } from "css-select";
-import { parseDocument } from "htmlparser2";
 import { Element } from "domhandler";
+import { parseDocument } from "htmlparser2";
 import { imageSize } from "image-size";
 import { dedent } from "ts-dedent";
 

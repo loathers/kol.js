@@ -5,8 +5,8 @@ import type { Client, Result } from "../Client.js";
 import { DailyFlag } from "../flags/registry.js";
 import { registerInterceptor } from "../proxy/registry.js";
 import type { CachedFn } from "../utils/cached.js";
-import type { SkillPerm } from "./CharSheet.js";
 import { resolveEntityId } from "../utils/utils.js";
+import type { SkillPerm } from "./CharSheet.js";
 
 export type CastOptions = {
   target?: string | number;
@@ -15,7 +15,11 @@ export type CastOptions = {
 
 export type SkillBehavior = {
   /** Full override of the cast mechanism. When present, detectSuccess is not called. */
-  cast?: (client: Client, skillId: number, options?: CastOptions) => Promise<Result>;
+  cast?: (
+    client: Client,
+    skillId: number,
+    options?: CastOptions,
+  ) => Promise<Result>;
   /** Override success detection on the default runskillz.php path. */
   detectSuccess?: (html: string) => boolean;
   /** Maximum casts allowed per day. */
@@ -26,7 +30,10 @@ export type SkillBehavior = {
 
 const registry = new Map<number, SkillBehavior>();
 
-export function registerSkillBehavior(id: number, behavior: SkillBehavior): void {
+export function registerSkillBehavior(
+  id: number,
+  behavior: SkillBehavior,
+): void {
   registry.set(id, behavior);
 }
 

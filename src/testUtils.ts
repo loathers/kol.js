@@ -1,6 +1,5 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-
 import { expect, vi } from "vitest";
 
 export async function loadFixture(dirname: string, name: string) {

@@ -16,6 +16,10 @@ export interface Interceptor {
   path?: string | RegExp;
   matches?: (req: ProxyRequest) => boolean;
   onRequest?(client: Client, req: ProxyRequest): void | Promise<void>;
-  onResponse?(client: Client, req: ProxyRequest, res: ProxyResponse): void | Promise<void>;
+  onResponse?(
+    client: Client,
+    req: ProxyRequest,
+    res: ProxyResponse,
+  ): void | Promise<void>;
   decorate?(html: string, req: ProxyRequest): string | Promise<string>;
 }

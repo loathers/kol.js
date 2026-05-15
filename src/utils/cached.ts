@@ -12,7 +12,10 @@ export function cached<T>(cb: () => Promise<T>): CachedFn<T> {
   function startFetch(currentGen: number): Promise<T> {
     pending = cb().then(
       (v) => {
-        if (gen === currentGen) { value = v; pending = undefined; }
+        if (gen === currentGen) {
+          value = v;
+          pending = undefined;
+        }
         return v;
       },
       (e) => {
@@ -27,8 +30,17 @@ export function cached<T>(cb: () => Promise<T>): CachedFn<T> {
     if (value !== undefined) return Promise.resolve(value);
     return pending ?? startFetch(gen);
   };
-  fn.refresh = (): Promise<T> => { gen++; value = undefined; pending = undefined; return fn(); };
-  fn.invalidate = (): void => { gen++; value = undefined; pending = undefined; };
+  fn.refresh = (): Promise<T> => {
+    gen++;
+    value = undefined;
+    pending = undefined;
+    return fn();
+  };
+  fn.invalidate = (): void => {
+    gen++;
+    value = undefined;
+    pending = undefined;
+  };
 
   return fn;
 }

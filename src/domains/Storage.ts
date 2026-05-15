@@ -14,9 +14,12 @@ export class Storage {
   }
 
   get = cached(async (): Promise<Map<Item, number>> => {
-    const raw = await this.#client.fetchJson<Record<string, string>>("api.php", {
-      query: { what: "storage", for: `${this.#client.username} bot` },
-    });
+    const raw = await this.#client.fetchJson<Record<string, string>>(
+      "api.php",
+      {
+        query: { what: "storage", for: `${this.#client.username} bot` },
+      },
+    );
     const ids = Object.keys(raw).map(Number);
     const items = await gameData.findItemsByIds(ids);
     return new Map(items.map((item) => [item, Number(raw[String(item.id)])]));
@@ -28,7 +31,8 @@ export class Storage {
       method: "POST",
       form: { action: "pull", whichitem: itemId, howmany: quantity, ajax: 1 },
     });
-    if (!html.includes("updateInv")) return { success: false, reason: "Unknown" };
+    if (!html.includes("updateInv"))
+      return { success: false, reason: "Unknown" };
     if (html.includes("moved from storage to inventory")) {
       this.#markPulled(itemId);
       this.get.invalidate();
@@ -39,7 +43,8 @@ export class Storage {
       this.#markPulled(itemId);
       return { success: false, reason: "Daily pull limit reached" };
     }
-    if (html.includes("You haven't got any of that item in your storage")) return { success: false, reason: "Item not in storage" };
+    if (html.includes("You haven't got any of that item in your storage"))
+      return { success: false, reason: "Item not in storage" };
     return { success: false, reason: "Unknown" };
   }
 
@@ -48,12 +53,14 @@ export class Storage {
       method: "POST",
       form: { action: "pullmeat", howmuch: amount, ajax: 1 },
     });
-    if (!html.includes("updateInv")) return { success: false, reason: "Unknown" };
+    if (!html.includes("updateInv"))
+      return { success: false, reason: "Unknown" };
     if (html.includes("moved from storage to inventory")) {
       this.#client.inventory.get.invalidate();
       return { success: true };
     }
-    if (html.includes("You haven't got any of that item in your storage")) return { success: false, reason: "Insufficient meat in storage" };
+    if (html.includes("You haven't got any of that item in your storage"))
+      return { success: false, reason: "Insufficient meat in storage" };
     return { success: false, reason: "Unknown" };
   }
 
@@ -62,7 +69,8 @@ export class Storage {
       form: { action: "pullall", ajax: 1 },
       signal: AbortSignal.timeout(45000),
     });
-    if (!html.includes("updateInv")) return { success: false, reason: "Unknown" };
+    if (!html.includes("updateInv"))
+      return { success: false, reason: "Unknown" };
     if (html.includes("moved from storage to inventory")) {
       this.get.invalidate();
       this.#client.inventory.get.invalidate();
@@ -72,7 +80,9 @@ export class Storage {
   }
 
   async pulledToday(): Promise<Item[]> {
-    return gameData.findItemsByIds(this.#client.flags.get(DailyFlag.storagePulls));
+    return gameData.findItemsByIds(
+      this.#client.flags.get(DailyFlag.storagePulls),
+    );
   }
 
   #markPulled(itemId: number): void {

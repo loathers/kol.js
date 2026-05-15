@@ -163,7 +163,10 @@ describe("joinClan", () => {
 
   test("failure when not on whitelist", async () => {
     vi.spyOn(client, "fetchText").mockResolvedValueOnce(
-      await loadFixture(__dirname, "showclan_joinclan_submitted_a_request.html"),
+      await loadFixture(
+        __dirname,
+        "showclan_joinclan_submitted_a_request.html",
+      ),
     );
     expect(await client.joinClan(90485)).toStrictEqual({
       success: false,

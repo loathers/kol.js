@@ -1,5 +1,5 @@
 import { Player } from "../Player.js";
-import { type Message, Mailbox } from "./Mailbox.js";
+import { Mailbox, type Message } from "./Mailbox.js";
 
 type RawChatMessage = {
   who?: Player;

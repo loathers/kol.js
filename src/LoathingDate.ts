@@ -1,5 +1,5 @@
-import { dedent } from "ts-dedent";
 import { addDays } from "date-fns";
+import { dedent } from "ts-dedent";
 
 const GAME_HOLIDAYS = new Map<`${number},${number}`, string>([
   ["0,1", "Festival of Jarlsberg"],
@@ -97,12 +97,16 @@ export class LoathingDate {
 
   static getRollover(date = new Date()): Date {
     const gameday = LoathingDate.gameDayFromRealDate(date);
-    return new Date(LoathingDate.EPOCH.getTime() + gameday * LoathingDate.MS_PER_DAY);
+    return new Date(
+      LoathingDate.EPOCH.getTime() + gameday * LoathingDate.MS_PER_DAY,
+    );
   }
 
   static getNextRollover(date = new Date()): Date {
     const gameday = LoathingDate.gameDayFromRealDate(date);
-    return new Date(LoathingDate.EPOCH.getTime() + (gameday + 1) * LoathingDate.MS_PER_DAY);
+    return new Date(
+      LoathingDate.EPOCH.getTime() + (gameday + 1) * LoathingDate.MS_PER_DAY,
+    );
   }
 
   isAprilFools(): boolean {

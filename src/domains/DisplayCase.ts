@@ -4,7 +4,10 @@ import type { Client, Result } from "../Client.js";
 import { resolveEntityId } from "../utils/utils.js";
 
 function noDisplayCase(html: string): boolean {
-  return html.includes("You don't have a collection.") || html.includes("You don't have a display case.");
+  return (
+    html.includes("You don't have a collection.") ||
+    html.includes("You don't have a display case.")
+  );
 }
 
 export type DisplayCaseShelf = { id: number; name: string };
@@ -42,22 +45,30 @@ export class DisplayCase {
     this.#client = client;
   }
 
-  async get(): Promise<{ shelves: DisplayCaseShelf[]; items: DisplayCaseItem[] }> {
+  async get(): Promise<{
+    shelves: DisplayCaseShelf[];
+    items: DisplayCaseItem[];
+  }> {
     const html = await this.#client.fetchText("managecollectionshelves.php");
     return DisplayCase.parseOwn(html);
   }
 
-  static parseOwn(html: string): { shelves: DisplayCaseShelf[]; items: DisplayCaseItem[] } {
+  static parseOwn(html: string): {
+    shelves: DisplayCaseShelf[];
+    items: DisplayCaseItem[];
+  } {
     if (html.includes("You don't have anything in your collection.")) {
       return { shelves: [], items: [] };
     }
 
     const shelvesJson = html.match(/var shelves = (\{.*?\});/s)?.[1] ?? "{}";
     const shelvesRaw = JSON.parse(shelvesJson) as Record<string, string>;
-    const shelves: DisplayCaseShelf[] = Object.entries(shelvesRaw).map(([id, name]) => ({
-      id: Number(id),
-      name,
-    }));
+    const shelves: DisplayCaseShelf[] = Object.entries(shelvesRaw).map(
+      ([id, name]) => ({
+        id: Number(id),
+        name,
+      }),
+    );
 
     const items: DisplayCaseItem[] = [
       ...html.matchAll(
@@ -78,30 +89,42 @@ export class DisplayCase {
     return !noDisplayCase(html);
   }
 
-  async deposit(item: { id: number } | number, quantity: number): Promise<Result> {
+  async deposit(
+    item: { id: number } | number,
+    quantity: number,
+  ): Promise<Result> {
     const itemId = resolveEntityId(item);
     const html = await this.#client.fetchText("managecollection.php", {
       method: "POST",
       form: { action: "put", whichitem: itemId, howmany: quantity, ajax: 1 },
     });
     if (html.includes("moved from inventory to case")) return { success: true };
-    if (noDisplayCase(html)) return { success: false, reason: "No display case" };
+    if (noDisplayCase(html))
+      return { success: false, reason: "No display case" };
     return { success: false, reason: "Unknown" };
   }
 
-  async withdraw(item: { id: number } | number, quantity: number): Promise<Result> {
+  async withdraw(
+    item: { id: number } | number,
+    quantity: number,
+  ): Promise<Result> {
     const itemId = resolveEntityId(item);
     const html = await this.#client.fetchText("managecollection.php", {
       method: "POST",
       form: { action: "take", whichitem: itemId, howmany: quantity, ajax: 1 },
     });
     if (html.includes("moved from case to inventory")) return { success: true };
-    if (noDisplayCase(html)) return { success: false, reason: "No display case" };
+    if (noDisplayCase(html))
+      return { success: false, reason: "No display case" };
     return { success: false, reason: "Unknown" };
   }
 
-  async arrange(assignments: { itemId: number; shelfId: number }[]): Promise<Result> {
-    const form: Record<string, string | number | boolean> = { action: "arrange" };
+  async arrange(
+    assignments: { itemId: number; shelfId: number }[],
+  ): Promise<Result> {
+    const form: Record<string, string | number | boolean> = {
+      action: "arrange",
+    };
     for (const { itemId, shelfId } of assignments) {
       form[`whichshelf${itemId}`] = shelfId;
     }
@@ -109,7 +132,8 @@ export class DisplayCase {
       method: "POST",
       form,
     });
-    if (noDisplayCase(html)) return { success: false, reason: "No display case" };
+    if (noDisplayCase(html))
+      return { success: false, reason: "No display case" };
     return { success: true };
   }
 
@@ -121,17 +145,17 @@ export class DisplayCase {
   }
 
   static parsePlayer(html: string, playerId: number): PublicDisplayCase | null {
-    const playerName = html.match(
-      /Display Case \(<a[^>]*>([^<]+)<\/a>\)/,
-    )?.[1];
+    const playerName = html.match(/Display Case \(<a[^>]*>([^<]+)<\/a>\)/)?.[1];
     if (!playerName) return null;
     if (html.includes("This player doesn't have a display case")) return null;
 
-    const descriptionRaw = html.match(
-      /displaycase\.gif[^>]*>.*?<td valign=center>(.*?)<\/td>/s,
-    )?.[1] ?? "";
+    const descriptionRaw =
+      html.match(
+        /displaycase\.gif[^>]*>.*?<td valign=center>(.*?)<\/td>/s,
+      )?.[1] ?? "";
     const descriptionText = descriptionRaw.replace(/<[^>]+>/g, "").trim();
-    const description = descriptionText.length > 0 ? decodeHTML(descriptionText) : null;
+    const description =
+      descriptionText.length > 0 ? decodeHTML(descriptionText) : null;
 
     const shelves: PublicDisplayCaseShelf[] = [
       ...html.matchAll(

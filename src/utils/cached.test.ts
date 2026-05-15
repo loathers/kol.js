@@ -1,4 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
+
 import { cached } from "./cached.js";
 
 describe("cached", () => {
@@ -45,7 +46,8 @@ describe("cached", () => {
   });
 
   test("does not cache errors — next call retries", async () => {
-    const cb = vi.fn()
+    const cb = vi
+      .fn()
       .mockRejectedValueOnce(new Error("fail"))
       .mockResolvedValueOnce(99);
     const fn = cached(cb);
@@ -56,7 +58,9 @@ describe("cached", () => {
 
   test("invalidate mid-flight discards stale result", async () => {
     let resolveFirst!: (v: number) => void;
-    const first = new Promise<number>((r) => { resolveFirst = r; });
+    const first = new Promise<number>((r) => {
+      resolveFirst = r;
+    });
     const cb = vi.fn().mockReturnValueOnce(first).mockResolvedValueOnce(2);
     const fn = cached(cb);
 
