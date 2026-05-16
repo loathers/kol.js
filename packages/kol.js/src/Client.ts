@@ -93,6 +93,8 @@ type ApiStatus = {
   daynumber: string;
   /** player level */
   level: string;
+  /** numeric player id */
+  playerid: string;
   /** session password */
   pwd: string;
   /** "1" if in hardcore */
@@ -165,6 +167,7 @@ export class Client extends Emittery<Events> {
   #disposed = false;
   #chatBotStarted = false;
   #pwd = "";
+  #playerId = "";
 
   constructor(
     username: string,
@@ -179,6 +182,10 @@ export class Client extends Emittery<Events> {
 
   get username() {
     return this.#username;
+  }
+
+  get playerId() {
+    return this.#playerId;
   }
 
   async #withRecovery<T>(fn: () => Promise<T>): Promise<T> {
@@ -354,6 +361,7 @@ export class Client extends Emittery<Events> {
       });
       if (!api || typeof api !== "object" || !api.pwd) return false;
       this.#pwd = api.pwd;
+      this.#playerId = api.playerid;
       this.#hardcore = api.hardcore === "1";
       this.#roninLeft = Number(api.roninleft);
       const prevDay = this.flags.daynumber;

@@ -92,15 +92,23 @@ export class ProxyServer {
       const contentTypeHeader = incoming.headers["content-type"];
       if (contentTypeHeader) forwardHeaders["content-type"] = contentTypeHeader;
 
-      const upstream = await this.#client.proxyFetch(upstreamUrl, {
+      const fetchOptions = {
         method: incoming.method,
         headers: forwardHeaders,
         body:
           incoming.method !== "GET" && incoming.method !== "HEAD"
             ? new Uint8Array(body)
             : undefined,
-        redirect: "follow",
-      });
+        redirect: "follow" as const,
+      };
+
+      let upstream = await this.#client.proxyFetch(upstreamUrl, fetchOptions);
+
+      if (new URL(upstream.url).pathname === "/login.php") {
+        debug("session expired, re-logging in");
+        await this.#client.login();
+        upstream = await this.#client.proxyFetch(upstreamUrl, fetchOptions);
+      }
 
       const contentType =
         upstream.headers.get("content-type") ?? "application/octet-stream";
