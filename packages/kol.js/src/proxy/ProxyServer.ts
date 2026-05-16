@@ -1,7 +1,7 @@
 import createDebug from "debug";
 import * as http from "node:http";
 
-import type { Client } from "../Client.js";
+import { Client } from "../Client.js";
 import {
   runDecoratePipeline,
   runRequestPipeline,
@@ -51,17 +51,22 @@ export class ProxyServer {
   #server: http.Server;
   #port = 0;
 
-  constructor(client: Client) {
+  constructor(client: Client = new Client()) {
     this.#client = client;
     this.#server = http.createServer((req, res) => {
       void this.#handleRequest(req, res);
     });
   }
 
+  setClient(client: Client): void {
+    this.#client = client;
+  }
+
   async #handleRequest(
     incoming: http.IncomingMessage,
     outgoing: http.ServerResponse,
   ): Promise<void> {
+    const client = this.#client;
     try {
       const body = await this.#readBody(incoming);
       const url = new URL(incoming.url ?? "/", "http://localhost");
@@ -84,7 +89,7 @@ export class ProxyServer {
         return;
       }
 
-      await runRequestPipeline(this.#client, proxyReq);
+      await runRequestPipeline(client, proxyReq);
 
       const upstreamUrl = `${KOL_ORIGIN}/${proxyReq.path}${url.search}`;
       // Only forward content-type for POST bodies; let proxySession supply everything else.
@@ -102,12 +107,12 @@ export class ProxyServer {
         redirect: "follow" as const,
       };
 
-      let upstream = await this.#client.proxyFetch(upstreamUrl, fetchOptions);
+      let upstream = await client.proxyFetch(upstreamUrl, fetchOptions);
 
       if (new URL(upstream.url).pathname === "/login.php") {
         debug("session expired, re-logging in");
-        await this.#client.login();
-        upstream = await this.#client.proxyFetch(upstreamUrl, fetchOptions);
+        await client.login();
+        upstream = await client.proxyFetch(upstreamUrl, fetchOptions);
       }
 
       const contentType =
@@ -120,7 +125,7 @@ export class ProxyServer {
         body: isHtml ? upstream.body.toString("utf8") : upstream.body,
       };
 
-      await runResponsePipeline(this.#client, proxyReq, proxyRes);
+      await runResponsePipeline(client, proxyReq, proxyRes);
 
       if (isHtml && typeof proxyRes.body === "string") {
         proxyRes.body = await runDecoratePipeline(proxyReq, proxyRes.body);

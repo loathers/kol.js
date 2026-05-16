@@ -170,8 +170,8 @@ export class Client extends Emittery<Events> {
   #playerId = "";
 
   constructor(
-    username: string,
-    password: string,
+    username: string = "",
+    password: string = "",
     options: { flagsBackend?: FlagsBackend } = {},
   ) {
     super();

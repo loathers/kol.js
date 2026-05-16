@@ -6,15 +6,12 @@ import { initTray, setActiveUsername, setStatus } from "./tray.js";
 
 const PORT = 8080;
 
-let proxy: ProxyServer | null = null;
+const proxy = new ProxyServer();
 
-async function startProxy(username: string, password: string): Promise<Client> {
+async function login(username: string, password: string): Promise<Client> {
   const client = new Client(username, password);
-  const newProxy = new ProxyServer(client);
   await client.login();
-  await newProxy.start(PORT);
-  if (proxy) await proxy.stop();
-  proxy = newProxy;
+  proxy.setClient(client);
   return client;
 }
 
@@ -26,7 +23,7 @@ async function switchAccount(username: string): Promise<void> {
   setStatus("starting", PORT);
 
   try {
-    await startProxy(credentials.username, credentials.password);
+    await login(credentials.username, credentials.password);
     setActiveUsername(credentials.username);
     setStatus("running", PORT);
   } catch (err) {
@@ -37,35 +34,36 @@ async function switchAccount(username: string): Promise<void> {
 
 app.dock?.hide();
 
-await app.whenReady();
+app.on("ready", async () => {
+  initTray(join(__dirname, "../../resources/icon.png"), {
+    onSwitchAccount: switchAccount,
+  });
+  await proxy.start(PORT);
+  setStatus("idle", PORT);
 
-initTray(join(__dirname, "../../resources/icon.png"), {
-  onSwitchAccount: switchAccount,
-});
-setStatus("idle", PORT);
-
-registerInterceptor({
-  path: "login.php",
-  onResponse: async (_client, req, res) => {
-    if (req.method !== "POST") return;
-    const interceptedUsername = req.params.get("loginname");
-    const interceptedPassword = req.params.get("password");
-    if (!interceptedUsername || !interceptedPassword) return;
-    if (typeof res.body === "string" && res.body.includes('name="loginname"'))
-      return;
-    try {
-      const client = await startProxy(interceptedUsername, interceptedPassword);
-      saveAccount(interceptedUsername, client.playerId, interceptedPassword);
-      setActiveUsername(interceptedUsername);
-      setStatus("running", PORT);
-    } catch (err) {
-      console.error("Failed to switch to intercepted account:", err);
-    }
-  },
+  registerInterceptor({
+    path: "login.php",
+    onResponse: async (_client, req, res) => {
+      if (req.method !== "POST") return;
+      const interceptedUsername = req.params.get("loginname");
+      const interceptedPassword = req.params.get("password");
+      if (!interceptedUsername || !interceptedPassword) return;
+      if (typeof res.body === "string" && res.body.includes('name="loginname"'))
+        return;
+      try {
+        const client = await login(interceptedUsername, interceptedPassword);
+        saveAccount(interceptedUsername, client.playerId, interceptedPassword);
+        setActiveUsername(interceptedUsername);
+        setStatus("running", PORT);
+      } catch (err) {
+        console.error("Failed to switch to intercepted account:", err);
+      }
+    },
+  });
 });
 
 app.on("before-quit", async () => {
-  await proxy?.stop();
+  await proxy.stop();
 });
 
 app.on("window-all-closed", () => {

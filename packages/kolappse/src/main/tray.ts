@@ -27,6 +27,13 @@ export function setStatus(status: ProxyStatus, port: number): void {
   tray?.setContextMenu(buildMenu(status, port));
 }
 
+function statusLabel(status: ProxyStatus): string {
+  if (status === "running") return "Open in Browser";
+  if (status === "starting") return "Starting…";
+  if (status === "error") return "Proxy Error";
+  return "Unauthenticated";
+}
+
 function buildMenu(status: ProxyStatus, port: number): Menu {
   const accounts = loadAccounts();
 
@@ -45,19 +52,17 @@ function buildMenu(status: ProxyStatus, port: number): Menu {
       : [];
 
   return Menu.buildFromTemplate([
-    { label: `Kolappse v${app.getVersion()}`, enabled: false },
+    { label: `KoLappse v${app.getVersion()}`, enabled: false },
     { type: "separator" },
     {
-      label:
-        status === "running"
-          ? "Open in Browser"
-          : status === "starting"
-            ? "Starting…"
-            : status === "error"
-              ? "Proxy Error"
-              : "Not Connected",
-      enabled: status === "running",
-      click: () => shell.openExternal(`http://localhost:${port}`),
+      label: statusLabel(status),
+      enabled: status === "running" || status === "idle",
+      click: () =>
+        shell.openExternal(
+          status === "idle"
+            ? `http://localhost:${port}/login.php`
+            : `http://localhost:${port}`,
+        ),
     },
     { type: "separator" },
     {
