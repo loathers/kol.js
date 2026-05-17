@@ -21,6 +21,19 @@ export async function runResponsePipeline(
   }
 }
 
+export async function runHandlePipeline(
+  client: Client,
+  req: ProxyRequest,
+): Promise<ProxyResponse | null> {
+  for (const i of getMatchingInterceptors(req)) {
+    if (i.handle) {
+      const result = await i.handle(client, req);
+      if (result !== null) return result;
+    }
+  }
+  return null;
+}
+
 export async function runDecoratePipeline(
   req: ProxyRequest,
   html: string,

@@ -22,4 +22,8 @@ export interface Interceptor {
     res: ProxyResponse,
   ): void | Promise<void>;
   decorate?(html: string, req: ProxyRequest): string | Promise<string>;
+  handle?(
+    client: Client,
+    req: ProxyRequest,
+  ): ProxyResponse | null | Promise<ProxyResponse | null>;
 }

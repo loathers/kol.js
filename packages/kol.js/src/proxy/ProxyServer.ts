@@ -4,6 +4,7 @@ import * as http from "node:http";
 import { Client } from "../Client.js";
 import {
   runDecoratePipeline,
+  runHandlePipeline,
   runRequestPipeline,
   runResponsePipeline,
 } from "./pipeline.js";
@@ -90,6 +91,14 @@ export class ProxyServer {
       }
 
       await runRequestPipeline(client, proxyReq);
+
+      const handled = await runHandlePipeline(client, proxyReq);
+      if (handled !== null) {
+        outgoing.statusCode = handled.status;
+        outgoing.setHeader("content-type", handled.contentType);
+        outgoing.end(handled.body);
+        return;
+      }
 
       const upstreamUrl = `${KOL_ORIGIN}/${proxyReq.path}${url.search}`;
       // Only forward content-type for POST bodies; let proxySession supply everything else.

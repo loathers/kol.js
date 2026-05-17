@@ -1,0 +1,72 @@
+/* Design tokens — scoped to the React root element */
+.klp-root {
+  height: 100vh;
+  --klp-bg: #1e1e2e;
+  --klp-surface: #313244;
+  --klp-surface-hover: #3d3f52;
+  --klp-border: #45475a;
+  --klp-text: #cdd6f4;
+  --klp-text-muted: #6c7086;
+  --klp-accent: #cba6f7;
+  --klp-danger: #f38ba8;
+  --klp-radius: 8px;
+  --klp-radius-sm: 4px;
+  --klp-font: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --klp-font-mono: "SF Mono", "Fira Code", monospace;
+  --klp-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4);
+
+  font-family: var(--klp-font);
+  color: var(--klp-text);
+  font-size: 14px;
+}
+
+/* cmdk uses data attributes — must be global */
+[cmdk-input] {
+  font-family: var(--klp-font);
+  font-size: 15px;
+  width: 100%;
+  padding: 14px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--klp-border);
+  color: var(--klp-text);
+  outline: none;
+  box-sizing: border-box;
+}
+
+[cmdk-input]::placeholder {
+  color: var(--klp-text-muted);
+}
+
+[cmdk-list] {
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+[cmdk-empty] {
+  padding: 20px;
+  text-align: center;
+  font-family: var(--klp-font);
+  font-size: 13px;
+  color: var(--klp-text-muted);
+}
+
+[cmdk-item] {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--klp-radius-sm);
+  cursor: pointer;
+  font-family: var(--klp-font);
+  font-size: 14px;
+  color: var(--klp-text);
+  transition: background 80ms;
+  user-select: none;
+}
+
+[cmdk-item][aria-selected="true"] {
+  background: var(--klp-surface-hover);
+  color: var(--klp-accent);
+}

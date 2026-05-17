@@ -1,0 +1,27 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.appTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--klp-accent);
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.line {
+  font-size: 13px;
+  color: var(--klp-text-muted);
+}
+
+.line span {
+  color: var(--klp-text);
+  font-family: var(--klp-font-mono);
+}

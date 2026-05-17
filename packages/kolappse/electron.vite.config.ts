@@ -1,5 +1,14 @@
+import { execSync } from "child_process";
 import { resolve } from "path";
 import { defineConfig, externalizeDepsPlugin } from "electron-vite";
+
+const commitHash = (() => {
+  try {
+    return execSync("git rev-parse --short HEAD").toString().trim();
+  } catch {
+    return "unknown";
+  }
+})();
 
 const kolJsSrc = resolve(__dirname, "../kol.js/src");
 
@@ -25,6 +34,9 @@ export default defineConfig({
           index: resolve(__dirname, "src/main/index.ts"),
         },
       },
+    },
+    define: {
+      __COMMIT_HASH__: JSON.stringify(commitHash),
     },
   },
   preload: {

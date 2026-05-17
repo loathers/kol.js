@@ -1,0 +1,20 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999998;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+}
+
+.palette {
+  background: var(--klp-bg);
+  border: 1px solid var(--klp-border);
+  border-radius: var(--klp-radius);
+  box-shadow: var(--klp-shadow);
+  width: 560px;
+  max-width: calc(100vw - 32px);
+  overflow: hidden;
+}

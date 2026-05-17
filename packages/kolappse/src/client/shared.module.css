@@ -1,0 +1,10 @@
+.status {
+  font-size: 13px;
+  color: var(--klp-text-muted);
+  padding: 12px 0;
+  text-align: center;
+}
+
+.error {
+  color: var(--klp-danger);
+}

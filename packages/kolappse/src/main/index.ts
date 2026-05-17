@@ -3,6 +3,10 @@ import { app } from "electron";
 import { Client, ProxyServer, registerInterceptor } from "kol.js";
 import { decryptAccount, loadAccounts, saveAccount } from "./credentials.js";
 import { initTray, setActiveUsername, setStatus } from "./tray.js";
+import { registerDecorator } from "./decorator.js";
+import { registerApiHandlers } from "./api.js";
+
+declare const __COMMIT_HASH__: string;
 
 const PORT = 8080;
 
@@ -35,6 +39,9 @@ async function switchAccount(username: string): Promise<void> {
 app.dock?.hide();
 
 app.on("ready", async () => {
+  registerDecorator(app.getVersion(), __COMMIT_HASH__);
+  registerApiHandlers();
+
   initTray(join(__dirname, "../../resources/icon.png"), {
     onSwitchAccount: switchAccount,
   });
