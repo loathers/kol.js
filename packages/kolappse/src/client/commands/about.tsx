@@ -1,32 +1,30 @@
-import { Modal } from "../components/Modal";
 import styles from "./about.module.css";
 import { registerCommand } from "./registry";
 
-type AboutDialogProps = { onClose(): void };
+type AboutViewProps = { onClose(): void };
 
-export function AboutDialog({ onClose }: AboutDialogProps) {
+export function AboutView({ onClose: _ }: AboutViewProps) {
   return (
-    <Modal title="About kolappse" onClose={onClose}>
-      <div className={styles.root}>
-        <div className={styles.appTitle}>kolappse</div>
-        <div className={styles.meta}>
-          <div className={styles.line}>
-            Version <span>{window.__KOLAPPSE_VERSION__ ?? "unknown"}</span>
-          </div>
-          <div className={styles.line}>
-            Commit <span>{window.__KOLAPPSE_COMMIT__ ?? "unknown"}</span>
-          </div>
+    <div className={styles.root}>
+      <div className={styles.appTitle}>kolappse</div>
+      <div className={styles.meta}>
+        <div className={styles.line}>
+          Version <span>{window.__KOLAPPSE_VERSION__ ?? "unknown"}</span>
+        </div>
+        <div className={styles.line}>
+          Commit <span>{window.__KOLAPPSE_COMMIT__ ?? "unknown"}</span>
         </div>
       </div>
-    </Modal>
+    </div>
   );
 }
 
-export function registerAboutCommand(openDialog: (id: string) => void): void {
+export function registerAboutCommand(): void {
   registerCommand({
     id: "about",
     label: "About kolappse",
+    icon: "★",
     keywords: ["version", "info"],
-    action: () => openDialog("about"),
+    view: AboutView,
   });
 }

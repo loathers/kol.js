@@ -22,6 +22,7 @@ function error(status: number, message: string): ProxyResponse {
 const palettePath = join(__dirname, "../../resources/palette.js");
 
 export function registerApiHandlers(): void {
+
   registerInterceptor({
     matches: (req) => req.path === "_kolappse/palette.js",
     async handle() {

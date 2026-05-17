@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { DataTable } from "../components/DataTable";
-import { Modal } from "../components/Modal";
 import shared from "../shared.module.css";
 import { registerCommand } from "./registry";
 
@@ -13,9 +12,9 @@ type FlagsSnapshot = {
   permanent: Record<string, unknown>;
 };
 
-type FlagsDialogProps = { onClose(): void };
+type FlagsViewProps = { onClose(): void };
 
-export function FlagsDialog({ onClose }: FlagsDialogProps) {
+export function FlagsView({ onClose: _ }: FlagsViewProps) {
   const [data, setData] = useState<FlagsSnapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,30 +27,26 @@ export function FlagsDialog({ onClose }: FlagsDialogProps) {
       );
   }, []);
 
+  if (error) return <div className={`${shared.status} ${shared.error}`}>{error}</div>;
+  if (!data) return <div className={shared.status}>Loading…</div>;
+
   return (
-    <Modal title="Flag Explorer" onClose={onClose}>
-      {error ? (
-        <div className={`${shared.status} ${shared.error}`}>{error}</div>
-      ) : !data ? (
-        <div className={shared.status}>Loading…</div>
-      ) : (
-        <DataTable
-          groups={[
-            { label: `Daily — day ${data.daynumber}`, rows: Object.entries(data.daily).map(([key, value]) => ({ key, value })) },
-            { label: `Ascension — #${data.ascensions}`, rows: Object.entries(data.ascension).map(([key, value]) => ({ key, value })) },
-            { label: "Permanent", rows: Object.entries(data.permanent).map(([key, value]) => ({ key, value })) },
-          ]}
-        />
-      )}
-    </Modal>
+    <DataTable
+      groups={[
+        { label: `Daily - day ${data.daynumber}`, rows: Object.entries(data.daily).map(([key, value]) => ({ key, value })) },
+        { label: `Ascension - #${data.ascensions}`, rows: Object.entries(data.ascension).map(([key, value]) => ({ key, value })) },
+        { label: "Permanent", rows: Object.entries(data.permanent).map(([key, value]) => ({ key, value })) },
+      ]}
+    />
   );
 }
 
-export function registerFlagsCommand(openDialog: (id: string) => void): void {
+export function registerFlagsCommand(): void {
   registerCommand({
     id: "flags",
     label: "Flag Explorer",
+    icon: "F",
     keywords: ["flags", "daily", "ascension", "permanent", "debug"],
-    action: () => openDialog("flags"),
+    view: FlagsView,
   });
 }

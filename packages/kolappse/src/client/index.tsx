@@ -12,6 +12,7 @@ declare global {
   }
 }
 
+
 if (!window.__klp_loaded__) {
   window.__klp_loaded__ = true;
 

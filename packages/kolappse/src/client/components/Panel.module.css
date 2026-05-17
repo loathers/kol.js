@@ -1,31 +1,28 @@
-.backdrop {
+.panel {
   position: fixed;
-  inset: 0;
-  z-index: 999999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal {
+  top: 15vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 520px;
+  max-width: calc(100vw - 48px);
+  min-width: 280px;
+  min-height: 120px;
+  max-height: calc(85vh - 16px);
   background: var(--klp-bg);
   border: 1px solid var(--klp-border);
   border-radius: var(--klp-radius);
   box-shadow: var(--klp-shadow);
-  width: 520px;
-  max-width: calc(100vw - 48px);
-  max-height: calc(100vh - 96px);
   display: flex;
   flex-direction: column;
+  resize: both;
   overflow: hidden;
-  position: relative;
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--klp-border);
   cursor: move;
   user-select: none;
@@ -33,24 +30,29 @@
 }
 
 .title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--klp-text);
 }
 
-.close {
+.controls {
+  display: flex;
+  gap: 4px;
+}
+
+.btn {
   background: none;
   border: none;
   cursor: pointer;
   color: var(--klp-text-muted);
   padding: 2px 6px;
   border-radius: var(--klp-radius-sm);
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1;
   transition: color 80ms;
 }
 
-.close:hover {
+.btn:hover {
   color: var(--klp-text);
 }
 
@@ -59,4 +61,5 @@
   padding: 16px;
   flex: 1;
   font-size: 13px;
+  min-height: 0;
 }

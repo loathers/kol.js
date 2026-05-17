@@ -2043,6 +2043,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"entities@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "entities@npm:8.0.0"
+  checksum: 10c0/938e631664c19451823344a351aeeafd74fae2d5fa51e4d5b6ff635afaefd4bacf0f609989888c04c42733f46ffdac15211608267ebb02488005891a4793e94d
+  languageName: node
+  linkType: hard
+
 "env-paths@npm:^2.2.0":
   version: 2.2.1
   resolution: "env-paths@npm:2.2.1"
@@ -2840,6 +2847,7 @@ __metadata:
     cmdk: "npm:^1.1.1"
     electron: "npm:^35.0.0"
     electron-vite: "npm:6.0.0-beta.1"
+    entities: "npm:^8.0.0"
     kol.js: "workspace:*"
     react: "npm:^19.2.6"
     react-dom: "npm:^19.2.6"

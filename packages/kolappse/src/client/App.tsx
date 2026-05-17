@@ -1,35 +1,94 @@
-import { useState } from "react";
-import { registerAboutCommand, AboutDialog } from "./commands/about";
-import { registerFlagsCommand, FlagsDialog } from "./commands/flags";
-import { registerInventoryCommand, InventoryDialog } from "./commands/inventory";
+import { useState, type ComponentType } from "react";
+import { registerAboutCommand } from "./commands/about";
+import { registerFlagsCommand } from "./commands/flags";
+import { registerInventoryCommand } from "./commands/inventory";
 import { CommandPalette } from "./components/CommandPalette";
+import { Dock } from "./components/Dock";
+import { Panel, type PanelRect } from "./components/Panel";
 import { GameLayout } from "./GameLayout";
 
-type DialogId = "about" | "flags" | "inventory" | null;
+type PanelState = {
+  id: string;
+  title: string;
+  icon?: string;
+  View: ComponentType<{ onClose(): void }>;
+  zIndex: number;
+  minimized: boolean;
+  savedRect?: PanelRect;
+};
 
 let commandsRegistered = false;
 
 export default function App() {
-  const [dialog, setDialog] = useState<DialogId>(null);
+  const [panels, setPanels] = useState<PanelState[]>([]);
 
   if (!commandsRegistered) {
     commandsRegistered = true;
-    registerAboutCommand(setDialog as (id: string) => void);
-    registerFlagsCommand(setDialog as (id: string) => void);
-    registerInventoryCommand(setDialog as (id: string) => void);
+    registerAboutCommand();
+    registerFlagsCommand();
+    registerInventoryCommand();
   }
 
-  function closeDialog() {
-    setDialog(null);
+  function openPanel(title: string, View: ComponentType<{ onClose(): void }>, icon?: string) {
+    const id = `panel-${Date.now()}`;
+    setPanels((prev) => {
+      const maxZ = prev.reduce((m, p) => Math.max(m, p.zIndex), 999);
+      return [...prev, { id, title, icon, View, zIndex: maxZ + 1, minimized: false }];
+    });
   }
+
+  function closePanel(id: string) {
+    setPanels((prev) => prev.filter((p) => p.id !== id));
+  }
+
+  function focusPanel(id: string) {
+    setPanels((prev) => {
+      const maxZ = prev.reduce((m, p) => Math.max(m, p.zIndex), 999);
+      return prev.map((p) => (p.id === id ? { ...p, zIndex: maxZ + 1 } : p));
+    });
+  }
+
+  function minimizePanel(id: string, rect: PanelRect) {
+    setPanels((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, minimized: true, savedRect: rect } : p)),
+    );
+  }
+
+  function restorePanel(id: string) {
+    setPanels((prev) => {
+      const maxZ = prev.reduce((m, p) => Math.max(m, p.zIndex), 999);
+      return prev.map((p) =>
+        p.id === id ? { ...p, minimized: false, zIndex: maxZ + 1 } : p,
+      );
+    });
+  }
+
+  const visible = panels.filter((p) => !p.minimized);
+  const docked = panels.filter((p) => p.minimized);
 
   return (
     <>
       <GameLayout />
-      <CommandPalette onAction={closeDialog} />
-      {dialog === "about" && <AboutDialog onClose={closeDialog} />}
-      {dialog === "flags" && <FlagsDialog onClose={closeDialog} />}
-      {dialog === "inventory" && <InventoryDialog onClose={closeDialog} />}
+      <CommandPalette onPopOut={openPanel} />
+      {visible.map((p) => (
+        <Panel
+          key={p.id}
+          id={p.id}
+          title={p.title}
+          icon={p.icon}
+          View={p.View}
+          zIndex={p.zIndex}
+          initialRect={p.savedRect}
+          onClose={() => closePanel(p.id)}
+          onFocus={() => focusPanel(p.id)}
+          onMinimize={(rect) => minimizePanel(p.id, rect)}
+        />
+      ))}
+      <Dock
+        items={docked}
+        onRestore={restorePanel}
+        onClose={closePanel}
+      />
     </>
   );
 }

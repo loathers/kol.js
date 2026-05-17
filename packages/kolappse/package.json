@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "cmdk": "^1.1.1",
+    "entities": "^8.0.0",
     "kol.js": "workspace:*",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
