@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+
 import { DataTable } from "../components/DataTable";
 import shared from "../shared.module.css";
 import { registerCommand } from "./registry";
@@ -27,15 +28,34 @@ export function FlagsView({ onClose: _ }: FlagsViewProps) {
       );
   }, []);
 
-  if (error) return <div className={`${shared.status} ${shared.error}`}>{error}</div>;
+  if (error)
+    return <div className={`${shared.status} ${shared.error}`}>{error}</div>;
   if (!data) return <div className={shared.status}>Loading…</div>;
 
   return (
     <DataTable
       groups={[
-        { label: `Daily - day ${data.daynumber}`, rows: Object.entries(data.daily).map(([key, value]) => ({ key, value })) },
-        { label: `Ascension - #${data.ascensions}`, rows: Object.entries(data.ascension).map(([key, value]) => ({ key, value })) },
-        { label: "Permanent", rows: Object.entries(data.permanent).map(([key, value]) => ({ key, value })) },
+        {
+          label: `Daily - day ${data.daynumber}`,
+          rows: Object.entries(data.daily).map(([key, value]) => ({
+            key,
+            value,
+          })),
+        },
+        {
+          label: `Ascension - #${data.ascensions}`,
+          rows: Object.entries(data.ascension).map(([key, value]) => ({
+            key,
+            value,
+          })),
+        },
+        {
+          label: "Permanent",
+          rows: Object.entries(data.permanent).map(([key, value]) => ({
+            key,
+            value,
+          })),
+        },
       ]}
     />
   );

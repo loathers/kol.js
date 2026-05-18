@@ -10,7 +10,7 @@
     "build": "yarn workspace kol.js build",
     "test": "yarn workspace kol.js test",
     "lint": "yarn workspace kol.js lint",
-    "format": "yarn workspace kol.js format",
+    "format": "yarn workspace kol.js format && yarn workspace kolappse format",
     "prepare": "husky"
   },
   "lint-staged": {

@@ -1,0 +1,64 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.account {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 10px;
+  border-radius: var(--klp-radius-sm);
+  background: var(--klp-surface);
+  border: none;
+  font-family: var(--klp-font);
+  font-size: 13px;
+  color: var(--klp-text);
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition:
+    background 80ms,
+    color 80ms;
+  user-select: none;
+}
+
+.account:hover:not(:disabled) {
+  background: var(--klp-surface-hover);
+  color: var(--klp-accent);
+}
+
+.account:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.name {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.playerId {
+  font-size: 11px;
+  color: var(--klp-text-muted);
+  font-family: var(--klp-font-mono);
+}
+
+.account:hover:not(:disabled) .playerId {
+  color: var(--klp-accent);
+  opacity: 0.7;
+}
+
+.lastLogin {
+  font-size: 11px;
+  color: var(--klp-text-muted);
+  white-space: nowrap;
+}
+
+.account:hover:not(:disabled) .lastLogin {
+  color: var(--klp-accent);
+  opacity: 0.7;
+}

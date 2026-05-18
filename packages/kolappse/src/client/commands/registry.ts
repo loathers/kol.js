@@ -9,12 +9,17 @@ export type Command = {
   keywords?: string[];
   /** Present when the command works without an active session. Omit for commands that need a logged-in client. */
   unauthenticated?: true;
-} & ({ action(): void | Promise<void>; view?: never } | { view: CommandView; action?: never });
+} & (
+  | { action(): void | Promise<void>; view?: never }
+  | { view: CommandView; action?: never }
+);
 
 const commands: Command[] = [];
 
 export function registerCommand(cmd: Command): void {
-  commands.push(cmd);
+  const idx = commands.findIndex((c) => c.id === cmd.id);
+  if (idx >= 0) commands.splice(idx, 1, cmd);
+  else commands.push(cmd);
 }
 
 export function getCommands(authed: boolean): Command[] {

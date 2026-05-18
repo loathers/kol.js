@@ -1,7 +1,8 @@
-import "./palette.css";
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
+
 import App from "./App";
+import "./palette.css";
 
 declare global {
   interface Window {
@@ -11,7 +12,6 @@ declare global {
     __KOLAPPSE_COMMIT__?: string;
   }
 }
-
 
 if (!window.__klp_loaded__) {
   window.__klp_loaded__ = true;

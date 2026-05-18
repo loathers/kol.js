@@ -1,4 +1,5 @@
 import type { ComponentType } from "react";
+
 import styles from "./Dock.module.css";
 
 type DockItem = {
@@ -20,13 +21,20 @@ export function Dock({ items, onRestore, onClose }: DockProps) {
   return (
     <div className={styles.dock}>
       {items.map((item) => (
-        <div key={item.id} className={styles.chip} onClick={() => onRestore(item.id)}>
+        <div
+          key={item.id}
+          className={styles.chip}
+          onClick={() => onRestore(item.id)}
+        >
           {item.icon && <span className={styles.icon}>{item.icon}</span>}
           <span className={styles.label}>{item.title}</span>
           <button
             className={styles.close}
             title="Close"
-            onClick={(e) => { e.stopPropagation(); onClose(item.id); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose(item.id);
+            }}
           >
             x
           </button>

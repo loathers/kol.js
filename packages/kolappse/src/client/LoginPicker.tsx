@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
-import styles from "./LoginPicker.module.css";
 
-type Account = { username: string; playerId: string };
+import styles from "./LoginPicker.module.css";
+import { formatLastLogin } from "./utils/formatLastLogin";
+
+type Account = { username: string; playerId: string; lastLoginAt?: string };
 
 export function LoginPicker() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loggingIn, setLoggingIn] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string>("");
+  const [loggingIn, setLoggingIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -14,6 +17,7 @@ export function LoginPicker() {
       .then((r) => r.json())
       .then((data: Account[]) => {
         setAccounts(data);
+        if (data.length > 0) setSelected(data[0].username);
         setLoading(false);
       })
       .catch(() => {
@@ -21,25 +25,23 @@ export function LoginPicker() {
       });
   }, []);
 
-  async function handleLogin(username: string) {
-    setLoggingIn(username);
+  async function handleLogin() {
+    if (!selected) return;
+    setLoggingIn(true);
     setError(null);
     try {
-      const body = new URLSearchParams({ username });
-      const res = await fetch("/_kolappse/api/login", {
-        method: "POST",
-        body,
-      });
+      const body = new URLSearchParams({ username: selected });
+      const res = await fetch("/_kolappse/api/login", { method: "POST", body });
       if (res.ok) {
         window.location.href = "/";
       } else {
         const data = await res.json();
         setError(data.error ?? "Login failed");
-        setLoggingIn(null);
+        setLoggingIn(false);
       }
     } catch {
       setError("Login failed");
-      setLoggingIn(null);
+      setLoggingIn(false);
     }
   }
 
@@ -47,22 +49,35 @@ export function LoginPicker() {
 
   return (
     <div className={styles.root}>
-      <div className={styles.header}><span className={styles.headerLabel}>Saved Accounts</span></div>
-      <div className={styles.list}>
-        {accounts.map((a) => (
-          <button
-            key={a.username}
-            className={styles.account}
-            disabled={loggingIn !== null}
-            onClick={() => handleLogin(a.username)}
-          >
-            <span className={styles.username}>
-              {loggingIn === a.username ? "Logging in…" : a.username}
-            </span>
-            <span className={styles.playerId}>#{a.playerId}</span>
-          </button>
-        ))}
-        {error && <div className={`${styles.status} ${styles.error}`}>{error}</div>}
+      <div className={styles.header}>
+        <span className={styles.headerLabel}>Saved Accounts</span>
+      </div>
+      <div className={styles.body}>
+        <select
+          className={styles.select}
+          value={selected}
+          onChange={(e) => setSelected(e.target.value)}
+          disabled={loggingIn}
+        >
+          {accounts.map((a) => {
+            const lastLogin = formatLastLogin(a.lastLoginAt);
+            return (
+              <option key={a.username} value={a.username}>
+                {a.username} (#{a.playerId}){lastLogin ? ` · ${lastLogin}` : ""}
+              </option>
+            );
+          })}
+        </select>
+        <button
+          className={styles.loginButton}
+          disabled={loggingIn}
+          onClick={handleLogin}
+        >
+          {loggingIn ? "Logging in…" : "Log In"}
+        </button>
+        {error && (
+          <div className={`${styles.status} ${styles.error}`}>{error}</div>
+        )}
       </div>
     </div>
   );

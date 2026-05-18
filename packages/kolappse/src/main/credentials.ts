@@ -1,11 +1,12 @@
+import { app, safeStorage } from "electron";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { app, safeStorage } from "electron";
 
 export interface StoredAccount {
   username: string;
   playerId: string;
   encryptedPassword: string;
+  lastLoginAt?: string;
 }
 
 function accountsPath() {
@@ -31,7 +32,12 @@ export function saveAccount(
     .encryptString(password)
     .toString("base64");
   const accounts = loadAccounts().filter((a) => a.username !== username);
-  accounts.unshift({ username, playerId, encryptedPassword });
+  accounts.unshift({
+    username,
+    playerId,
+    encryptedPassword,
+    lastLoginAt: new Date().toISOString(),
+  });
   writeFileSync(accountsPath(), JSON.stringify(accounts));
 }
 

@@ -1,3 +1,6 @@
+// @ts-ignore — /@react-refresh is a Vite virtual module, not a real package
+import RefreshRuntime from "/@react-refresh";
+
 // Dev-only entry used when the Vite dev server is running.
 // Installs React Fast Refresh before the main entry loads — this is what
 // Vite's HTML transform normally injects, but we load the entry directly
@@ -11,8 +14,6 @@ declare global {
   }
 }
 
-// @ts-ignore — /@react-refresh is a Vite virtual module, not a real package
-import RefreshRuntime from "/@react-refresh";
 RefreshRuntime.injectIntoGlobalHook(window);
 window.$RefreshReg$ = () => {};
 window.$RefreshSig$ = () => (type) => type;

@@ -1,10 +1,16 @@
+import { decodeHTML } from "entities";
 import { useEffect, useMemo, useState } from "react";
+
 import shared from "../shared.module.css";
 import styles from "./inventory.module.css";
 import { registerCommand } from "./registry";
-import { decodeHTML } from "entities";
 
-type InventoryItem = { id: number; name: string; image: string; quantity: number };
+type InventoryItem = {
+  id: number;
+  name: string;
+  image: string;
+  quantity: number;
+};
 
 type InventoryViewProps = { onClose(): void };
 
@@ -16,7 +22,9 @@ export function InventoryView({ onClose: _ }: InventoryViewProps) {
   useEffect(() => {
     fetch("/_kolappse/api/inventory")
       .then((r) => r.json() as Promise<InventoryItem[]>)
-      .then((data) => setItems(data.sort((a, b) => a.name.localeCompare(b.name))))
+      .then((data) =>
+        setItems(data.sort((a, b) => a.name.localeCompare(b.name))),
+      )
       .catch((e: unknown) =>
         setError(e instanceof Error ? e.message : "Failed to load inventory"),
       );
@@ -28,7 +36,8 @@ export function InventoryView({ onClose: _ }: InventoryViewProps) {
     return q ? items.filter((i) => i.name.toLowerCase().includes(q)) : items;
   }, [items, query]);
 
-  if (error) return <div className={`${shared.status} ${shared.error}`}>{error}</div>;
+  if (error)
+    return <div className={`${shared.status} ${shared.error}`}>{error}</div>;
   if (!items) return <div className={shared.status}>Loading…</div>;
 
   return (
@@ -51,7 +60,9 @@ export function InventoryView({ onClose: _ }: InventoryViewProps) {
           <span className={styles.itemQty}>x {item.quantity}</span>
         </div>
       ))}
-      {filtered.length === 0 && <div className={shared.status}>No items match.</div>}
+      {filtered.length === 0 && (
+        <div className={shared.status}>No items match.</div>
+      )}
     </div>
   );
 }

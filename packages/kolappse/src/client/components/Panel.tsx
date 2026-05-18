@@ -1,7 +1,13 @@
-import { useRef, type ComponentType } from "react";
+import { type ComponentType, useRef } from "react";
+
 import styles from "./Panel.module.css";
 
-export type PanelRect = { top: number; left: number; width: number; height: number };
+export type PanelRect = {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+};
 
 type PanelProps = {
   id: string;
@@ -15,7 +21,15 @@ type PanelProps = {
   onMinimize(rect: PanelRect): void;
 };
 
-export function Panel({ title, View, zIndex, initialRect, onClose, onFocus, onMinimize }: PanelProps) {
+export function Panel({
+  title,
+  View,
+  zIndex,
+  initialRect,
+  onClose,
+  onFocus,
+  onMinimize,
+}: PanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
 
   function onMouseDown(e: React.MouseEvent) {
@@ -43,13 +57,29 @@ export function Panel({ title, View, zIndex, initialRect, onClose, onFocus, onMi
     const rect = panelRef.current?.getBoundingClientRect();
     onMinimize(
       rect
-        ? { top: rect.top, left: rect.left, width: rect.width, height: rect.height }
-        : { top: window.innerHeight * 0.15, left: (window.innerWidth - 520) / 2, width: 520, height: 400 },
+        ? {
+            top: rect.top,
+            left: rect.left,
+            width: rect.width,
+            height: rect.height,
+          }
+        : {
+            top: window.innerHeight * 0.15,
+            left: (window.innerWidth - 520) / 2,
+            width: 520,
+            height: 400,
+          },
     );
   }
 
   const placedStyle: React.CSSProperties = initialRect
-    ? { top: initialRect.top, left: initialRect.left, width: initialRect.width, height: initialRect.height, transform: "none" }
+    ? {
+        top: initialRect.top,
+        left: initialRect.left,
+        width: initialRect.width,
+        height: initialRect.height,
+        transform: "none",
+      }
     : {};
 
   return (
@@ -62,8 +92,16 @@ export function Panel({ title, View, zIndex, initialRect, onClose, onFocus, onMi
       <div className={styles.header} onMouseDown={onMouseDown}>
         <span className={styles.title}>{title}</span>
         <div className={styles.controls}>
-          <button className={styles.btn} onClick={handleMinimize} title="Minimize">_</button>
-          <button className={styles.btn} onClick={onClose} title="Close">x</button>
+          <button
+            className={styles.btn}
+            onClick={handleMinimize}
+            title="Minimize"
+          >
+            _
+          </button>
+          <button className={styles.btn} onClick={onClose} title="Close">
+            x
+          </button>
         </div>
       </div>
       <div className={styles.body}>

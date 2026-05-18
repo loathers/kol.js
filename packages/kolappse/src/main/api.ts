@@ -1,7 +1,8 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 import { registerInterceptor } from "kol.js";
 import type { ProxyResponse } from "kol.js";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+
 import { loadAccounts } from "./credentials.js";
 
 function json(data: unknown): ProxyResponse {
@@ -25,7 +26,6 @@ const kolappsePath = join(__dirname, "../../resources/kolappse.js");
 export function registerApiHandlers(options: {
   onLogin: (username: string) => Promise<void>;
 }): void {
-
   registerInterceptor({
     matches: (req) => req.path === "_kolappse/kolappse.js",
     async handle() {
@@ -36,7 +36,6 @@ export function registerApiHandlers(options: {
       };
     },
   });
-
 
   registerInterceptor({
     matches: (req) => req.path === "_kolappse/api/flags",
@@ -49,8 +48,19 @@ export function registerApiHandlers(options: {
     matches: (req) => req.path === "_kolappse/api/accounts",
     handle() {
       return json(
-        loadAccounts().map(({ username, playerId }) => ({ username, playerId })),
+        loadAccounts().map(({ username, playerId, lastLoginAt }) => ({
+          username,
+          playerId,
+          lastLoginAt,
+        })),
       );
+    },
+  });
+
+  registerInterceptor({
+    matches: (req) => req.path === "_kolappse/api/me",
+    async handle(client) {
+      return json({ username: client.username, playerId: client.playerId });
     },
   });
 

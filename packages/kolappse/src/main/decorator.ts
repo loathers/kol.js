@@ -4,11 +4,16 @@ function clientScript(): string {
   const modules = [];
   if (import.meta.env.DEV) {
     const DEV_SERVER_URL = "http://localhost:5174";
-    modules.push(`${DEV_SERVER_URL}/@vite/client`, `${DEV_SERVER_URL}/hmr-entry.ts`);
+    modules.push(
+      `${DEV_SERVER_URL}/@vite/client`,
+      `${DEV_SERVER_URL}/hmr-entry.ts`,
+    );
   } else {
     modules.push("/_kolappse/kolappse.js");
   }
-  return modules.map((module) => `<script type="module" src="${module}"></script>`).join("\n");
+  return modules
+    .map((module) => `<script type="module" src="${module}"></script>`)
+    .join("\n");
 }
 
 export function registerDecorator(version: string, commitHash: string): void {

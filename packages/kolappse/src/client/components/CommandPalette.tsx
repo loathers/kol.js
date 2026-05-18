@@ -1,5 +1,6 @@
 import { Command } from "cmdk";
-import { useEffect, useState, type ComponentType } from "react";
+import { type ComponentType, useEffect, useState } from "react";
+
 import { getCommands } from "../commands/registry";
 import styles from "./CommandPalette.module.css";
 
@@ -10,7 +11,11 @@ type Layer = {
 };
 
 type CommandPaletteProps = {
-  onPopOut(title: string, View: ComponentType<{ onClose(): void }>, icon?: string): void;
+  onPopOut(
+    title: string,
+    View: ComponentType<{ onClose(): void }>,
+    icon?: string,
+  ): void;
 };
 
 export function CommandPalette({ onPopOut }: CommandPaletteProps) {
@@ -69,9 +74,19 @@ export function CommandPalette({ onPopOut }: CommandPaletteProps) {
         {activeLayer ? (
           <>
             <div className={styles.breadcrumb}>
-              <button className={styles.back} onClick={popLayer}>&lt; Back</button>
-              <span className={styles.breadcrumbTitle}>{activeLayer.title}</span>
-              <button className={styles.popOut} onClick={popOut} title="Pop out">Pop out</button>
+              <button className={styles.back} onClick={popLayer}>
+                &lt; Back
+              </button>
+              <span className={styles.breadcrumbTitle}>
+                {activeLayer.title}
+              </span>
+              <button
+                className={styles.popOut}
+                onClick={popOut}
+                title="Pop out"
+              >
+                Pop out
+              </button>
             </div>
             <div className={styles.viewBody}>
               <activeLayer.View onClose={close} />
@@ -82,13 +97,19 @@ export function CommandPalette({ onPopOut }: CommandPaletteProps) {
             <Command.Input placeholder="Type a command..." autoFocus />
             <Command.List>
               <Command.Empty>No results found.</Command.Empty>
-              {getCommands(!window.location.pathname.startsWith("/login.php")).map((cmd) => (
+              {getCommands(
+                !window.location.pathname.startsWith("/login.php"),
+              ).map((cmd) => (
                 <Command.Item
                   key={cmd.id}
                   value={[cmd.label, ...(cmd.keywords ?? [])].join(" ")}
                   onSelect={() => {
                     if (cmd.view) {
-                      pushLayer({ title: cmd.label, icon: cmd.icon, View: cmd.view });
+                      pushLayer({
+                        title: cmd.label,
+                        icon: cmd.icon,
+                        View: cmd.view,
+                      });
                     } else if (cmd.action) {
                       close();
                       void cmd.action();

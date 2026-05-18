@@ -1,14 +1,16 @@
-import { useRef, useState, type ComponentType } from "react";
+import { type ComponentType, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+
+import { GameLayout } from "./GameLayout";
+import "./blocks/loginBlock.js";
+import { type Block, getMatchingBlocks } from "./blocks/registry";
 import { registerAboutCommand } from "./commands/about";
 import { registerFlagsCommand } from "./commands/flags";
 import { registerInventoryCommand } from "./commands/inventory";
-import "./blocks/loginBlock.js";
+import { registerSwitchAccountCommand } from "./commands/switchAccount";
 import { CommandPalette } from "./components/CommandPalette";
 import { Dock } from "./components/Dock";
 import { Panel, type PanelRect } from "./components/Panel";
-import { type Block, getMatchingBlocks } from "./blocks/registry";
-import { GameLayout } from "./GameLayout";
 
 type PanelState = {
   id: string;
@@ -51,13 +53,21 @@ export default function App() {
     registerAboutCommand();
     registerFlagsCommand();
     registerInventoryCommand();
+    registerSwitchAccountCommand();
   }
 
-  function openPanel(title: string, View: ComponentType<{ onClose(): void }>, icon?: string) {
+  function openPanel(
+    title: string,
+    View: ComponentType<{ onClose(): void }>,
+    icon?: string,
+  ) {
     const id = `panel-${Date.now()}`;
     setPanels((prev) => {
       const maxZ = prev.reduce((m, p) => Math.max(m, p.zIndex), 999);
-      return [...prev, { id, title, icon, View, zIndex: maxZ + 1, minimized: false }];
+      return [
+        ...prev,
+        { id, title, icon, View, zIndex: maxZ + 1, minimized: false },
+      ];
     });
   }
 
@@ -74,7 +84,9 @@ export default function App() {
 
   function minimizePanel(id: string, rect: PanelRect) {
     setPanels((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, minimized: true, savedRect: rect } : p)),
+      prev.map((p) =>
+        p.id === id ? { ...p, minimized: true, savedRect: rect } : p,
+      ),
     );
   }
 
@@ -111,11 +123,7 @@ export default function App() {
           onMinimize={(rect) => minimizePanel(p.id, rect)}
         />
       ))}
-      <Dock
-        items={docked}
-        onRestore={restorePanel}
-        onClose={closePanel}
-      />
+      <Dock items={docked} onRestore={restorePanel} onClose={closePanel} />
       {pageBlocks.map((b, i) => (
         <BlockPortal key={i} block={b} />
       ))}

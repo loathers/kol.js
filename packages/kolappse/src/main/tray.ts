@@ -1,4 +1,4 @@
-import { app, Menu, nativeImage, shell, Tray } from "electron";
+import { Menu, Tray, app, nativeImage, shell } from "electron";
 import type { Client } from "kol.js";
 
 export type ProxyStatus = "idle" | "starting" | "running" | "error";

@@ -1,4 +1,5 @@
 import { Group, Panel, Separator } from "react-resizable-panels";
+
 import styles from "./GameLayout.module.css";
 
 export function GameLayout() {

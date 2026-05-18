@@ -1,6 +1,6 @@
 import { execSync } from "child_process";
-import { resolve } from "path";
 import { defineConfig, externalizeDepsPlugin } from "electron-vite";
+import { resolve } from "path";
 
 const commitHash = (() => {
   try {

@@ -7,7 +7,8 @@
     "dev": "electron-vite dev",
     "dev:client": "vite -c vite.client.config.mts",
     "build": "yarn build:client && electron-vite build",
-    "build:client": "vite build -c vite.client.config.mts"
+    "build:client": "vite build -c vite.client.config.mts",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "cmdk": "^1.1.1",
@@ -18,12 +19,14 @@
     "react-resizable-panels": "^4.11.1"
   },
   "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "@types/node": "^22.0.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
     "electron": "^35.0.0",
     "electron-vite": "6.0.0-beta.1",
+    "prettier": "^3.8.3",
     "vite": "^8.0.13",
     "vite-plugin-css-injected-by-js": "^5.0.1"
   }

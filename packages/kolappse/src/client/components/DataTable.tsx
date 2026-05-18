@@ -1,5 +1,5 @@
-import styles from "./DataTable.module.css";
 import shared from "../shared.module.css";
+import styles from "./DataTable.module.css";
 
 type Row = { key: string; value: unknown };
 type Group = { label: string; rows: Row[] };

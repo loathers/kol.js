@@ -1,10 +1,11 @@
-import { join } from "node:path";
 import { app } from "electron";
 import { Client, ProxyServer, registerInterceptor } from "kol.js";
-import { decryptAccount, loadAccounts, saveAccount } from "./credentials.js";
-import { initTray, setClient, setStatus } from "./tray.js";
-import { registerDecorator } from "./decorator.js";
+import { join } from "node:path";
+
 import { registerApiHandlers } from "./api.js";
+import { decryptAccount, loadAccounts, saveAccount } from "./credentials.js";
+import { registerDecorator } from "./decorator.js";
+import { initTray, setClient, setStatus } from "./tray.js";
 
 declare const __COMMIT_HASH__: string;
 
@@ -12,17 +13,19 @@ const PORT = 8080;
 
 const proxy = new ProxyServer();
 
-function handleLogout(): void {
-  proxy.setClient(new Client());
-  setClient(null);
-  setStatus("idle", PORT);
-}
-
 async function login(username: string, password: string): Promise<Client> {
   const client = new Client(username, password);
+  client.on("login", () => {
+    proxy.setClient(client);
+    setClient(client);
+    setStatus("running", PORT);
+  });
+  client.on("logout", () => {
+    proxy.setClient(new Client());
+    setClient(null);
+    setStatus("idle", PORT);
+  });
   await client.login();
-  proxy.setClient(client);
-  client.on("logout", handleLogout);
   return client;
 }
 
@@ -34,9 +37,7 @@ async function switchAccount(username: string): Promise<void> {
   setStatus("starting", PORT);
 
   try {
-    const loggedInClient = await login(credentials.username, credentials.password);
-    setClient(loggedInClient);
-    setStatus("running", PORT);
+    await login(credentials.username, credentials.password);
   } catch (err) {
     console.error("Failed to switch account:", err);
     setClient(null);
@@ -66,8 +67,6 @@ app.on("ready", async () => {
       try {
         const client = await login(interceptedUsername, interceptedPassword);
         saveAccount(interceptedUsername, client.playerId, interceptedPassword);
-        setClient(client);
-        setStatus("running", PORT);
       } catch (err) {
         console.error("Failed to switch to intercepted account:", err);
       }
