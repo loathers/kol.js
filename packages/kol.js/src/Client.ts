@@ -1,5 +1,6 @@
 import { Mutex } from "async-mutex";
 import { Item } from "data-of-loathing";
+import type { AscensionClass, Path } from "data-of-loathing";
 import Emittery from "emittery";
 import makeFetchCookie from "fetch-cookie";
 import { type FetchOptions, ofetch } from "ofetch";
@@ -7,7 +8,6 @@ import { CookieJar } from "tough-cookie";
 import type { Dispatcher } from "undici";
 
 import pkg from "../package.json" with { type: "json" };
-import type { AscensionClass, Path } from "data-of-loathing";
 import { gameData } from "./GameData.js";
 import "./domains/Bookshelf.js";
 import { CharSheet } from "./domains/CharSheet.js";
@@ -72,13 +72,16 @@ function buildProxyRequest(path: string, options: RequestOptions) {
   return { path, method: options.method ?? "POST", params };
 }
 
+type PlayerPayload = { playerName: string; playerId: string };
+
 type Events = {
   kmail: KmailMessage;
   whisper: ChatMessage;
   system: ChatMessage;
   public: ChatMessage;
   rollover: Date;
-  logout: undefined;
+  login: PlayerPayload;
+  logout: PlayerPayload;
 };
 
 type Familiar = {
@@ -126,8 +129,12 @@ export class Client extends Emittery<Events> {
     registerInterceptor({
       path: "logout.php",
       onResponse(client: Client) {
+        const payload = {
+          playerName: client.#username,
+          playerId: client.#playerId,
+        };
         client.#pwd = "";
-        void client.emit("logout");
+        void client.emit("logout", payload);
       },
     });
   }
@@ -424,6 +431,7 @@ export class Client extends Emittery<Events> {
         query: { what: "status", for: `${this.#username} bot` },
       });
       if (!api || typeof api !== "object" || !api.pwd) return false;
+      const wasLoggedIn = !!this.#pwd;
       this.#pwd = api.pwd;
       this.#playerId = api.playerid;
       this.#hardcore = api.hardcore === "1";
@@ -442,6 +450,12 @@ export class Client extends Emittery<Events> {
       this.flags.sync(Number(api.daynumber), Number(api.ascensions));
       if (Number(api.daynumber) > prevDay && prevDay > 0) {
         this.#invalidateDailyCaches();
+      }
+      if (!wasLoggedIn) {
+        void this.emit("login", {
+          playerName: this.#username,
+          playerId: this.#playerId,
+        });
       }
       return true;
     } catch {

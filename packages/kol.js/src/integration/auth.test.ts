@@ -59,16 +59,44 @@ describe.concurrent("auth integration", () => {
     ctx.expect(await client.checkLoggedIn()).toBe(false);
   });
 
-  it("logout emits logout event", async (ctx) => {
+  it("login emits login event with player info", async (ctx) => {
+    const client = await createTestClient(ctx);
+
+    let payload: { playerName: string; playerId: string } | null = null;
+    client.on("login", (p) => {
+      payload = p;
+    });
+
+    await client.login();
+
+    ctx.expect(payload).toEqual({ playerName: "testuser", playerId: "1" });
+  });
+
+  it("login event not re-emitted when already logged in", async (ctx) => {
     const client = await createTestClient(ctx);
     await client.login();
 
-    let fired = false;
-    client.on("logout", () => { fired = true; });
+    let count = 0;
+    client.on("login", () => {
+      count++;
+    });
+    await client.checkLoggedIn();
+
+    ctx.expect(count).toBe(0);
+  });
+
+  it("logout emits logout event with player info", async (ctx) => {
+    const client = await createTestClient(ctx);
+    await client.login();
+
+    let payload: { playerName: string; playerId: string } | null = null;
+    client.on("logout", (p) => {
+      payload = p;
+    });
 
     await client.logout();
 
-    ctx.expect(fired).toBe(true);
+    ctx.expect(payload).toEqual({ playerName: "testuser", playerId: "1" });
   });
 
   it("login deduplicates concurrent calls", async (ctx) => {

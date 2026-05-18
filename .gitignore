@@ -4,6 +4,7 @@ node_modules/
 *.tsbuildinfo
 
 packages/kolappse/out/
+packages/kolappse/resources/
 
 .pnp.*
 .yarn/*
