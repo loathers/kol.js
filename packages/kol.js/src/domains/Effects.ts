@@ -9,14 +9,11 @@ type ParsedEntry = { id: number; duration: number };
 
 export class Effects {
   #client: Client;
-  #pending: Array<(map: Map<Effect, number>) => void> = [];
 
   constructor(client: Client) {
     this.#client = client;
     client.on("apiStatus", async (status) => {
-      const map = await Effects.buildMap(status);
-      this.get.setValue(map);
-      for (const resolve of this.#pending.splice(0)) resolve(map);
+      this.get.setValue(await Effects.buildMap(status));
     });
   }
 
@@ -43,10 +40,8 @@ export class Effects {
   }
 
   get = cached(async (): Promise<Map<Effect, number>> => {
-    return new Promise<Map<Effect, number>>((resolve, reject) => {
-      this.#pending.push(resolve);
-      this.#client.fetchStatus().catch(reject);
-    });
+    const status = await this.#client.fetchStatus();
+    return Effects.buildMap(status);
   });
 
   async hasEffect(effect: Effect): Promise<boolean> {

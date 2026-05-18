@@ -17,6 +17,22 @@ export const ApiStatusSchema = z.object({
   maxhp: z.coerce.number(),
   mp: z.coerce.number(),
   maxmp: z.coerce.number(),
+  equipment: z
+    .object({
+      hat: z.coerce.number().default(0),
+      shirt: z.coerce.number().default(0),
+      pants: z.coerce.number().default(0),
+      weapon: z.coerce.number().default(0),
+      offhand: z.coerce.number().default(0),
+      acc1: z.coerce.number().default(0),
+      acc2: z.coerce.number().default(0),
+      acc3: z.coerce.number().default(0),
+      container: z.coerce.number().default(0),
+      cardsleeve: z.coerce.number().default(0),
+    })
+    .optional(),
+  stickers: z.array(z.coerce.number()).default(() => []),
+  folder_holder: z.array(z.coerce.number()).default(() => []),
   effects: z
     .record(z.string(), z.tuple([z.string(), z.coerce.number(), z.string(), z.string(), z.coerce.number()]))
     .optional()

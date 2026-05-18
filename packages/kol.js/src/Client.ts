@@ -13,6 +13,7 @@ import "./domains/Bookshelf.js";
 import { ApiStatusSchema, type ApiStatus } from "./domains/ApiStatus.js";
 import { CharSheet } from "./domains/CharSheet.js";
 import { Effects } from "./domains/Effects.js";
+import { Equipment } from "./domains/Equipment.js";
 import { ChatMailbox, type ChatMessage } from "./domains/ChatMailbox.js";
 import { Closet } from "./domains/Closet.js";
 import { Inventory } from "./domains/Inventory.js";
@@ -160,6 +161,7 @@ export class Client extends Emittery<Events> {
   );
   charSheet = new CharSheet(this);
   effects = new Effects(this);
+  equipment = new Equipment(this);
   skills = new Skills(this);
   closet = new Closet(this);
   inventory = new Inventory(this);
