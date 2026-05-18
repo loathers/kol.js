@@ -119,7 +119,10 @@ export class ProxyServer {
 
       let upstream = await client.proxyFetch(upstreamUrl, fetchOptions);
 
-      if (new URL(upstream.url).pathname === "/login.php") {
+      if (
+        new URL(upstream.url).pathname === "/login.php" &&
+        proxyReq.path !== "logout.php"
+      ) {
         debug("session expired, re-logging in");
         await client.login();
         upstream = await client.proxyFetch(upstreamUrl, fetchOptions);

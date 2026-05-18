@@ -59,6 +59,18 @@ describe.concurrent("auth integration", () => {
     ctx.expect(await client.checkLoggedIn()).toBe(false);
   });
 
+  it("logout emits logout event", async (ctx) => {
+    const client = await createTestClient(ctx);
+    await client.login();
+
+    let fired = false;
+    client.on("logout", () => { fired = true; });
+
+    await client.logout();
+
+    ctx.expect(fired).toBe(true);
+  });
+
   it("login deduplicates concurrent calls", async (ctx) => {
     const client = await createTestClient(ctx);
 

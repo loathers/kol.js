@@ -166,8 +166,20 @@ export class TestClient extends Client {
           res.end(
             JSON.stringify({
               pwd: session.pwd,
+              playerid: String(session.playerId),
               daynumber: "1",
               ascensions: "0",
+              level: "1",
+              hardcore: "0",
+              roninleft: "0",
+              path: "0",
+              sign: "None",
+              adventures: "40",
+              class: "0",
+              hp: "10",
+              maxhp: 10,
+              mp: "10",
+              maxmp: 10,
             }),
           );
           return;

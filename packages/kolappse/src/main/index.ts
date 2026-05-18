@@ -12,10 +12,17 @@ const PORT = 8080;
 
 const proxy = new ProxyServer();
 
+function handleLogout(): void {
+  proxy.setClient(new Client());
+  setClient(null);
+  setStatus("idle", PORT);
+}
+
 async function login(username: string, password: string): Promise<Client> {
   const client = new Client(username, password);
   await client.login();
   proxy.setClient(client);
+  client.on("logout", handleLogout);
   return client;
 }
 

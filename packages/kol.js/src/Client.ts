@@ -22,6 +22,7 @@ import { AuthError, JoinClanError, RolloverError } from "./errors.js";
 import { Flags, type FlagsBackend } from "./flags/Flags.js";
 import { ProxyServer } from "./proxy/ProxyServer.js";
 import { runRequestPipeline, runResponsePipeline } from "./proxy/pipeline.js";
+import { registerInterceptor } from "./proxy/registry.js";
 import { deduplicate } from "./utils/deduplicate.js";
 import { sanitiseBlueText, wait } from "./utils/utils.js";
 import { resolveEntityId } from "./utils/utils.js";
@@ -77,6 +78,7 @@ type Events = {
   system: ChatMessage;
   public: ChatMessage;
   rollover: Date;
+  logout: undefined;
 };
 
 type Familiar = {
@@ -117,6 +119,19 @@ type ApiStatus = {
 };
 
 export class Client extends Emittery<Events> {
+  // Registered once at class-definition time. Fires for both proxy navigation
+  // to logout.php and for explicit client.logout() calls (which manually
+  // invoke runResponsePipeline after the session call).
+  static {
+    registerInterceptor({
+      path: "logout.php",
+      onResponse(client: Client) {
+        client.#pwd = "";
+        void client.emit("logout");
+      },
+    });
+  }
+
   actionMutex = new Mutex();
   #cookieJar = new CookieJar();
   protected get baseURL() {
@@ -154,6 +169,7 @@ export class Client extends Emittery<Events> {
         }
         if (
           !requestUrl.includes("login.php") &&
+          !requestUrl.includes("logout.php") &&
           response.url.includes("/login.php")
         ) {
           throw new LoginRedirectError();
@@ -355,12 +371,7 @@ export class Client extends Emittery<Events> {
   }
 
   logout = deduplicate(async (): Promise<void> => {
-    try {
-      await this.session("logout.php", { responseType: "text" });
-    } catch (error) {
-      if (!(error instanceof LoginRedirectError)) throw error;
-    }
-    this.#pwd = "";
+    await this.fetchText("logout.php");
   });
 
   login = deduplicate(async (): Promise<boolean> => {
@@ -423,9 +434,10 @@ export class Client extends Emittery<Events> {
       this.#maxHp = Number(api.maxhp);
       this.#mp = Number(api.mp);
       this.#maxMp = Number(api.maxmp);
-      this.#class = await gameData.findClassById(Number(api.class));
+      const classId = Number(api.class);
+      this.#class = classId > 0 ? await gameData.findClassById(classId) : null;
       const pathId = Number(api.path);
-      this.#path = pathId !== 0 ? await gameData.findPathById(pathId) : null;
+      this.#path = pathId > 0 ? await gameData.findPathById(pathId) : null;
       const prevDay = this.flags.daynumber;
       this.flags.sync(Number(api.daynumber), Number(api.ascensions));
       if (Number(api.daynumber) > prevDay && prevDay > 0) {
