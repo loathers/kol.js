@@ -1,52 +1,54 @@
 import { app, Menu, nativeImage, shell, Tray } from "electron";
-import { loadAccounts } from "./credentials.js";
+import type { Client } from "kol.js";
 
 export type ProxyStatus = "idle" | "starting" | "running" | "error";
 
 let tray: Tray | null = null;
-let activeUsername: string | null = null;
+let activeClient: Client | null = null;
 
-let onSwitchAccount: (username: string) => void = () => {};
-
-export function initTray(
-  iconPath: string,
-  handlers: { onSwitchAccount: (username: string) => void },
-): void {
+export function initTray(iconPath: string): void {
   const icon = nativeImage.createFromPath(iconPath);
   icon.setTemplateImage(true);
   tray = new Tray(icon);
   tray.setToolTip("Kolappse");
-  onSwitchAccount = handlers.onSwitchAccount;
 }
 
-export function setActiveUsername(username: string): void {
-  activeUsername = username;
+export function setClient(client: Client | null): void {
+  activeClient = client;
 }
 
 export function setStatus(status: ProxyStatus, port: number): void {
   tray?.setContextMenu(buildMenu(status, port));
 }
 
-function statusLabel(status: ProxyStatus): string {
-  if (status === "running") return "Open in Browser";
-  if (status === "starting") return "Starting…";
-  if (status === "error") return "Proxy Error";
-  return "Unauthenticated";
-}
-
 function buildMenu(status: ProxyStatus, port: number): Menu {
-  const accounts = loadAccounts();
-
-  const accountItems =
-    accounts.length > 0
+  const playerItems =
+    activeClient !== null
       ? [
-          ...accounts.map((a) => ({
-            label: `${a.username} (#${a.playerId})`,
-            type: "radio" as const,
-            checked: a.username === activeUsername,
-            enabled: a.username !== activeUsername,
-            click: () => onSwitchAccount(a.username),
-          })),
+          {
+            label: `${activeClient.username} (#${activeClient.playerId})`,
+            enabled: false,
+          },
+          {
+            label: `Level ${activeClient.level} ${activeClient.class?.name ?? ""}`,
+            enabled: false,
+          },
+          {
+            label: activeClient.path?.name ?? "No Path",
+            enabled: false,
+          },
+          {
+            label: `${activeClient.adventures} adventures remaining`,
+            enabled: false,
+          },
+          {
+            label: `HP: ${activeClient.hp}/${activeClient.maxHp}`,
+            enabled: false,
+          },
+          {
+            label: `MP: ${activeClient.mp}/${activeClient.maxMp}`,
+            enabled: false,
+          },
           { type: "separator" as const },
         ]
       : [];
@@ -54,8 +56,9 @@ function buildMenu(status: ProxyStatus, port: number): Menu {
   return Menu.buildFromTemplate([
     { label: `KoLappse v${app.getVersion()}`, enabled: false },
     { type: "separator" },
+    ...playerItems,
     {
-      label: statusLabel(status),
+      label: "Open in Browser",
       enabled: status === "running" || status === "idle",
       click: () =>
         shell.openExternal(
@@ -63,19 +66,6 @@ function buildMenu(status: ProxyStatus, port: number): Menu {
             ? `http://localhost:${port}/login.php`
             : `http://localhost:${port}`,
         ),
-    },
-    { type: "separator" },
-    {
-      label: "Accounts",
-      submenu: [
-        ...accountItems,
-        {
-          label: "Add Account…",
-          enabled: status === "running",
-          click: () =>
-            shell.openExternal(`http://localhost:${port}/login.php`),
-        },
-      ],
     },
     { type: "separator" },
     { label: "Quit", click: () => app.quit() },

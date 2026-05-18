@@ -1,8 +1,10 @@
 import {
+  AscensionClass,
   Effect,
   Familiar,
   Item,
   Monster,
+  Path,
   Skill,
   createClient,
 } from "data-of-loathing";
@@ -53,6 +55,16 @@ export class GameData {
   async findMonsterByName(name: string): Promise<Monster | null> {
     await this.load();
     return this.#client.query.findOne(Monster, { name: name.trim() });
+  }
+
+  async findClassById(id: number): Promise<AscensionClass | null> {
+    await this.load();
+    return this.#client.query.findOne(AscensionClass, { id });
+  }
+
+  async findPathById(id: number): Promise<Path | null> {
+    await this.load();
+    return this.#client.query.findOne(Path, { id });
   }
 
   async findItemById(id: number): Promise<Item | null> {

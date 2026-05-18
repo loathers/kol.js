@@ -25,6 +25,7 @@ export function registerAboutCommand(): void {
     label: "About kolappse",
     icon: "★",
     keywords: ["version", "info"],
+    unauthenticated: true,
     view: AboutView,
   });
 }

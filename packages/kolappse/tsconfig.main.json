@@ -8,7 +8,7 @@
     "strict": true,
     "skipLibCheck": true,
     "composite": true,
-    "types": ["node"]
+    "types": ["node", "electron-vite/node"]
   },
   "include": ["src/main/**/*", "src/preload/**/*", "electron.vite.config.ts"]
 }

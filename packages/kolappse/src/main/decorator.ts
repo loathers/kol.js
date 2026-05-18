@@ -1,14 +1,25 @@
 import { registerInterceptor } from "kol.js";
 
+function clientScript(): string {
+  const modules = [];
+  if (import.meta.env.DEV) {
+    const DEV_SERVER_URL = "http://localhost:5174";
+    modules.push(`${DEV_SERVER_URL}/@vite/client`, `${DEV_SERVER_URL}/hmr-entry.ts`);
+  } else {
+    modules.push("/_kolappse/kolappse.js");
+  }
+  return modules.map((module) => `<script type="module" src="${module}"></script>`).join("\n");
+}
+
 export function registerDecorator(version: string, commitHash: string): void {
-  // Inject palette globals + script into every HTML page
+  // Inject kolappse globals + script into every HTML page
   registerInterceptor({
     decorate(html) {
       const injection = `<script>
 window.__KOLAPPSE_VERSION__=${JSON.stringify(version)};
 window.__KOLAPPSE_COMMIT__=${JSON.stringify(commitHash)};
 </script>
-<script src="/_kolappse/palette.js"></script>`;
+${clientScript()}`;
       if (html.includes("</head>"))
         return html.replace("</head>", `${injection}</head>`);
       return html + injection;
@@ -29,7 +40,7 @@ window.__KOLAPPSE_COMMIT__=${JSON.stringify(commitHash)};
 window.__KOLAPPSE_VERSION__=${JSON.stringify(version)};
 window.__KOLAPPSE_COMMIT__=${JSON.stringify(commitHash)};
 </script>
-<script src="/_kolappse/palette.js"></script>
+${clientScript()}
 </head>
 <body></body>
 </html>`;

@@ -1,10 +1,13 @@
-import { useState, type ComponentType } from "react";
+import { useRef, useState, type ComponentType } from "react";
+import { createPortal } from "react-dom";
 import { registerAboutCommand } from "./commands/about";
 import { registerFlagsCommand } from "./commands/flags";
 import { registerInventoryCommand } from "./commands/inventory";
+import "./blocks/loginBlock.js";
 import { CommandPalette } from "./components/CommandPalette";
 import { Dock } from "./components/Dock";
 import { Panel, type PanelRect } from "./components/Panel";
+import { type Block, getMatchingBlocks } from "./blocks/registry";
 import { GameLayout } from "./GameLayout";
 
 type PanelState = {
@@ -16,6 +19,27 @@ type PanelState = {
   minimized: boolean;
   savedRect?: PanelRect;
 };
+
+function BlockPortal({ block }: { block: Block }) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  if (!containerRef.current) {
+    const target = (() => {
+      if (typeof block.selector === "string") {
+        return document.querySelector(block.selector);
+      }
+      return block.selector(document);
+    })();
+    if (target?.parentElement) {
+      containerRef.current = document.createElement("div");
+      containerRef.current.className = "klp-block";
+      target.parentElement.insertBefore(containerRef.current, target);
+    }
+  }
+
+  if (!containerRef.current) return null;
+  return createPortal(block.component, containerRef.current);
+}
 
 let commandsRegistered = false;
 
@@ -63,12 +87,15 @@ export default function App() {
     });
   }
 
+  const isGamePage = window.location.pathname === "/game.php";
+  const pageBlocks = getMatchingBlocks(window.location.pathname);
+
   const visible = panels.filter((p) => !p.minimized);
   const docked = panels.filter((p) => p.minimized);
 
   return (
     <>
-      <GameLayout />
+      {isGamePage && <GameLayout />}
       <CommandPalette onPopOut={openPanel} />
       {visible.map((p) => (
         <Panel
@@ -89,6 +116,9 @@ export default function App() {
         onRestore={restorePanel}
         onClose={closePanel}
       />
+      {pageBlocks.map((b, i) => (
+        <BlockPortal key={i} block={b} />
+      ))}
     </>
   );
 }

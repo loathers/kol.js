@@ -5,7 +5,7 @@
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
-    "dev:client": "vite build -c vite.client.config.mts --watch",
+    "dev:client": "vite -c vite.client.config.mts",
     "build": "yarn build:client && electron-vite build",
     "build:client": "vite build -c vite.client.config.mts"
   },

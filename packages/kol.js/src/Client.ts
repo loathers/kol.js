@@ -7,6 +7,7 @@ import { CookieJar } from "tough-cookie";
 import type { Dispatcher } from "undici";
 
 import pkg from "../package.json" with { type: "json" };
+import type { AscensionClass, Path } from "data-of-loathing";
 import { gameData } from "./GameData.js";
 import "./domains/Bookshelf.js";
 import { CharSheet } from "./domains/CharSheet.js";
@@ -101,6 +102,18 @@ type ApiStatus = {
   hardcore: string;
   /** ronin turns remaining */
   roninleft: string;
+  /** numeric path ID, "0" = no path */
+  path: string;
+  /** zodiac sign */
+  sign: string;
+  /** adventures remaining */
+  adventures: string;
+  /** numeric class ID */
+  class: string;
+  hp: string;
+  maxhp: number;
+  mp: string;
+  maxmp: number;
 };
 
 export class Client extends Emittery<Events> {
@@ -168,6 +181,14 @@ export class Client extends Emittery<Events> {
   #chatBotStarted = false;
   #pwd = "";
   #playerId = "";
+  #level = 0;
+  #class: AscensionClass | null = null;
+  #path: Path | null = null;
+  #adventures = 0;
+  #hp = 0;
+  #maxHp = 0;
+  #mp = 0;
+  #maxMp = 0;
 
   constructor(
     username: string = "",
@@ -186,6 +207,38 @@ export class Client extends Emittery<Events> {
 
   get playerId() {
     return this.#playerId;
+  }
+
+  get level() {
+    return this.#level;
+  }
+
+  get class() {
+    return this.#class;
+  }
+
+  get path() {
+    return this.#path;
+  }
+
+  get adventures() {
+    return this.#adventures;
+  }
+
+  get hp() {
+    return this.#hp;
+  }
+
+  get maxHp() {
+    return this.#maxHp;
+  }
+
+  get mp() {
+    return this.#mp;
+  }
+
+  get maxMp() {
+    return this.#maxMp;
   }
 
   async #withRecovery<T>(fn: () => Promise<T>): Promise<T> {
@@ -364,6 +417,15 @@ export class Client extends Emittery<Events> {
       this.#playerId = api.playerid;
       this.#hardcore = api.hardcore === "1";
       this.#roninLeft = Number(api.roninleft);
+      this.#level = Number(api.level);
+      this.#adventures = Number(api.adventures);
+      this.#hp = Number(api.hp);
+      this.#maxHp = Number(api.maxhp);
+      this.#mp = Number(api.mp);
+      this.#maxMp = Number(api.maxmp);
+      this.#class = await gameData.findClassById(Number(api.class));
+      const pathId = Number(api.path);
+      this.#path = pathId !== 0 ? await gameData.findPathById(pathId) : null;
       const prevDay = this.flags.daynumber;
       this.flags.sync(Number(api.daynumber), Number(api.ascensions));
       if (Number(api.daynumber) > prevDay && prevDay > 0) {

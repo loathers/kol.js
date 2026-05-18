@@ -2,7 +2,7 @@ import { join } from "node:path";
 import { app } from "electron";
 import { Client, ProxyServer, registerInterceptor } from "kol.js";
 import { decryptAccount, loadAccounts, saveAccount } from "./credentials.js";
-import { initTray, setActiveUsername, setStatus } from "./tray.js";
+import { initTray, setClient, setStatus } from "./tray.js";
 import { registerDecorator } from "./decorator.js";
 import { registerApiHandlers } from "./api.js";
 
@@ -27,11 +27,12 @@ async function switchAccount(username: string): Promise<void> {
   setStatus("starting", PORT);
 
   try {
-    await login(credentials.username, credentials.password);
-    setActiveUsername(credentials.username);
+    const loggedInClient = await login(credentials.username, credentials.password);
+    setClient(loggedInClient);
     setStatus("running", PORT);
   } catch (err) {
     console.error("Failed to switch account:", err);
+    setClient(null);
     setStatus("error", PORT);
   }
 }
@@ -40,11 +41,9 @@ app.dock?.hide();
 
 app.on("ready", async () => {
   registerDecorator(app.getVersion(), __COMMIT_HASH__);
-  registerApiHandlers();
+  registerApiHandlers({ onLogin: (username) => switchAccount(username) });
 
-  initTray(join(__dirname, "../../resources/icon.png"), {
-    onSwitchAccount: switchAccount,
-  });
+  initTray(join(__dirname, "../../resources/icon.png"));
   await proxy.start(PORT);
   setStatus("idle", PORT);
 
@@ -60,7 +59,7 @@ app.on("ready", async () => {
       try {
         const client = await login(interceptedUsername, interceptedPassword);
         saveAccount(interceptedUsername, client.playerId, interceptedPassword);
-        setActiveUsername(interceptedUsername);
+        setClient(client);
         setStatus("running", PORT);
       } catch (err) {
         console.error("Failed to switch to intercepted account:", err);

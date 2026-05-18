@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 export type Block = {
   path: string | RegExp;
-  selector: string;
+  selector: string | ((doc: Document) => Element | null | undefined);
   component: ReactNode;
 };
 

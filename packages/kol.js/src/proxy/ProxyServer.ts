@@ -44,7 +44,8 @@ function rewriteHtml(html: string, port: number): string {
       /https?:\/\/www\.kingdomofloathing\.com/g,
       `http://localhost:${port}`,
     )
-    .replace(/\/\/www\.kingdomofloathing\.com/g, `//localhost:${port}`);
+    .replace(/\/\/www\.kingdomofloathing\.com/g, `//localhost:${port}`)
+    .replace(/\s+crossorigin(?:=(?:"[^"]*"|'[^']*'|\S+))?/gi, "");
 }
 
 export class ProxyServer {

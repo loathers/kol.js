@@ -1,6 +1,5 @@
-/* Design tokens — scoped to the React root element */
-.klp-root {
-  height: 100vh;
+/* Design tokens — available globally so portaled blocks can use them */
+:root {
   --klp-bg: #1e1e2e;
   --klp-surface: #313244;
   --klp-surface-hover: #3d3f52;
@@ -14,7 +13,19 @@
   --klp-font: system-ui, -apple-system, "Segoe UI", sans-serif;
   --klp-font-mono: "SF Mono", "Fira Code", monospace;
   --klp-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4);
+}
 
+/* Root mount for the overlay app */
+.klp-root {
+  height: 100vh;
+  font-family: var(--klp-font);
+  color: var(--klp-text);
+  font-size: 14px;
+}
+
+/* Base class for portaled in-page blocks */
+.klp-block {
+  display: contents;
   font-family: var(--klp-font);
   color: var(--klp-text);
   font-size: 14px;

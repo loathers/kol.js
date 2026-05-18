@@ -82,7 +82,7 @@ export function CommandPalette({ onPopOut }: CommandPaletteProps) {
             <Command.Input placeholder="Type a command..." autoFocus />
             <Command.List>
               <Command.Empty>No results found.</Command.Empty>
-              {getCommands().map((cmd) => (
+              {getCommands(!window.location.pathname.startsWith("/login.php")).map((cmd) => (
                 <Command.Item
                   key={cmd.id}
                   value={[cmd.label, ...(cmd.keywords ?? [])].join(" ")}
