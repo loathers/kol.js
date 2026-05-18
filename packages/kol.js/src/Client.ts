@@ -10,7 +10,9 @@ import type { Dispatcher } from "undici";
 import pkg from "../package.json" with { type: "json" };
 import { gameData } from "./GameData.js";
 import "./domains/Bookshelf.js";
+import { ApiStatusSchema, type ApiStatus } from "./domains/ApiStatus.js";
 import { CharSheet } from "./domains/CharSheet.js";
+import { Effects } from "./domains/Effects.js";
 import { ChatMailbox, type ChatMessage } from "./domains/ChatMailbox.js";
 import { Closet } from "./domains/Closet.js";
 import { Inventory } from "./domains/Inventory.js";
@@ -82,6 +84,7 @@ type Events = {
   rollover: Date;
   login: PlayerPayload;
   logout: PlayerPayload;
+  apiStatus: ApiStatus;
 };
 
 type Familiar = {
@@ -90,36 +93,6 @@ type Familiar = {
   image: string;
 };
 
-type ApiStatus = {
-  /** number of ascensions */
-  ascensions: string;
-  /** number of turns played */
-  turnsplayed: string;
-  /** kol game day number */
-  daynumber: string;
-  /** player level */
-  level: string;
-  /** numeric player id */
-  playerid: string;
-  /** session password */
-  pwd: string;
-  /** "1" if in hardcore */
-  hardcore: string;
-  /** ronin turns remaining */
-  roninleft: string;
-  /** numeric path ID, "0" = no path */
-  path: string;
-  /** zodiac sign */
-  sign: string;
-  /** adventures remaining */
-  adventures: string;
-  /** numeric class ID */
-  class: string;
-  hp: string;
-  maxhp: number;
-  mp: string;
-  maxmp: number;
-};
 
 export class Client extends Emittery<Events> {
   // Registered once at class-definition time. Fires for both proxy navigation
@@ -186,6 +159,7 @@ export class Client extends Emittery<Events> {
     { fetch: makeFetchCookie(fetch, this.#cookieJar) },
   );
   charSheet = new CharSheet(this);
+  effects = new Effects(this);
   skills = new Skills(this);
   closet = new Closet(this);
   inventory = new Inventory(this);
@@ -427,28 +401,28 @@ export class Client extends Emittery<Events> {
 
   async checkLoggedIn(): Promise<boolean> {
     try {
-      const api = await this.session<ApiStatus>("api.php", {
+      const raw = await this.session<unknown>("api.php", {
         query: { what: "status", for: `${this.#username} bot` },
       });
-      if (!api || typeof api !== "object" || !api.pwd) return false;
+      if (!raw || typeof raw !== "object" || !("pwd" in raw)) return false;
+      const api = ApiStatusSchema.parse(raw);
+      void this.emit("apiStatus", api);
       const wasLoggedIn = !!this.#pwd;
       this.#pwd = api.pwd;
       this.#playerId = api.playerid;
-      this.#hardcore = api.hardcore === "1";
-      this.#roninLeft = Number(api.roninleft);
-      this.#level = Number(api.level);
-      this.#adventures = Number(api.adventures);
-      this.#hp = Number(api.hp);
-      this.#maxHp = Number(api.maxhp);
-      this.#mp = Number(api.mp);
-      this.#maxMp = Number(api.maxmp);
-      const classId = Number(api.class);
-      this.#class = classId > 0 ? await gameData.findClassById(classId) : null;
-      const pathId = Number(api.path);
-      this.#path = pathId > 0 ? await gameData.findPathById(pathId) : null;
+      this.#hardcore = api.hardcore;
+      this.#roninLeft = api.roninleft;
+      this.#level = api.level;
+      this.#adventures = api.adventures;
+      this.#hp = api.hp;
+      this.#maxHp = api.maxhp;
+      this.#mp = api.mp;
+      this.#maxMp = api.maxmp;
+      this.#class = api.class > 0 ? await gameData.findClassById(api.class) : null;
+      this.#path = api.path > 0 ? await gameData.findPathById(api.path) : null;
       const prevDay = this.flags.daynumber;
-      this.flags.sync(Number(api.daynumber), Number(api.ascensions));
-      if (Number(api.daynumber) > prevDay && prevDay > 0) {
+      this.flags.sync(api.daynumber, api.ascensions);
+      if (api.daynumber > prevDay && prevDay > 0) {
         this.#invalidateDailyCaches();
       }
       if (!wasLoggedIn) {
@@ -544,9 +518,12 @@ export class Client extends Emittery<Events> {
   }
 
   async fetchStatus(): Promise<ApiStatus> {
-    return this.fetchJson<ApiStatus>("api.php", {
+    const raw = await this.fetchJson<unknown>("api.php", {
       query: { what: "status", for: `${this.#username} bot` },
     });
+    const status = ApiStatusSchema.parse(raw);
+    void this.emit("apiStatus", status);
+    return status;
   }
 
   async getMallPrice(item: Item | number): Promise<MallPrice> {

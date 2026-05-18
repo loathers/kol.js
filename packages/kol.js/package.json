@@ -57,6 +57,7 @@
     "kol-rng": "3",
     "ofetch": "^1.5.1",
     "tough-cookie": "^6.0.0",
-    "ts-dedent": "^2.2.0"
+    "ts-dedent": "^2.2.0",
+    "zod": "^4.4.3"
   }
 }

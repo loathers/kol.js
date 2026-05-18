@@ -2,6 +2,7 @@ export type CachedFn<T> = {
   (): Promise<T>;
   refresh(): Promise<T>;
   invalidate(): void;
+  setValue(value: T): void;
 };
 
 export function cached<T>(cb: () => Promise<T>): CachedFn<T> {
@@ -39,6 +40,10 @@ export function cached<T>(cb: () => Promise<T>): CachedFn<T> {
   fn.invalidate = (): void => {
     gen++;
     value = undefined;
+    pending = undefined;
+  };
+  fn.setValue = (v: T): void => {
+    value = v;
     pending = undefined;
   };
 
