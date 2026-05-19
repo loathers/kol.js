@@ -1,7 +1,9 @@
 import {
   AscensionClass,
+  Consumable,
   Effect,
   EffectModifiers,
+  Equipment,
   Familiar,
   FamiliarModifiers,
   Item,
@@ -14,6 +16,11 @@ import {
   SkillModifiers,
   createClient,
 } from "data-of-loathing";
+
+export type ItemWithDetail = Item & {
+  equipment: Equipment | null;
+  consumable: Consumable | null;
+};
 
 export class GameData {
   #client = createClient();
@@ -81,6 +88,15 @@ export class GameData {
   async findItemById(id: number): Promise<Item | null> {
     await this.load();
     return this.#client.query.findOne(Item, { id });
+  }
+
+  async findItemWithDetailById(id: number): Promise<ItemWithDetail | null> {
+    await this.load();
+    return this.#client.query.findOne(
+      Item,
+      { id },
+      { populate: ["equipment", "consumable"] },
+    ) as Promise<ItemWithDetail | null>;
   }
 
   async findItemByDescId(descid: number): Promise<Item | null> {

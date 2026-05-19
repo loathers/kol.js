@@ -1,5 +1,5 @@
-import { registerInterceptor } from "kol.js";
-import type { ProxyResponse } from "kol.js";
+import { gameData, registerInterceptor } from "kol.js";
+import type { EvaluatedModifier, ProxyResponse } from "kol.js";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -95,4 +95,77 @@ export function registerApiHandlers(options: {
       }
     },
   });
+
+  registerInterceptor({
+    matches: (req) => req.path === "_kolappse/api/item",
+    async handle(client, req) {
+      const idParam = req.params.get("id");
+      if (!idParam) return error(400, "id required");
+      const id = parseInt(idParam, 10);
+      if (isNaN(id)) return error(400, "id must be a number");
+
+      try {
+        const [item, modifiers] = await Promise.all([
+          gameData.findItemWithDetailById(id),
+          client.modifiers.evaluateItem(id),
+        ]);
+        if (!item) return error(404, "item not found");
+
+        const serializedModifiers = [...modifiers.entries()].map(
+          ([name, mod]) => serializeModifier(name, mod),
+        );
+
+        return json({
+          id: item.id,
+          name: item.name,
+          image: item.image,
+          uses: item.uses,
+          equipment: item.equipment
+            ? {
+                power: item.equipment.power,
+                type: item.equipment.type ?? null,
+                hands: item.equipment.hands ?? null,
+                musRequirement: item.equipment.musRequirement,
+                mysRequirement: item.equipment.mysRequirement,
+                moxRequirement: item.equipment.moxRequirement,
+              }
+            : null,
+          consumable: item.consumable
+            ? {
+                stomach: item.consumable.stomach,
+                liver: item.consumable.liver,
+                spleen: item.consumable.spleen,
+                levelRequirement: item.consumable.levelRequirement,
+                quality: item.consumable.quality ?? null,
+                adventureRange: item.consumable.adventureRange,
+                notes: item.consumable.notes ?? null,
+              }
+            : null,
+          modifiers: serializedModifiers,
+        });
+      } catch {
+        return error(503, "not logged in");
+      }
+    },
+  });
+}
+
+function serializeModifier(
+  name: string,
+  mod: EvaluatedModifier,
+): Record<string, unknown> {
+  switch (mod.kind) {
+    case "numeric":
+      return { name, kind: "numeric", value: mod.value };
+    case "boolean":
+      return { name, kind: "boolean", value: mod.value };
+    case "string":
+      return { name, kind: "string", value: mod.value };
+    case "string[]":
+      return { name, kind: "string[]", values: mod.values };
+    case "effect-grants":
+      return { name, kind: "effect-grants", grants: mod.grants };
+    case "range":
+      return { name, kind: "range", min: mod.min, max: mod.max };
+  }
 }

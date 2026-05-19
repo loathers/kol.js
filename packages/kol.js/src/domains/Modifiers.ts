@@ -109,6 +109,16 @@ export class Modifiers {
     }
   }
 
+  async evaluateItem(itemId: number): Promise<Map<string, EvaluatedModifier>> {
+    const [modsMap, context] = await Promise.all([
+      gameData.findModifiersForItemIds([itemId]),
+      this.#buildContext(),
+    ]);
+    const mods = modsMap.get(itemId);
+    if (!mods) return new Map();
+    return resolveModifiers([{ label: `item:${itemId}`, modifiers: mods }], context);
+  }
+
   async #addSkillSources(sources: ModifierSource[]): Promise<void> {
     const skillMap = await this.#client.charSheet.getSkills();
     const ids = [...skillMap.keys()].map((s: Skill) => s.id);

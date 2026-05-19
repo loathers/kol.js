@@ -1,14 +1,24 @@
 import { Command } from "cmdk";
-import { type ComponentType, useEffect, useState } from "react";
+import { type ComponentType, createContext, useContext, useEffect, useState } from "react";
 
 import { getCommands } from "../commands/registry";
 import styles from "./CommandPalette.module.css";
 
-type Layer = {
+export type Layer = {
   title: string;
   icon?: string;
   View: ComponentType<{ onClose(): void }>;
 };
+
+export const LayerContext = createContext<{
+  pushLayer: (layer: Layer) => void;
+} | null>(null);
+
+export function useLayerContext() {
+  const ctx = useContext(LayerContext);
+  if (!ctx) throw new Error("useLayerContext must be used inside CommandPalette");
+  return ctx;
+}
 
 type CommandPaletteProps = {
   onPopOut(
@@ -69,6 +79,7 @@ export function CommandPalette({ onPopOut }: CommandPaletteProps) {
   const activeLayer = layers[layers.length - 1];
 
   return (
+    <LayerContext.Provider value={{ pushLayer }}>
     <div className={styles.overlay} onClick={close}>
       <div className={styles.palette} onClick={(e) => e.stopPropagation()}>
         {activeLayer ? (
@@ -124,5 +135,6 @@ export function CommandPalette({ onPopOut }: CommandPaletteProps) {
         )}
       </div>
     </div>
+    </LayerContext.Provider>
   );
 }

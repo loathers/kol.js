@@ -1,7 +1,10 @@
+import { Command } from "cmdk";
 import { decodeHTML } from "entities";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
+import { useLayerContext } from "../components/CommandPalette";
 import shared from "../shared.module.css";
+import { ItemDetailView } from "./itemDetail";
 import styles from "./inventory.module.css";
 import { registerCommand } from "./registry";
 
@@ -15,9 +18,9 @@ type InventoryItem = {
 type InventoryViewProps = { onClose(): void };
 
 export function InventoryView({ onClose: _ }: InventoryViewProps) {
+  const { pushLayer } = useLayerContext();
   const [items, setItems] = useState<InventoryItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
 
   useEffect(() => {
     fetch("/_kolappse/api/inventory")
@@ -30,40 +33,44 @@ export function InventoryView({ onClose: _ }: InventoryViewProps) {
       );
   }, []);
 
-  const filtered = useMemo(() => {
-    if (!items) return [];
-    const q = query.toLowerCase();
-    return q ? items.filter((i) => i.name.toLowerCase().includes(q)) : items;
-  }, [items, query]);
-
   if (error)
     return <div className={`${shared.status} ${shared.error}`}>{error}</div>;
   if (!items) return <div className={shared.status}>Loading…</div>;
 
+  function openItem(item: InventoryItem) {
+    pushLayer({
+      title: decodeHTML(item.name),
+      View: ({ onClose: c }) => <ItemDetailView itemId={item.id} onClose={c} />,
+    });
+  }
+
   return (
-    <div className={styles.panel}>
-      <input
+    <Command className={styles.panel}>
+      <Command.Input
         className={styles.search}
         placeholder={`Search ${items.length} items…`}
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
         autoFocus
       />
-      {filtered.map((item) => (
-        <div className={styles.item} key={item.id}>
-          <img
-            className={styles.itemImg}
-            src={`https://d2uyhvukfffg5a.cloudfront.net/itemimages/${item.image}`}
-            alt=""
-          />
-          <span className={styles.itemName}>{decodeHTML(item.name)}</span>
-          <span className={styles.itemQty}>x {item.quantity}</span>
-        </div>
-      ))}
-      {filtered.length === 0 && (
-        <div className={shared.status}>No items match.</div>
-      )}
-    </div>
+      <Command.List className={styles.list}>
+        <Command.Empty className={shared.status}>No items match.</Command.Empty>
+        {items.map((item) => (
+          <Command.Item
+            key={item.id}
+            value={item.name}
+            className={styles.item}
+            onSelect={() => openItem(item)}
+          >
+            <img
+              className={styles.itemImg}
+              src={`https://d2uyhvukfffg5a.cloudfront.net/itemimages/${item.image}`}
+              alt=""
+            />
+            <span className={styles.itemName}>{decodeHTML(item.name)}</span>
+            <span className={styles.itemQty}>x {item.quantity}</span>
+          </Command.Item>
+        ))}
+      </Command.List>
+    </Command>
   );
 }
 

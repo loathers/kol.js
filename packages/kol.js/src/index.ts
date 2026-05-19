@@ -26,6 +26,9 @@ export type {
 export { DailyFlag } from "./flags/registry.js";
 export { LoathingDate } from "./LoathingDate.js";
 export { statsForLevel, levelForMainstat, levelForSubstat } from "./stats.js";
+export type { EvaluatedModifier } from "./modifiers/index.js";
+export { gameData } from "./GameData.js";
+export type { ItemWithDetail } from "./GameData.js";
 
 export {
   resolveKoLImage,
