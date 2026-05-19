@@ -1,11 +1,17 @@
 import {
   AscensionClass,
   Effect,
+  EffectModifiers,
   Familiar,
+  FamiliarModifiers,
   Item,
+  ItemModifiers,
+  Location,
+  type Modifier,
   Monster,
   Path,
   Skill,
+  SkillModifiers,
   createClient,
 } from "data-of-loathing";
 
@@ -85,6 +91,49 @@ export class GameData {
   async findMonsterById(id: number): Promise<Monster | null> {
     await this.load();
     return this.#client.query.findOne(Monster, { id });
+  }
+
+  async findModifiersForItemIds(
+    ids: number[],
+  ): Promise<Map<number, Modifier[]>> {
+    await this.load();
+    const rows = await this.#client.query.find(ItemModifiers, {
+      item: { id: { $in: ids } },
+    });
+    return new Map(rows.map((r) => [r.item.id, r.modifiers]));
+  }
+
+  async findModifiersForEffectIds(
+    ids: number[],
+  ): Promise<Map<number, Modifier[]>> {
+    await this.load();
+    const rows = await this.#client.query.find(EffectModifiers, {
+      effect: { id: { $in: ids } },
+    });
+    return new Map(rows.map((r) => [r.effect.id, r.modifiers]));
+  }
+
+  async findModifiersForSkillIds(
+    ids: number[],
+  ): Promise<Map<number, Modifier[]>> {
+    await this.load();
+    const rows = await this.#client.query.find(SkillModifiers, {
+      skill: { id: { $in: ids } },
+    });
+    return new Map(rows.map((r) => [r.skill.id, r.modifiers]));
+  }
+
+  async findLocationById(id: number): Promise<Location | null> {
+    await this.load();
+    return this.#client.query.findOne(Location, { id });
+  }
+
+  async findModifiersForFamiliarId(id: number): Promise<Modifier[] | null> {
+    await this.load();
+    const row = await this.#client.query.findOne(FamiliarModifiers, {
+      familiar: { id },
+    });
+    return row?.modifiers ?? null;
   }
 }
 

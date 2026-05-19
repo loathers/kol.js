@@ -41,6 +41,13 @@ export const ApiStatusSchema = z.object({
     .record(z.string(), z.tuple([z.string(), z.string(), z.string(), z.coerce.number()]))
     .optional()
     .default({}),
+  familiarexp: z.coerce.number().optional(),
+  lastadv: z
+    .object({
+      id: z.coerce.number(),
+      name: z.string(),
+    })
+    .optional(),
 });
 
 export type ApiStatus = z.infer<typeof ApiStatusSchema>;

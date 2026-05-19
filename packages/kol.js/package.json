@@ -31,7 +31,7 @@
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "@types/debug": "^4.1.13",
     "@types/node": "^22.0.0",
-    "data-of-loathing": "3.2",
+    "data-of-loathing": "4.0.0",
     "eslint": "^10.0.2",
     "prettier": "^3.8.1",
     "typescript": "^5.9.3",
@@ -40,10 +40,11 @@
     "vitest": "^4.0.18"
   },
   "peerDependencies": {
-    "data-of-loathing": "3.2"
+    "data-of-loathing": "4.0.0"
   },
   "dependencies": {
     "async-mutex": "^0.5.0",
+    "chevrotain": "^12.0.0",
     "css-select": "^6.0.0",
     "date-fns": "^4.1.0",
     "debug": "^4.4.3",

@@ -1,6 +1,6 @@
 import { Mutex } from "async-mutex";
 import { Item } from "data-of-loathing";
-import type { AscensionClass, Path } from "data-of-loathing";
+import type { AscensionClass, Location, Path } from "data-of-loathing";
 import Emittery from "emittery";
 import makeFetchCookie from "fetch-cookie";
 import { type FetchOptions, ofetch } from "ofetch";
@@ -19,6 +19,7 @@ import { Closet } from "./domains/Closet.js";
 import { Inventory } from "./domains/Inventory.js";
 import { KmailMailbox, type KmailMessage } from "./domains/KmailMailbox.js";
 import { Players } from "./domains/Players.js";
+import { Modifiers } from "./domains/Modifiers.js";
 import { Skills } from "./domains/Skills.js";
 import { Storage } from "./domains/Storage.js";
 import { AuthError, JoinClanError, RolloverError } from "./errors.js";
@@ -162,6 +163,7 @@ export class Client extends Emittery<Events> {
   charSheet = new CharSheet(this);
   effects = new Effects(this);
   equipment = new Equipment(this);
+  modifiers = new Modifiers(this);
   skills = new Skills(this);
   closet = new Closet(this);
   inventory = new Inventory(this);
@@ -183,6 +185,7 @@ export class Client extends Emittery<Events> {
   #level = 0;
   #class: AscensionClass | null = null;
   #path: Path | null = null;
+  #location: Location | null = null;
   #adventures = 0;
   #hp = 0;
   #maxHp = 0;
@@ -218,6 +221,10 @@ export class Client extends Emittery<Events> {
 
   get path() {
     return this.#path;
+  }
+
+  get location() {
+    return this.#location;
   }
 
   get adventures() {
@@ -422,6 +429,7 @@ export class Client extends Emittery<Events> {
       this.#maxMp = api.maxmp;
       this.#class = api.class > 0 ? await gameData.findClassById(api.class) : null;
       this.#path = api.path > 0 ? await gameData.findPathById(api.path) : null;
+      this.#location = api.lastadv?.id ? await gameData.findLocationById(api.lastadv.id) : null;
       const prevDay = this.flags.daynumber;
       this.flags.sync(api.daynumber, api.ascensions);
       if (api.daynumber > prevDay && prevDay > 0) {

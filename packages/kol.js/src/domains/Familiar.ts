@@ -1,4 +1,14 @@
 /**
+ * Calculate the base weight of a familiar from its experience.
+ *
+ * Base weight = floor(sqrt(exp)), clamped to [1, 20] lbs.
+ * This is the intrinsic weight before familiar equipment or effect bonuses.
+ */
+export function familiarBaseWeight(experience: number): number {
+  return Math.max(1, Math.min(20, Math.floor(Math.sqrt(experience))));
+}
+
+/**
  * Familiar-type effect calculations.
  *
  * KoL familiars provide bonuses that scale with their buffed weight.

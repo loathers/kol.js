@@ -26,6 +26,8 @@ export type EquipmentSlot =
   | "folder4"
   | "folder5";
 
+export type EquipmentMap = Map<EquipmentSlot, Item>;
+
 type ParsedEntry = { slot: EquipmentSlot; id: number };
 
 const ACCESSORY_SLOT_NUMBER: Partial<Record<EquipmentSlot, number>> = {
