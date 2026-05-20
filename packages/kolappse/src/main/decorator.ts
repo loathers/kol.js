@@ -1,4 +1,4 @@
-import { registerInterceptor } from "kol.js";
+import { type DecorateCtx, defineAction, registerInterceptor } from "kol.js";
 
 function clientScript(): string {
   const modules = [];
@@ -18,8 +18,9 @@ function clientScript(): string {
 
 export function registerDecorator(version: string, commitHash: string): void {
   // Inject kolappse globals + script into every HTML page
-  registerInterceptor({
-    decorate(html) {
+  defineAction({
+    decorate({ res }: DecorateCtx<never>) {
+      const html = typeof res.body === "string" ? res.body : "";
       const injection = `<script>
 window.__KOLAPPSE_VERSION__=${JSON.stringify(version)};
 window.__KOLAPPSE_COMMIT__=${JSON.stringify(commitHash)};

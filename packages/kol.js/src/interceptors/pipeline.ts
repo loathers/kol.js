@@ -35,12 +35,13 @@ export async function runHandlePipeline(
 }
 
 export async function runDecoratePipeline(
+  client: Client,
   req: KolRequest,
-  html: string,
+  res: KolResponse,
 ): Promise<string> {
-  let result = html;
+  let html = typeof res.body === "string" ? res.body : "";
   for (const i of getMatchingInterceptors(req)) {
-    if (i.decorate) result = await i.decorate(result, req);
+    if (i.decorate) html = await i.decorate(client, req, { ...res, body: html });
   }
-  return result;
+  return html;
 }

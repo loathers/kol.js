@@ -122,7 +122,7 @@ export class AscensionHistory {
     const parts = path.match(/(.*?) \((.*?)\)/) ||
       path.match(/(.*?)\s*\n\s*(.*)/s) || [null, path, ""];
     return [
-      parts[1] as string,
+      parts[1],
       AscensionHistory.#parseExtra(parts[2] as string),
     ];
   }

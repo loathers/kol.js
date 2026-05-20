@@ -25,8 +25,8 @@ import { Storage } from "./domains/Storage.js";
 import { AuthError, JoinClanError, RolloverError } from "./errors.js";
 import { Flags, type FlagsBackend } from "./flags/Flags.js";
 import { ProxyServer } from "./proxy/ProxyServer.js";
+import { defineAction } from "./interceptors/action.js";
 import { runRequestPipeline, runResponsePipeline } from "./interceptors/pipeline.js";
-import { registerInterceptor } from "./interceptors/registry.js";
 import { deduplicate } from "./utils/deduplicate.js";
 import { sanitiseBlueText, wait } from "./utils/utils.js";
 import { resolveEntityId } from "./utils/utils.js";
@@ -48,7 +48,7 @@ class LoginRedirectError extends Error {}
 
 type FormData = Record<string, string | number | boolean>;
 
-type RequestOptions = {
+export type RequestOptions = {
   method?: string;
   query?: Record<string, unknown>;
   form?: FormData;
@@ -99,22 +99,19 @@ type Familiar = {
 
 
 export class Client extends Emittery<Events> {
-  // Registered once at class-definition time. Fires for both proxy navigation
-  // to logout.php and for explicit client.logout() calls (which manually
-  // invoke runResponsePipeline after the session call).
-  static {
-    registerInterceptor({
-      path: "logout.php",
-      onResponse(client: Client) {
-        const payload = {
-          playerName: client.#username,
-          playerId: client.#playerId,
-        };
-        client.#pwd = "";
-        void client.emit("logout", payload);
-      },
-    });
-  }
+  static #logoutAction = defineAction({
+    path: "logout.php",
+    parse({ client, success }) {
+      return success({
+        playerName: client.username,
+        playerId: client.playerId,
+      });
+    },
+    onSuccess({ client, result }) {
+      client.clearSession();
+      void client.emit("logout", { playerName: result.playerName, playerId: result.playerId });
+    },
+  });
 
   actionMutex = new Mutex();
   #cookieJar = new CookieJar();
@@ -211,6 +208,11 @@ export class Client extends Emittery<Events> {
 
   get playerId() {
     return this.#playerId;
+  }
+
+  /** Clear the session token, used by the logout action. */
+  clearSession(): void {
+    this.#pwd = "";
   }
 
   get level() {
@@ -362,8 +364,8 @@ export class Client extends Emittery<Events> {
     return new ProxyServer(this);
   }
 
-  logout = deduplicate(async (): Promise<void> => {
-    await this.fetchText("logout.php");
+  logout = deduplicate(async () => {
+    return Client.#logoutAction(this, {});
   });
 
   login = deduplicate(async (): Promise<boolean> => {

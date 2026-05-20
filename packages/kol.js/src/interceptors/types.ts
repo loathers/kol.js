@@ -21,7 +21,11 @@ export interface Interceptor {
     req: KolRequest,
     res: KolResponse,
   ): void | Promise<void>;
-  decorate?(html: string, req: KolRequest): string | Promise<string>;
+  decorate?(
+    client: Client,
+    req: KolRequest,
+    res: KolResponse,
+  ): string | Promise<string>;
   handle?(
     client: Client,
     req: KolRequest,

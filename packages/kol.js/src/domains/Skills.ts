@@ -3,7 +3,7 @@ import createDebug from "debug";
 
 import type { Client, Result } from "../Client.js";
 import { DailyFlag } from "../flags/registry.js";
-import { registerInterceptor } from "../interceptors/registry.js";
+import { defineAction } from "../interceptors/action.js";
 import type { CachedFn } from "../utils/cached.js";
 import { resolveEntityId } from "../utils/utils.js";
 import type { SkillPerm } from "./CharSheet.js";
@@ -50,13 +50,20 @@ export function recordSkillCast(client: Client, skillId: number): void {
   debug("recorded cast of skill %d (total today: %d)", skillId, newCount);
 }
 
-registerInterceptor({
+defineAction({
   path: "runskillz.php",
-  onResponse(client, req, res) {
-    if (typeof res.body !== "string") return;
-    if (!defaultDetectSuccess(res.body)) return;
+  parse({ req, body, success, failure }) {
     const skillId = Number(req.params.get("whichskill"));
-    if (skillId) recordSkillCast(client, skillId);
+    if (!skillId) return failure("No skill ID");
+    const behavior = registry.get(skillId);
+    const succeeded = behavior?.detectSuccess
+      ? behavior.detectSuccess(body)
+      : defaultDetectSuccess(body);
+    if (!succeeded) return failure("Cast failed");
+    return success({ skillId });
+  },
+  onSuccess({ client, result }) {
+    recordSkillCast(client, result.skillId);
   },
 });
 

@@ -1,5 +1,5 @@
 import { app } from "electron";
-import { Client, ProxyServer, registerInterceptor } from "kol.js";
+import { Client, ProxyServer, defineAction } from "kol.js";
 import { join } from "node:path";
 
 import { registerApiHandlers } from "./api.js";
@@ -55,18 +55,20 @@ app.on("ready", async () => {
   await proxy.start(PORT);
   setStatus("idle", PORT);
 
-  registerInterceptor({
+  defineAction({
     path: "login.php",
-    onResponse: async (_client, req, res) => {
-      if (req.method !== "POST") return;
-      const interceptedUsername = req.params.get("loginname");
-      const interceptedPassword = req.params.get("password");
-      if (!interceptedUsername || !interceptedPassword) return;
-      if (typeof res.body === "string" && res.body.includes('name="loginname"'))
-        return;
+    parse({ req, body, success, failure }) {
+      if (req.method !== "POST") return failure("Not a POST");
+      const username = req.params.get("loginname");
+      const password = req.params.get("password");
+      if (!username || !password) return failure("Missing credentials");
+      if (body.includes('name="loginname"')) return failure("Login page shown");
+      return success({ username, password });
+    },
+    async onSuccess({ result }) {
       try {
-        const client = await login(interceptedUsername, interceptedPassword);
-        saveAccount(interceptedUsername, client.playerId, interceptedPassword);
+        const client = await login(result.username, result.password);
+        saveAccount(result.username, client.playerId, result.password);
       } catch (err) {
         console.error("Failed to switch to intercepted account:", err);
       }

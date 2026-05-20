@@ -140,9 +140,9 @@ export class ProxyServer {
 
       await runResponsePipeline(client, proxyReq, proxyRes);
 
-      if (isHtml && typeof proxyRes.body === "string") {
-        proxyRes.body = await runDecoratePipeline(proxyReq, proxyRes.body);
-        proxyRes.body = rewriteHtml(proxyRes.body, this.#port);
+      if (isHtml) {
+        const decorated = await runDecoratePipeline(client, proxyReq, proxyRes);
+        proxyRes.body = rewriteHtml(decorated, this.#port);
       }
 
       // If KoL followed a redirect to a different page, tell the browser to follow suit —

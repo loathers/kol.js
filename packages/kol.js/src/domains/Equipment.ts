@@ -1,9 +1,11 @@
 import { Item } from "data-of-loathing";
 
-import type { Client, Result } from "../Client.js";
+import type { Client } from "../Client.js";
 import { gameData } from "../GameData.js";
-import { registerInterceptor } from "../interceptors/registry.js";
-import type { KolRequest } from "../interceptors/types.js";
+import {
+  type ActionResult,
+  defineAction,
+} from "../interceptors/action.js";
 import { cached } from "../utils/cached.js";
 import { resolveEntityId } from "../utils/utils.js";
 import type { ApiStatus } from "./ApiStatus.js";
@@ -52,6 +54,51 @@ function slotForItem(item: Item, accessorySlotNumber: AccessorySlotNumber = 1): 
   }
   return null;
 }
+
+type EquipData = { item: Item; slot: EquipmentSlot };
+
+const equipAction = defineAction({
+  path: "inv_equip.php",
+  matches: (req) => req.params.get("action") === "equip",
+  async parse({ req, body, success, failure }) {
+    if (
+      !body.includes("You equip an item") &&
+      !body.includes("Item equipped") &&
+      !body.includes("equips an item")
+    ) {
+      return failure("Failed to equip item");
+    }
+    const itemId = parseInt(req.params.get("whichitem") ?? "", 10);
+    const item = isNaN(itemId) ? null : await gameData.findItemById(itemId);
+    if (!item) return failure("Item not found");
+    const accSlot = (parseInt(req.params.get("slot") ?? "1", 10) || 1) as AccessorySlotNumber;
+    const slot = slotForItem(item, accSlot);
+    if (!slot) return failure("Could not determine slot");
+    return success({ item, slot });
+  },
+  onSuccess({ client, result }) {
+    client.equipment.get.invalidate();
+    void client.emit("equip", { item: result.item, slot: result.slot });
+  },
+});
+
+const unequipAction = defineAction({
+  path: "inv_equip.php",
+  matches: (req) => req.params.get("action") === "unequip",
+  async parse({ req, client, success, failure }) {
+    const slot = req.params.get("type") as EquipmentSlot | null;
+    if (!slot) return failure("No slot specified");
+    // Read from cache before it's invalidated in onSuccess
+    const item = (await client.equipment.get()).get(slot);
+    if (!item) return failure("No item in slot");
+    return success({ item, slot });
+  },
+  onSuccess({ client, result }) {
+    client.equipment.get.invalidate();
+    client.inventory.get.invalidate();
+    void client.emit("unequip", { item: result.item, slot: result.slot });
+  },
+});
 
 export class Equipment {
   #client: Client;
@@ -110,15 +157,12 @@ export class Equipment {
     return (await this.get()).get(slot) ?? null;
   }
 
-  async unequip(slot: EquipmentSlot): Promise<void> {
-    await this.#client.fetchText("inv_equip.php", {
-      query: { which: 2, action: "unequip", type: slot },
-    });
-  }
-
-  async equip(item: Item | number, slot?: EquipmentSlot): Promise<Result> {
+  async equip(
+    item: Item | number,
+    slot?: EquipmentSlot,
+  ): Promise<ActionResult<EquipData>> {
     const slotNumber = slot !== undefined ? ACCESSORY_SLOT_NUMBER[slot] : undefined;
-    const html = await this.#client.fetchText("inv_equip.php", {
+    return equipAction(this.#client, {
       method: "POST",
       form: {
         action: "equip",
@@ -128,45 +172,11 @@ export class Equipment {
         ...(slotNumber !== undefined && { slot: slotNumber }),
       },
     });
-    if (
-      html.includes("You equip an item") ||
-      html.includes("Item equipped") ||
-      html.includes("equips an item")
-    ) {
-      return { success: true };
-    }
-    return { success: false, reason: "Failed to equip item" };
+  }
+
+  async unequip(slot: EquipmentSlot): Promise<ActionResult<EquipData>> {
+    return unequipAction(this.#client, {
+      query: { which: 2, action: "unequip", type: slot },
+    });
   }
 }
-
-// Intercept equip/unequip actions from the browser UI and emit the same events
-// so that Inventory and other listeners stay in sync regardless of who initiated the action.
-
-async function onEquipResponse(client: Client, req: KolRequest): Promise<void> {
-  const itemId = parseInt(req.params.get("whichitem") ?? "", 10);
-  if (isNaN(itemId)) return;
-  const item = await gameData.findItemById(itemId);
-  if (!item) return;
-  const accessorySlotNumber = (parseInt(req.params.get("slot") ?? "1", 10) || 1) as AccessorySlotNumber;
-  const slot = slotForItem(item, accessorySlotNumber);
-  if (!slot) return;
-  client.equipment.get.invalidate();
-  void client.emit("equip", { item, slot });
-}
-
-async function onUnequipResponse(client: Client, req: KolRequest): Promise<void> {
-  const slot = req.params.get("type") as EquipmentSlot | null;
-  if (!slot) return;
-  const item = (await client.equipment.get()).get(slot);
-  client.equipment.get.invalidate();
-  if (item) void client.emit("unequip", { item, slot });
-}
-
-registerInterceptor({
-  path: "inv_equip.php",
-  onResponse(client, req) {
-    const action = req.params.get("action");
-    if (action === "equip") return onEquipResponse(client, req);
-    if (action === "unequip") return onUnequipResponse(client, req);
-  },
-});

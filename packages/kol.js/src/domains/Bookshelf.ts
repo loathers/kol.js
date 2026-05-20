@@ -2,7 +2,7 @@ import createDebug from "debug";
 
 import type { Client, Result } from "../Client.js";
 import { DailyFlag } from "../flags/registry.js";
-import { registerInterceptor } from "../interceptors/registry.js";
+import { defineAction } from "../interceptors/action.js";
 import { recordSkillCast, registerSkillBehavior } from "./Skills.js";
 
 const debug = createDebug("kol.js:skills");
@@ -15,13 +15,15 @@ export abstract class Bookshelf {
     readonly preaction: string,
   ) {
     registerSkillBehavior(skillId, this);
-    registerInterceptor({
+    defineAction({
       matches: (req) =>
         req.path === "campground.php" &&
         req.params.get("preaction") === preaction,
-      onResponse(client, _req, res) {
-        if (typeof res.body !== "string") return;
-        if (!res.body.includes("You acquire")) return;
+      parse({ body, success, failure }) {
+        if (!body.includes("You acquire")) return failure("Cast failed");
+        return success({});
+      },
+      onSuccess({ client }) {
         recordSkillCast(client, skillId);
       },
     });
@@ -133,12 +135,14 @@ export const alicesArmyCards = new Grimoire(7228, "summonaa");
 export const geekyGifts = new Grimoire(7229, "summonthinknerd");
 export const confiscatedThings = new Grimoire(7230, "summonconfiscators");
 
-registerInterceptor({
+defineAction({
   path: "campground.php",
-  onResponse(client, _req, res) {
-    if (typeof res.body !== "string") return;
-    if (!res.body.includes("Tomes:")) return;
-    Libram.syncFromPage(client, res.body);
-    Tome.syncFromPage(client, res.body);
+  parse({ body, success, failure }) {
+    if (!body.includes("Tomes:")) return failure("No tomes section");
+    return success({ body });
+  },
+  onSuccess({ client, result }) {
+    Libram.syncFromPage(client, result.body);
+    Tome.syncFromPage(client, result.body);
   },
 });
