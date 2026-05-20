@@ -13,7 +13,7 @@ import "./domains/Bookshelf.js";
 import { ApiStatusSchema, type ApiStatus } from "./domains/ApiStatus.js";
 import { CharSheet } from "./domains/CharSheet.js";
 import { Effects } from "./domains/Effects.js";
-import { Equipment } from "./domains/Equipment.js";
+import { Equipment, type EquipmentSlot } from "./domains/Equipment.js";
 import { ChatMailbox, type ChatMessage } from "./domains/ChatMailbox.js";
 import { Closet } from "./domains/Closet.js";
 import { Inventory } from "./domains/Inventory.js";
@@ -25,8 +25,8 @@ import { Storage } from "./domains/Storage.js";
 import { AuthError, JoinClanError, RolloverError } from "./errors.js";
 import { Flags, type FlagsBackend } from "./flags/Flags.js";
 import { ProxyServer } from "./proxy/ProxyServer.js";
-import { runRequestPipeline, runResponsePipeline } from "./proxy/pipeline.js";
-import { registerInterceptor } from "./proxy/registry.js";
+import { runRequestPipeline, runResponsePipeline } from "./interceptors/pipeline.js";
+import { registerInterceptor } from "./interceptors/registry.js";
 import { deduplicate } from "./utils/deduplicate.js";
 import { sanitiseBlueText, wait } from "./utils/utils.js";
 import { resolveEntityId } from "./utils/utils.js";
@@ -61,7 +61,7 @@ function formToBody(form: FormData): URLSearchParams {
   );
 }
 
-function buildProxyRequest(path: string, options: RequestOptions) {
+function buildKolRequest(path: string, options: RequestOptions) {
   const params = new URLSearchParams();
   if (options.query) {
     for (const [k, v] of Object.entries(options.query)) {
@@ -87,6 +87,8 @@ type Events = {
   login: PlayerPayload;
   logout: PlayerPayload;
   apiStatus: ApiStatus;
+  equip: { item: Item; slot: EquipmentSlot };
+  unequip: { item: Item; slot: EquipmentSlot };
 };
 
 type Familiar = {
@@ -288,7 +290,7 @@ export class Client extends Emittery<Events> {
   }
 
   async fetchText(path: string, options: RequestOptions = {}): Promise<string> {
-    const req = buildProxyRequest(path, options);
+    const req = buildKolRequest(path, options);
     await runRequestPipeline(this, req);
     const { form, ...rest } = options;
     const text = await this.#withRecovery(() =>
@@ -308,7 +310,7 @@ export class Client extends Emittery<Events> {
     path: string,
     options: RequestOptions = {},
   ): Promise<Result> {
-    const req = buildProxyRequest(path, options);
+    const req = buildKolRequest(path, options);
     await runRequestPipeline(this, req);
     const { form, ...rest } = options;
     const json = await this.#withRecovery(() =>

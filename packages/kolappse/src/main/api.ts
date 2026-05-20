@@ -1,11 +1,11 @@
 import { gameData, registerInterceptor } from "kol.js";
-import type { EvaluatedModifier, ProxyResponse } from "kol.js";
+import type { EvaluatedModifier, KolResponse } from "kol.js";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { loadAccounts } from "./credentials.js";
 
-function json(data: unknown): ProxyResponse {
+function json(data: unknown): KolResponse {
   return {
     status: 200,
     contentType: "application/json",
@@ -13,7 +13,7 @@ function json(data: unknown): ProxyResponse {
   };
 }
 
-function error(status: number, message: string): ProxyResponse {
+function error(status: number, message: string): KolResponse {
   return {
     status,
     contentType: "application/json",

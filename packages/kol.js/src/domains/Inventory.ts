@@ -9,6 +9,8 @@ export class Inventory {
 
   constructor(client: Client) {
     this.#client = client;
+    client.on("equip", () => this.get.invalidate());
+    client.on("unequip", () => this.get.invalidate());
   }
 
   get = cached(async (): Promise<Map<Item, number>> => {

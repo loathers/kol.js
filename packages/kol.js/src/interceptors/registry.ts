@@ -1,4 +1,4 @@
-import type { Interceptor, ProxyRequest } from "./types.js";
+import type { Interceptor, KolRequest } from "./types.js";
 
 const interceptors: Interceptor[] = [];
 
@@ -6,7 +6,7 @@ export function registerInterceptor(interceptor: Interceptor): void {
   interceptors.push(interceptor);
 }
 
-export function getMatchingInterceptors(req: ProxyRequest): Interceptor[] {
+export function getMatchingInterceptors(req: KolRequest): Interceptor[] {
   return interceptors.filter((i) => {
     if (i.matches) return i.matches(req);
     if (!i.path) return true;

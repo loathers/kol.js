@@ -2,7 +2,7 @@ import createDebug from "debug";
 
 import type { Client, Result } from "../Client.js";
 import { DailyFlag } from "../flags/registry.js";
-import { registerInterceptor } from "../proxy/registry.js";
+import { registerInterceptor } from "../interceptors/registry.js";
 import { recordSkillCast, registerSkillBehavior } from "./Skills.js";
 
 const debug = createDebug("kol.js:skills");

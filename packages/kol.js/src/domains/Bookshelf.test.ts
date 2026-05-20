@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { Client } from "../Client.js";
 import { DailyFlag } from "../flags/registry.js";
-import { runResponsePipeline } from "../proxy/pipeline.js";
+import { runResponsePipeline } from "../interceptors/pipeline.js";
 import { loadFixture } from "../testUtils.js";
 import { Libram, Tome, candyHeart, sugarSheets } from "./Bookshelf.js";
 

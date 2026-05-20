@@ -3,7 +3,7 @@ import createDebug from "debug";
 
 import type { Client, Result } from "../Client.js";
 import { DailyFlag } from "../flags/registry.js";
-import { registerInterceptor } from "../proxy/registry.js";
+import { registerInterceptor } from "../interceptors/registry.js";
 import type { CachedFn } from "../utils/cached.js";
 import { resolveEntityId } from "../utils/utils.js";
 import type { SkillPerm } from "./CharSheet.js";

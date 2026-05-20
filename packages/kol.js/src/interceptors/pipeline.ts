@@ -1,10 +1,10 @@
 import type { Client } from "../Client.js";
 import { getMatchingInterceptors } from "./registry.js";
-import type { ProxyRequest, ProxyResponse } from "./types.js";
+import type { KolRequest, KolResponse } from "./types.js";
 
 export async function runRequestPipeline(
   client: Client,
-  req: ProxyRequest,
+  req: KolRequest,
 ): Promise<void> {
   for (const i of getMatchingInterceptors(req)) {
     await i.onRequest?.(client, req);
@@ -13,8 +13,8 @@ export async function runRequestPipeline(
 
 export async function runResponsePipeline(
   client: Client,
-  req: ProxyRequest,
-  res: ProxyResponse,
+  req: KolRequest,
+  res: KolResponse,
 ): Promise<void> {
   for (const i of getMatchingInterceptors(req)) {
     await i.onResponse?.(client, req, res);
@@ -23,8 +23,8 @@ export async function runResponsePipeline(
 
 export async function runHandlePipeline(
   client: Client,
-  req: ProxyRequest,
-): Promise<ProxyResponse | null> {
+  req: KolRequest,
+): Promise<KolResponse | null> {
   for (const i of getMatchingInterceptors(req)) {
     if (i.handle) {
       const result = await i.handle(client, req);
@@ -35,7 +35,7 @@ export async function runHandlePipeline(
 }
 
 export async function runDecoratePipeline(
-  req: ProxyRequest,
+  req: KolRequest,
   html: string,
 ): Promise<string> {
   let result = html;

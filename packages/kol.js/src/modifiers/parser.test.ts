@@ -103,10 +103,9 @@ describe("parseModifiers", () => {
     expect(expr[0]).toMatchObject({ kind: "expression", expr: "path(Avatar of Boris)" });
   });
 
-  test("def.kind drives output kind: unknown modifier uses DEFAULT_DEF (numeric)", () => {
-    // Unknown modifier falls back to DEFAULT_DEF { kind: "numeric" }
+  test("def.kind drives output kind: unknown modifier is stringified", () => {
     const result = parseModifiers([{ name: "Completely Unknown Modifier", value: "42" }]);
-    expect(result[0]).toMatchObject({ kind: "numeric", value: 42 });
+    expect(result[0]).toMatchObject({ kind: "string", value: "42" });
   });
 
   test("groupIndex increments for repeated names", () => {

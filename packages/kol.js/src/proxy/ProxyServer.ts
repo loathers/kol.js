@@ -7,18 +7,18 @@ import {
   runHandlePipeline,
   runRequestPipeline,
   runResponsePipeline,
-} from "./pipeline.js";
-import type { ProxyRequest, ProxyResponse } from "./types.js";
+} from "../interceptors/pipeline.js";
+import type { KolRequest, KolResponse } from "../interceptors/types.js";
 
 const debug = createDebug("kol.js:proxy");
 
 const KOL_ORIGIN = "https://www.kingdomofloathing.com";
 const STATIC_HOSTS = new Set(["images.kingdomofloathing.com"]);
 
-function buildProxyRequest(
+function buildKolRequest(
   incoming: http.IncomingMessage,
   body: Buffer,
-): ProxyRequest {
+): KolRequest {
   const url = new URL(incoming.url ?? "/", "http://localhost");
   const params = new URLSearchParams(url.search);
   if (
@@ -73,7 +73,7 @@ export class ProxyServer {
       const body = await this.#readBody(incoming);
       const url = new URL(incoming.url ?? "/", "http://localhost");
       const host = url.hostname || "www.kingdomofloathing.com";
-      const proxyReq = buildProxyRequest(incoming, body);
+      const proxyReq = buildKolRequest(incoming, body);
 
       if (STATIC_HOSTS.has(host)) {
         await this.#pipeStatic(
@@ -132,7 +132,7 @@ export class ProxyServer {
         upstream.headers.get("content-type") ?? "application/octet-stream";
       const isHtml = contentType.includes("text/html");
 
-      const proxyRes: ProxyResponse = {
+      const proxyRes: KolResponse = {
         status: upstream.status,
         contentType,
         body: isHtml ? upstream.body.toString("utf8") : upstream.body,
@@ -145,11 +145,14 @@ export class ProxyServer {
         proxyRes.body = rewriteHtml(proxyRes.body, this.#port);
       }
 
-      // If KoL followed a redirect to a different page, tell the browser to follow suit.
+      // If KoL followed a redirect to a different page, tell the browser to follow suit —
+      // but only for navigation requests. AJAX/fetch requests get the final content directly;
+      // re-issuing a redirect there causes a blank follow-up response for action endpoints.
+      const isNavigation = incoming.headers["sec-fetch-mode"] === "navigate";
       const finalPath =
         new URL(upstream.url).pathname + new URL(upstream.url).search;
       const browserPath = `/${proxyReq.path}${url.search}`;
-      if (isHtml && finalPath !== browserPath && finalPath !== "/") {
+      if (isHtml && isNavigation && finalPath !== browserPath && finalPath !== "/") {
         outgoing.writeHead(302, {
           location: `http://localhost:${this.#port}${finalPath}`,
         });

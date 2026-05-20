@@ -13,6 +13,7 @@ export type ModifierDef = {
 };
 
 const DEFAULT_DEF: ModifierDef = { aggregation: "additive", kind: "numeric" };
+const UNKNOWN_DEF: ModifierDef = { aggregation: "override", kind: "string" };
 
 export const CATALOG: Record<string, ModifierDef> = {
   // Stats
@@ -198,11 +199,12 @@ export const CATALOG: Record<string, ModifierDef> = {
   "Equips On": { aggregation: "override", kind: "string" },
   Recipe: { aggregation: "override", kind: "string" },
   "Wiki Name": { aggregation: "override", kind: "string" },
+  "Last Available": { aggregation: "override", kind: "string" },
   Skill: { aggregation: "collect", kind: "string" },
 };
 
 export function getModifierDef(name: string): ModifierDef {
-  return CATALOG[name] ?? DEFAULT_DEF;
+  return CATALOG[name] ?? UNKNOWN_DEF;
 }
 
 export type PositionalGroupDef = {
