@@ -1,0 +1,35 @@
+.root {
+  width: 100%;
+  height: 100vh;
+}
+
+.frame {
+  border: none;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.vHandle {
+  width: 5px;
+  background: #c0c0c0;
+  cursor: col-resize;
+  flex-shrink: 0;
+}
+
+.vHandle:hover,
+.vHandle[data-resize-handle-state="drag"] {
+  background: #a0a0a0;
+}
+
+.hHandle {
+  height: 5px;
+  background: #c0c0c0;
+  cursor: row-resize;
+  flex-shrink: 0;
+}
+
+.hHandle:hover,
+.hHandle[data-resize-handle-state="drag"] {
+  background: #a0a0a0;
+}
