@@ -197,4 +197,19 @@ export class Clan {
       return { success: true };
     });
   }
+
+  async readWhiteboard(): Promise<string> {
+    const html = await this.#client.fetchText("clan_basement.php", {
+      query: { whiteboard: 1 },
+    });
+    return html.match(/<textarea[^>]*>([\s\S]*?)<\/textarea>/i)?.[1]?.trim() ?? "";
+  }
+
+  async writeWhiteboard(text: string): Promise<Result> {
+    await this.#client.fetchText("clan_basement.php", {
+      method: "POST",
+      form: { action: "whitewrite", whiteboard: text },
+    });
+    return { success: true };
+  }
 }

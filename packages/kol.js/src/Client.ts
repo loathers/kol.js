@@ -10,8 +10,12 @@ import type { Dispatcher } from "undici";
 import pkg from "../package.json" with { type: "json" };
 import { gameData } from "./GameData.js";
 import "./domains/Bookshelf.js";
+import { Account } from "./domains/Account.js";
+import { Adventure } from "./domains/Adventure.js";
 import { ApiStatusSchema, type ApiStatus } from "./domains/ApiStatus.js";
 import { CharSheet } from "./domains/CharSheet.js";
+import { CombatMacros } from "./domains/CombatMacros.js";
+import { Consumption } from "./domains/Consumption.js";
 import { Effects } from "./domains/Effects.js";
 import { Equipment, type EquipmentSlot } from "./domains/Equipment.js";
 import { ChatMailbox, type ChatMessage } from "./domains/ChatMailbox.js";
@@ -159,7 +163,11 @@ export class Client extends Emittery<Events> {
     },
     { fetch: makeFetchCookie(fetch, this.#cookieJar) },
   );
+  account = new Account(this);
+  adventure = new Adventure(this);
   charSheet = new CharSheet(this);
+  combatMacros = new CombatMacros(this);
+  consumption = new Consumption(this);
   effects = new Effects(this);
   equipment = new Equipment(this);
   modifiers = new Modifiers(this);
