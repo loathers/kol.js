@@ -20,7 +20,11 @@ export function parseModifiers(entries: Modifier[]): ParsedModifier[] {
   return results;
 }
 
-function parseEntry(name: string, value: string, groupIndex: number): ParsedModifier {
+function parseEntry(
+  name: string,
+  value: string,
+  groupIndex: number,
+): ParsedModifier {
   const def = getModifierDef(name);
 
   // Expressions can represent any def.kind — check before dispatching on def.kind
@@ -35,7 +39,12 @@ function parseEntry(name: string, value: string, groupIndex: number): ParsedModi
       const quotedMatch = value.match(QUOTED_STRING);
       const unquoted = quotedMatch ? quotedMatch[1] : value;
       const idMatch = unquoted.match(BRACKET_ID);
-      return { kind: "string", name, groupIndex, value: idMatch ? idMatch[2].trim() : unquoted };
+      return {
+        kind: "string",
+        name,
+        groupIndex,
+        value: idMatch ? idMatch[2].trim() : unquoted,
+      };
     }
     case "boolean":
       return { kind: "boolean", name, value: true };

@@ -27,12 +27,10 @@ export class Raffle {
     const todayMatches = page.matchAll(
       /<tr><td align=right>(?:First|Second) Prize:<\/td>.*?descitem\((\d+)\)/g,
     );
+    // matchAll always returns an iterator; an empty match set yields an empty
+    // array, so first/second fall back to null below.
     const [first, second] = await Promise.all(
-      todayMatches
-        ? [...todayMatches].map(
-            async (p) => await this.#client.descIdToId(Number(p[1])),
-          )
-        : [null, null],
+      [...todayMatches].map((p) => this.#client.descIdToId(Number(p[1]))),
     );
 
     const winnerMatches = page.matchAll(

@@ -202,7 +202,9 @@ export class Clan {
     const html = await this.#client.fetchText("clan_basement.php", {
       query: { whiteboard: 1 },
     });
-    return html.match(/<textarea[^>]*>([\s\S]*?)<\/textarea>/i)?.[1]?.trim() ?? "";
+    return (
+      html.match(/<textarea[^>]*>([\s\S]*?)<\/textarea>/i)?.[1]?.trim() ?? ""
+    );
   }
 
   async writeWhiteboard(text: string): Promise<Result> {

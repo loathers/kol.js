@@ -1,4 +1,9 @@
-export type AggregationRule = "additive" | "min" | "max" | "override" | "collect";
+export type AggregationRule =
+  | "additive"
+  | "min"
+  | "max"
+  | "override"
+  | "collect";
 export type ModifierKind = "numeric" | "boolean" | "string";
 
 export type DRTier = {

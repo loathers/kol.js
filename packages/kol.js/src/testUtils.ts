@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { expect, vi } from "vitest";
+import { expect } from "vitest";
 
 export async function loadFixture(dirname: string, name: string) {
   const file = path.join(dirname, `__fixtures__/${name}`);

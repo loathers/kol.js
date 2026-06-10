@@ -105,7 +105,7 @@ describe("Libram.syncFromPage", () => {
     expect(client.skills.castsToday(candyHeart.skillId)).toBe(0);
   });
 
-  test("ignores pages with no libram buttons", async () => {
+  test("ignores pages with no libram buttons", () => {
     client.flags.set(DailyFlag.skillCasts, { [candyHeart.skillId]: 5 });
     Libram.syncFromPage(client, "<html>some other campground page</html>");
     expect(client.skills.castsToday(candyHeart.skillId)).toBe(5);

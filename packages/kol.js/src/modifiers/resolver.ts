@@ -33,14 +33,33 @@ type EvaluatedBooleanModifier = Extract<EvaluatedModifier, { kind: "boolean" }>;
 type EvaluatedStringModifier = Extract<EvaluatedModifier, { kind: "string" }>;
 type EvaluatedNumericModifier = Extract<EvaluatedModifier, { kind: "numeric" }>;
 
-function evaluateModifier(pm: Extract<ParsedModifier, { kind: "boolean" }>, context: ExpressionContext): EvaluatedBooleanModifier;
-function evaluateModifier(pm: Extract<ParsedModifier, { kind: "string" }>, context: ExpressionContext): EvaluatedStringModifier;
-function evaluateModifier(pm: Extract<ParsedModifier, { kind: "numeric" }>, context: ExpressionContext): EvaluatedNumericModifier | EvaluatedBooleanModifier;
-function evaluateModifier(pm: Extract<ParsedModifier, { kind: "expression" }>, context: ExpressionContext): EvaluatedNumericModifier | EvaluatedBooleanModifier | EvaluatedStringModifier;
-function evaluateModifier(pm: ParsedModifier, context: ExpressionContext): EvaluatedModifier {
+function evaluateModifier(
+  pm: Extract<ParsedModifier, { kind: "boolean" }>,
+  context: ExpressionContext,
+): EvaluatedBooleanModifier;
+function evaluateModifier(
+  pm: Extract<ParsedModifier, { kind: "string" }>,
+  context: ExpressionContext,
+): EvaluatedStringModifier;
+function evaluateModifier(
+  pm: Extract<ParsedModifier, { kind: "numeric" }>,
+  context: ExpressionContext,
+): EvaluatedNumericModifier | EvaluatedBooleanModifier;
+function evaluateModifier(
+  pm: Extract<ParsedModifier, { kind: "expression" }>,
+  context: ExpressionContext,
+):
+  | EvaluatedNumericModifier
+  | EvaluatedBooleanModifier
+  | EvaluatedStringModifier;
+function evaluateModifier(
+  pm: ParsedModifier,
+  context: ExpressionContext,
+): EvaluatedModifier {
   const def = getModifierDef(pm.name);
 
-  const value = pm.kind === "expression" ? evaluate(pm.expr, context) : pm.value;
+  const value =
+    pm.kind === "expression" ? evaluate(pm.expr, context) : pm.value;
 
   switch (def.kind) {
     case "boolean":
@@ -56,7 +75,9 @@ function evaluateModifier(pm: ParsedModifier, context: ExpressionContext): Evalu
 type OrderedEntry = { groupIndex: number; value: string | number };
 
 const RANGE_NAMES = new Set(RANGE_PAIRS.flatMap((r) => [r.min, r.max]));
-const POSITIONAL_NAMES = new Set(POSITIONAL_GROUPS.flatMap((g) => [g.primary, g.secondary]));
+const POSITIONAL_NAMES = new Set(
+  POSITIONAL_GROUPS.flatMap((g) => [g.primary, g.secondary]),
+);
 
 export function resolveModifiers(
   sources: ModifierSource[],
@@ -88,7 +109,11 @@ function collectEvaluated(
     buckets.get(name)!.push(evaluated);
   }
 
-  function recordOrdered(name: string, groupIndex: number, value: string | number): void {
+  function recordOrdered(
+    name: string,
+    groupIndex: number,
+    value: string | number,
+  ): void {
     if (!ordered.has(name)) ordered.set(name, []);
     ordered.get(name)!.push({ groupIndex, value });
   }
@@ -135,7 +160,10 @@ function aggregateStandard(
     result.set(
       name,
       aggregated.kind === "numeric" && def.diminishingReturns
-        ? { ...aggregated, value: applyDR(aggregated.value, def.diminishingReturns) }
+        ? {
+            ...aggregated,
+            value: applyDR(aggregated.value, def.diminishingReturns),
+          }
         : aggregated,
     );
   }
@@ -186,7 +214,11 @@ function aggregateCollected(
   for (const [name, entries] of ordered) {
     if (POSITIONAL_NAMES.has(name) || RANGE_NAMES.has(name)) continue;
     if (getModifierDef(name).aggregation !== "collect") continue;
-    result.set(name, { kind: "string[]", name, values: entries.map((e) => String(e.value)) });
+    result.set(name, {
+      kind: "string[]",
+      name,
+      values: entries.map((e) => String(e.value)),
+    });
   }
 }
 
@@ -202,22 +234,40 @@ function aggregate(
   const first = values[0];
 
   if (first.kind === "boolean") {
-    return { kind: "boolean", name, value: values.some((v) => v.kind === "boolean" && v.value) };
+    return {
+      kind: "boolean",
+      name,
+      value: values.some((v) => v.kind === "boolean" && v.value),
+    };
   }
 
   if (first.kind === "string") return values[values.length - 1];
 
-  const nums = values.filter((v): v is EvaluatedNumericModifier => v.kind === "numeric");
+  const nums = values.filter(
+    (v): v is EvaluatedNumericModifier => v.kind === "numeric",
+  );
   if (nums.length === 0) return null;
 
   if (aggregation === "additive") {
-    return { kind: "numeric", name, value: nums.reduce((acc, v) => acc + v.value, 0) };
+    return {
+      kind: "numeric",
+      name,
+      value: nums.reduce((acc, v) => acc + v.value, 0),
+    };
   }
   if (aggregation === "min") {
-    return { kind: "numeric", name, value: nums.reduce((acc, v) => Math.min(acc, v.value), Infinity) };
+    return {
+      kind: "numeric",
+      name,
+      value: nums.reduce((acc, v) => Math.min(acc, v.value), Infinity),
+    };
   }
   if (aggregation === "max") {
-    return { kind: "numeric", name, value: nums.reduce((acc, v) => Math.max(acc, v.value), -Infinity) };
+    return {
+      kind: "numeric",
+      name,
+      value: nums.reduce((acc, v) => Math.max(acc, v.value), -Infinity),
+    };
   }
 
   return null;

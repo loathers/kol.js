@@ -152,7 +152,12 @@ export class ProxyServer {
       const finalPath =
         new URL(upstream.url).pathname + new URL(upstream.url).search;
       const browserPath = `/${proxyReq.path}${url.search}`;
-      if (isHtml && isNavigation && finalPath !== browserPath && finalPath !== "/") {
+      if (
+        isHtml &&
+        isNavigation &&
+        finalPath !== browserPath &&
+        finalPath !== "/"
+      ) {
         outgoing.writeHead(302, {
           location: `http://localhost:${this.#port}${finalPath}`,
         });

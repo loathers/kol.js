@@ -37,7 +37,10 @@ describe("chat.check", () => {
         type: "public",
         msg: "testing",
         time: new Date(1698787642000),
-        who: expect.objectContaining({ id: 1197090, name: "gAUSIE" }),
+        who: expect.objectContaining({
+          id: 1197090,
+          name: "gAUSIE",
+        }) as unknown,
       }),
     );
   });
@@ -64,7 +67,10 @@ describe("chat.check", () => {
       "system",
       expect.objectContaining({
         type: "system",
-        who: expect.objectContaining({ id: -1, name: "System Message" }),
+        who: expect.objectContaining({
+          id: -1,
+          name: "System Message",
+        }) as unknown,
         msg: "The system will go down for nightly maintenance in 5 minutes.",
         time: new Date(1698809101000),
       }),
@@ -93,7 +99,10 @@ describe("chat.check", () => {
       "system",
       expect.objectContaining({
         type: "system",
-        who: expect.objectContaining({ id: -1, name: "System Message" }),
+        who: expect.objectContaining({
+          id: -1,
+          name: "System Message",
+        }) as unknown,
         msg: "The system will go down for nightly maintenance in 1 minute.",
         time: new Date(1698809101000),
       }),
@@ -122,7 +131,10 @@ describe("chat.check", () => {
       "system",
       expect.objectContaining({
         type: "system",
-        who: expect.objectContaining({ id: -1, name: "System Message" }),
+        who: expect.objectContaining({
+          id: -1,
+          name: "System Message",
+        }) as unknown,
         msg: "Rollover is over.",
         time: new Date(1698809633000),
       }),

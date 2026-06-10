@@ -11,9 +11,18 @@ describe("parseEntries", () => {
     );
     const entries = Effects.parseEntries(status);
     expect(entries.length).toBeGreaterThan(0);
-    expect(entries.find((e) => e.id === 2456)).toMatchObject({ id: 2456, duration: 3 });
-    expect(entries.find((e) => e.id === 50)).toMatchObject({ id: 50, duration: 3 });
-    expect(entries.find((e) => e.id === 2109)).toMatchObject({ id: 2109, duration: 135600 });
+    expect(entries.find((e) => e.id === 2456)).toMatchObject({
+      id: 2456,
+      duration: 3,
+    });
+    expect(entries.find((e) => e.id === 50)).toMatchObject({
+      id: 50,
+      duration: 3,
+    });
+    expect(entries.find((e) => e.id === 2109)).toMatchObject({
+      id: 2109,
+      duration: 135600,
+    });
   });
 
   test("parses intrinsics as Infinity duration", async () => {
@@ -21,8 +30,14 @@ describe("parseEntries", () => {
       JSON.parse(await loadFixture(__dirname, "status_with_effects.json")),
     );
     const entries = Effects.parseEntries(status);
-    expect(entries.find((e) => e.id === 168)).toMatchObject({ id: 168, duration: Infinity });
-    expect(entries.find((e) => e.id === 2694)).toMatchObject({ id: 2694, duration: Infinity });
+    expect(entries.find((e) => e.id === 168)).toMatchObject({
+      id: 168,
+      duration: Infinity,
+    });
+    expect(entries.find((e) => e.id === 2694)).toMatchObject({
+      id: 2694,
+      duration: Infinity,
+    });
   });
 
   test("returns empty array when effects and intrinsics are absent", () => {

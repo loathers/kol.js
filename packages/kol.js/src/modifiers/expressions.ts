@@ -52,7 +52,10 @@ const PrefFn = createToken({ name: "PrefFn", pattern: /pref/ });
 
 // Single uppercase letter (L, M, G…) or multi-letter lowercase name (paradoxicity…)
 // Must come after all keyword tokens so keywords take precedence on same-length matches
-const Variable = createToken({ name: "Variable", pattern: /[A-Z]|[a-z][a-z0-9_]*/ });
+const Variable = createToken({
+  name: "Variable",
+  pattern: /[A-Z]|[a-z][a-z0-9_]*/,
+});
 const Plus = createToken({ name: "Plus", pattern: /\+/ });
 const Minus = createToken({ name: "Minus", pattern: /-/ });
 const Star = createToken({ name: "Star", pattern: /\*/ });
@@ -113,8 +116,18 @@ class KolExpressionParser extends EmbeddedActionsParser {
     let result = this.SUBRULE(this.multiplicative);
     this.MANY(() => {
       const op = this.OR<string>([
-        { ALT: () => { this.CONSUME(Plus); return "+"; } },
-        { ALT: () => { this.CONSUME(Minus); return "-"; } },
+        {
+          ALT: () => {
+            this.CONSUME(Plus);
+            return "+";
+          },
+        },
+        {
+          ALT: () => {
+            this.CONSUME(Minus);
+            return "-";
+          },
+        },
       ]);
       const right = this.SUBRULE2(this.multiplicative);
       if (op === "+") result += right;
@@ -127,8 +140,18 @@ class KolExpressionParser extends EmbeddedActionsParser {
     let result = this.SUBRULE(this.power);
     this.MANY(() => {
       const op = this.OR<string>([
-        { ALT: () => { this.CONSUME(Star); return "*"; } },
-        { ALT: () => { this.CONSUME(Slash); return "/"; } },
+        {
+          ALT: () => {
+            this.CONSUME(Star);
+            return "*";
+          },
+        },
+        {
+          ALT: () => {
+            this.CONSUME(Slash);
+            return "/";
+          },
+        },
       ]);
       const right = this.SUBRULE2(this.power);
       if (op === "*") result *= right;
@@ -139,11 +162,13 @@ class KolExpressionParser extends EmbeddedActionsParser {
 
   private power = this.RULE("power", (): number => {
     const base = this.SUBRULE(this.unary);
-    return this.OPTION(() => {
-      this.CONSUME(Caret);
-      const exp = this.SUBRULE2(this.unary);
-      return Math.pow(base, exp);
-    }) ?? base;
+    return (
+      this.OPTION(() => {
+        this.CONSUME(Caret);
+        const exp = this.SUBRULE2(this.unary);
+        return Math.pow(base, exp);
+      }) ?? base
+    );
   });
 
   private unary = this.RULE("unary", (): number => {
@@ -201,12 +226,42 @@ class KolExpressionParser extends EmbeddedActionsParser {
 
   private mathCall = this.RULE("mathCall", (): number => {
     const fn = this.OR<string>([
-      { ALT: () => { this.CONSUME(FloorFn); return "floor"; } },
-      { ALT: () => { this.CONSUME(CeilFn); return "ceil"; } },
-      { ALT: () => { this.CONSUME(MinFn); return "min"; } },
-      { ALT: () => { this.CONSUME(MaxFn); return "max"; } },
-      { ALT: () => { this.CONSUME(LteFn); return "lte"; } },
-      { ALT: () => { this.CONSUME(GteFn); return "gte"; } },
+      {
+        ALT: () => {
+          this.CONSUME(FloorFn);
+          return "floor";
+        },
+      },
+      {
+        ALT: () => {
+          this.CONSUME(CeilFn);
+          return "ceil";
+        },
+      },
+      {
+        ALT: () => {
+          this.CONSUME(MinFn);
+          return "min";
+        },
+      },
+      {
+        ALT: () => {
+          this.CONSUME(MaxFn);
+          return "max";
+        },
+      },
+      {
+        ALT: () => {
+          this.CONSUME(LteFn);
+          return "lte";
+        },
+      },
+      {
+        ALT: () => {
+          this.CONSUME(GteFn);
+          return "gte";
+        },
+      },
     ]);
     this.CONSUME(LParen);
     const a = this.SUBRULE(this.expression);
@@ -218,24 +273,61 @@ class KolExpressionParser extends EmbeddedActionsParser {
     this.CONSUME(RParen);
 
     switch (fn) {
-      case "floor": return Math.floor(a);
-      case "ceil": return Math.ceil(a);
-      case "min": return Math.min(a, b ?? a);
-      case "max": return Math.max(a, b ?? a);
-      case "lte": return a <= (b ?? 0) ? 1 : 0;
-      case "gte": return a >= (b ?? 0) ? 1 : 0;
-      default: return 0;
+      case "floor":
+        return Math.floor(a);
+      case "ceil":
+        return Math.ceil(a);
+      case "min":
+        return Math.min(a, b ?? a);
+      case "max":
+        return Math.max(a, b ?? a);
+      case "lte":
+        return a <= (b ?? 0) ? 1 : 0;
+      case "gte":
+        return a >= (b ?? 0) ? 1 : 0;
+      default:
+        return 0;
     }
   });
 
   private stringArgCall = this.RULE("stringArgCall", (): number => {
     const fn = this.OR<string>([
-      { ALT: () => { this.CONSUME(SkillFn); return "skill"; } },
-      { ALT: () => { this.CONSUME(ZoneFn); return "zone"; } },
-      { ALT: () => { this.CONSUME(LocFn); return "loc"; } },
-      { ALT: () => { this.CONSUME(EnvFn); return "env"; } },
-      { ALT: () => { this.CONSUME(PathFn); return "path"; } },
-      { ALT: () => { this.CONSUME(EquippedFn); return "equipped"; } },
+      {
+        ALT: () => {
+          this.CONSUME(SkillFn);
+          return "skill";
+        },
+      },
+      {
+        ALT: () => {
+          this.CONSUME(ZoneFn);
+          return "zone";
+        },
+      },
+      {
+        ALT: () => {
+          this.CONSUME(LocFn);
+          return "loc";
+        },
+      },
+      {
+        ALT: () => {
+          this.CONSUME(EnvFn);
+          return "env";
+        },
+      },
+      {
+        ALT: () => {
+          this.CONSUME(PathFn);
+          return "path";
+        },
+      },
+      {
+        ALT: () => {
+          this.CONSUME(EquippedFn);
+          return "equipped";
+        },
+      },
     ]);
     this.CONSUME(LParen);
     const raw = this.CONSUME(StringLiteral).image;
@@ -244,13 +336,22 @@ class KolExpressionParser extends EmbeddedActionsParser {
 
     const ctx = this.context;
     switch (fn) {
-      case "skill": return ctx.skills.has(arg) ? 1 : 0;
-      case "zone": return ctx.location?.zone?.zone === arg ? 1 : 0;
-      case "loc": return ctx.location?.name === arg ? 1 : 0;
-      case "env": return ctx.location?.environment === arg ? 1 : 0;
-      case "path": return ctx.path?.name === arg ? 1 : 0;
-      case "equipped": return [...ctx.equipment.values()].some((item) => item.name === arg) ? 1 : 0;
-      default: return 0;
+      case "skill":
+        return ctx.skills.has(arg) ? 1 : 0;
+      case "zone":
+        return ctx.location?.zone?.zone === arg ? 1 : 0;
+      case "loc":
+        return ctx.location?.name === arg ? 1 : 0;
+      case "env":
+        return String(ctx.location?.environment) === arg ? 1 : 0;
+      case "path":
+        return ctx.path?.name === arg ? 1 : 0;
+      case "equipped":
+        return [...ctx.equipment.values()].some((item) => item.name === arg)
+          ? 1
+          : 0;
+      default:
+        return 0;
     }
   });
 
@@ -297,7 +398,10 @@ export function evaluate(expr: string, context: ExpressionContext): number {
   const { tokens, errors: lexErrors } = expressionLexer.tokenize(preprocessed);
 
   if (lexErrors.length > 0) {
-    if (context.strict) throw new Error(`Lex error in expression "${expr}": ${lexErrors[0].message}`);
+    if (context.strict)
+      throw new Error(
+        `Lex error in expression "${expr}": ${lexErrors[0].message}`,
+      );
     return 0;
   }
 
@@ -306,7 +410,10 @@ export function evaluate(expr: string, context: ExpressionContext): number {
   const result = parser.expression();
 
   if (parser.errors.length > 0) {
-    if (context.strict) throw new Error(`Parse error in expression "${expr}": ${parser.errors[0].message}`);
+    if (context.strict)
+      throw new Error(
+        `Parse error in expression "${expr}": ${parser.errors[0].message}`,
+      );
     return 0;
   }
 

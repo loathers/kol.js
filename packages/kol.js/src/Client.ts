@@ -9,28 +9,31 @@ import type { Dispatcher } from "undici";
 
 import pkg from "../package.json" with { type: "json" };
 import { gameData } from "./GameData.js";
-import "./domains/Bookshelf.js";
 import { Account } from "./domains/Account.js";
 import { Adventure } from "./domains/Adventure.js";
-import { ApiStatusSchema, type ApiStatus } from "./domains/ApiStatus.js";
+import { type ApiStatus, ApiStatusSchema } from "./domains/ApiStatus.js";
+import "./domains/Bookshelf.js";
 import { CharSheet } from "./domains/CharSheet.js";
+import { ChatMailbox, type ChatMessage } from "./domains/ChatMailbox.js";
+import { Closet } from "./domains/Closet.js";
 import { CombatMacros } from "./domains/CombatMacros.js";
 import { Consumption } from "./domains/Consumption.js";
 import { Effects } from "./domains/Effects.js";
 import { Equipment, type EquipmentSlot } from "./domains/Equipment.js";
-import { ChatMailbox, type ChatMessage } from "./domains/ChatMailbox.js";
-import { Closet } from "./domains/Closet.js";
 import { Inventory } from "./domains/Inventory.js";
 import { KmailMailbox, type KmailMessage } from "./domains/KmailMailbox.js";
-import { Players } from "./domains/Players.js";
 import { Modifiers } from "./domains/Modifiers.js";
+import { Players } from "./domains/Players.js";
 import { Skills } from "./domains/Skills.js";
 import { Storage } from "./domains/Storage.js";
 import { AuthError, JoinClanError, RolloverError } from "./errors.js";
 import { Flags, type FlagsBackend } from "./flags/Flags.js";
-import { ProxyServer } from "./proxy/ProxyServer.js";
 import { defineAction } from "./interceptors/action.js";
-import { runRequestPipeline, runResponsePipeline } from "./interceptors/pipeline.js";
+import {
+  runRequestPipeline,
+  runResponsePipeline,
+} from "./interceptors/pipeline.js";
+import { ProxyServer } from "./proxy/ProxyServer.js";
 import { deduplicate } from "./utils/deduplicate.js";
 import { sanitiseBlueText, wait } from "./utils/utils.js";
 import { resolveEntityId } from "./utils/utils.js";
@@ -54,7 +57,7 @@ type FormData = Record<string, string | number | boolean>;
 
 export type RequestOptions = {
   method?: string;
-  query?: Record<string, unknown>;
+  query?: Record<string, string | number | boolean | null | undefined>;
   form?: FormData;
   signal?: AbortSignal;
 };
@@ -101,7 +104,6 @@ type Familiar = {
   image: string;
 };
 
-
 export class Client extends Emittery<Events> {
   static #logoutAction = defineAction({
     path: "logout.php",
@@ -113,7 +115,10 @@ export class Client extends Emittery<Events> {
     },
     onSuccess({ client, result }) {
       client.clearSession();
-      void client.emit("logout", { playerName: result.playerName, playerId: result.playerId });
+      void client.emit("logout", {
+        playerName: result.playerName,
+        playerId: result.playerId,
+      });
     },
   });
 
@@ -313,7 +318,7 @@ export class Client extends Emittery<Events> {
     );
     const res = { status: 200, contentType: "text/html", body: text };
     await runResponsePipeline(this, req, res);
-    return res.body as string;
+    return res.body;
   }
 
   async fetchJson<Result>(
@@ -359,7 +364,10 @@ export class Client extends Emittery<Events> {
       redirect: init.redirect,
       responseType: "arrayBuffer",
     };
-    const res = await this.#proxySession.raw<any, "arrayBuffer">(url, options);
+    const res = await this.#proxySession.raw<ArrayBuffer, "arrayBuffer">(
+      url,
+      options,
+    );
     return {
       status: res.status,
       headers: res.headers,
@@ -439,9 +447,12 @@ export class Client extends Emittery<Events> {
       this.#maxHp = api.maxhp;
       this.#mp = api.mp;
       this.#maxMp = api.maxmp;
-      this.#class = api.class > 0 ? await gameData.findClassById(api.class) : null;
+      this.#class =
+        api.class > 0 ? await gameData.findClassById(api.class) : null;
       this.#path = api.path > 0 ? await gameData.findPathById(api.path) : null;
-      this.#location = api.lastadv?.id ? await gameData.findLocationById(api.lastadv.id) : null;
+      this.#location = api.lastadv?.id
+        ? await gameData.findLocationById(api.lastadv.id)
+        : null;
       const prevDay = this.flags.daynumber;
       this.flags.sync(api.daynumber, api.ascensions);
       if (api.daynumber > prevDay && prevDay > 0) {

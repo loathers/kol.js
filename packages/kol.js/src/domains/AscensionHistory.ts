@@ -121,10 +121,7 @@ export class AscensionHistory {
   static #parsePath(path: string): [string, Record<string, number>] {
     const parts = path.match(/(.*?) \((.*?)\)/) ||
       path.match(/(.*?)\s*\n\s*(.*)/s) || [null, path, ""];
-    return [
-      parts[1],
-      AscensionHistory.#parseExtra(parts[2] as string),
-    ];
+    return [parts[1], AscensionHistory.#parseExtra(parts[2])];
   }
 
   static #parseDate(d: string): Date {

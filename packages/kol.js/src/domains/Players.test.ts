@@ -11,8 +11,8 @@ const { json, text } = vi.hoisted(() => ({ json: vi.fn(), text: vi.fn() }));
 
 vi.mock("../Client.js", async (importOriginal) => {
   const client = await importOriginal<typeof import("../Client.js")>();
-  client.Client.prototype.login = async () => true;
-  client.Client.prototype.checkLoggedIn = async () => true;
+  client.Client.prototype.login = () => Promise.resolve(true);
+  client.Client.prototype.checkLoggedIn = () => Promise.resolve(true);
   client.Client.prototype.fetchText = text;
   client.Client.prototype.fetchJson = json;
   return client;

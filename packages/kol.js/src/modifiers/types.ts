@@ -25,7 +25,11 @@ export type EvaluatedModifier =
   | { kind: "boolean"; name: string; value: boolean }
   | { kind: "string"; name: string; value: string }
   | { kind: "string[]"; name: string; values: string[] }
-  | { kind: "effect-grants"; name: string; grants: Array<{ effect: string; duration: number }> }
+  | {
+      kind: "effect-grants";
+      name: string;
+      grants: Array<{ effect: string; duration: number }>;
+    }
   | { kind: "range"; name: string; min: number; max: number };
 
 export type ModifierSource = {
