@@ -213,9 +213,9 @@ describe("SVG", () => {
     expect(d.getMoonsAsSvg()).toBe(dedent`
     <?xml version="1.0" encoding="UTF-8" standalone="no"?>
     <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="110" height="50" viewBox="0 0 110 50">
-      <text id="ronald" x="10" y="35" font-size="30">🌘</text>
-      <text id="grimace" x="70" y="35" font-size="30">🌕</text>
-      <text id="hamburglar" x="87" y="35" font-size="10">🌑</text>
+      <clipPath id="ronald-clip"><circle cx="25" cy="25" r="15" /></clipPath><g clip-path="url(#ronald-clip)"><text id="ronald" x="7" y="38" font-size="36">🌘</text></g>
+      <clipPath id="grimace-clip"><circle cx="85" cy="25" r="15" /></clipPath><g clip-path="url(#grimace-clip)"><text id="grimace" x="67" y="38" font-size="36">🌕</text></g>
+      <text id="hamburglar" x="91.25" y="29" font-size="10">🌑</text>
     </svg>
     `);
   });
@@ -225,10 +225,19 @@ describe("SVG", () => {
     expect(d.getMoonsAsSvg("Noto Color Emoji")).toBe(dedent`
     <?xml version="1.0" encoding="UTF-8" standalone="no"?>
     <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="110" height="50" viewBox="0 0 110 50">
-      <text id="ronald" x="10" y="35" font-size="30" font-family="Noto Color Emoji">🌑</text>
-      <text id="grimace" x="70" y="35" font-size="30" font-family="Noto Color Emoji">🌕</text>
-      <text id="hamburglar" x="50" y="35" font-size="10" font-family="Noto Color Emoji">🌕</text>
+      <clipPath id="ronald-clip"><circle cx="25" cy="25" r="15" /></clipPath><g clip-path="url(#ronald-clip)"><text id="ronald" x="7" y="38" font-size="36" font-family="Noto Color Emoji">🌑</text></g>
+      <clipPath id="grimace-clip"><circle cx="85" cy="25" r="15" /></clipPath><g clip-path="url(#grimace-clip)"><text id="grimace" x="67" y="38" font-size="36" font-family="Noto Color Emoji">🌕</text></g>
+      <text id="hamburglar" x="50" y="29" font-size="10" font-family="Noto Color Emoji">🌕</text>
     </svg>
     `);
+  });
+
+  test("Renders Hamburglar in phase 0 (in front of Grimace's left side)", () => {
+    // Collision date (2006-06-03) is Hamburglar phase 0, which must still render.
+    const d = new LoathingDate(new Date(Date.UTC(2006, 5, 3, 12, 0, 0)));
+    expect(d.getHamburglarPhase()).toBe(0);
+    expect(d.getMoonsAsSvg()).toContain(
+      `<text id="hamburglar" x="68.75" y="29" font-size="10">`,
+    );
   });
 });
