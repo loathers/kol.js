@@ -17,7 +17,7 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin({ exclude: ["kol.js"] })],
     resolve: {
       alias: {
-        "kol.js": resolve(kolJsSrc, "index.ts"),
+        "kol.js": resolve(kolJsSrc, "index.node.ts"),
       },
     },
     server: {
