@@ -33,12 +33,33 @@ export const ApiStatusSchema = z.object({
     .optional(),
   stickers: z.array(z.coerce.number()).default(() => []),
   folder_holder: z.array(z.coerce.number()).default(() => []),
+  // KoL serialises an empty PHP associative array as `[]` rather than `{}`, so
+  // accounts with no active effects/intrinsics return `[]`. Coerce that to an
+  // empty record before validating.
   effects: z
-    .record(z.string(), z.tuple([z.string(), z.coerce.number(), z.string(), z.string(), z.coerce.number()]))
+    .preprocess(
+      (v) => (Array.isArray(v) ? {} : v),
+      z.record(
+        z.string(),
+        z.tuple([
+          z.string(),
+          z.coerce.number(),
+          z.string(),
+          z.string(),
+          z.coerce.number(),
+        ]),
+      ),
+    )
     .optional()
     .default({}),
   intrinsics: z
-    .record(z.string(), z.tuple([z.string(), z.string(), z.string(), z.coerce.number()]))
+    .preprocess(
+      (v) => (Array.isArray(v) ? {} : v),
+      z.record(
+        z.string(),
+        z.tuple([z.string(), z.string(), z.string(), z.coerce.number()]),
+      ),
+    )
     .optional()
     .default({}),
   familiarexp: z.coerce.number().optional(),

@@ -181,6 +181,9 @@ export class TestClient extends Client {
               maxhp: 10,
               mp: "10",
               maxmp: 10,
+              // KoL serialises empty associative arrays as `[]`, not `{}`
+              effects: [],
+              intrinsics: [],
             }),
           );
           return;

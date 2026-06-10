@@ -34,6 +34,15 @@ describe.concurrent("auth integration", () => {
     ctx.expect(await client.checkLoggedIn()).toBe(true);
   });
 
+  it("login succeeds when status has empty-array effects and intrinsics", async (ctx) => {
+    // KoL serialises empty associative arrays as `[]`; the status schema must
+    // accept that without reporting a valid login as failed (AuthError).
+    const client = await createTestClient(ctx);
+
+    ctx.expect(await client.login()).toBe(true);
+    ctx.expect(await client.checkLoggedIn()).toBe(true);
+  });
+
   it("session persists across multiple requests without re-login", async (ctx) => {
     const client = await createTestClient(ctx);
     await client.login();
