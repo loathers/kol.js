@@ -245,7 +245,7 @@ class KolExpressionParser extends EmbeddedActionsParser {
     const ctx = this.context;
     switch (fn) {
       case "skill": return ctx.skills.has(arg) ? 1 : 0;
-      case "zone": return ctx.location?.zone === arg ? 1 : 0;
+      case "zone": return ctx.location?.zone?.zone === arg ? 1 : 0;
       case "loc": return ctx.location?.name === arg ? 1 : 0;
       case "env": return ctx.location?.environment === arg ? 1 : 0;
       case "path": return ctx.path?.name === arg ? 1 : 0;
