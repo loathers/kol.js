@@ -10,10 +10,22 @@ describe("parseEntries", () => {
       JSON.parse(await loadFixture(__dirname, "status_with_effects.json")),
     );
     const entries = Equipment.parseEntries(status);
-    expect(entries.find((e) => e.slot === "hat")).toMatchObject({ slot: "hat", id: 9694 });
-    expect(entries.find((e) => e.slot === "weapon")).toMatchObject({ slot: "weapon", id: 10251 });
-    expect(entries.find((e) => e.slot === "acc1")).toMatchObject({ slot: "acc1", id: 8509 });
-    expect(entries.find((e) => e.slot === "container")).toMatchObject({ slot: "container", id: 6003 });
+    expect(entries.find((e) => e.slot === "hat")).toMatchObject({
+      slot: "hat",
+      id: 9694,
+    });
+    expect(entries.find((e) => e.slot === "weapon")).toMatchObject({
+      slot: "weapon",
+      id: 10251,
+    });
+    expect(entries.find((e) => e.slot === "acc1")).toMatchObject({
+      slot: "acc1",
+      id: 8509,
+    });
+    expect(entries.find((e) => e.slot === "container")).toMatchObject({
+      slot: "container",
+      id: 6003,
+    });
   });
 
   test("excludes empty slots (0 values)", async () => {

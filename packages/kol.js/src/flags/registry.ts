@@ -20,10 +20,9 @@ function makeFlag<S extends FlagType>(store: S) {
 }
 
 const daily = makeFlag("daily");
-// @ts-ignore -- reserved for future flags
+// Reserved for future flags.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const ascension = makeFlag("ascension");
-// @ts-ignore -- reserved for future flags
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const permanent = makeFlag("permanent");
 

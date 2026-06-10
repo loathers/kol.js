@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { Client } from "../Client.js";
 import { gameData } from "../GameData.js";
-import { loadFixture } from "../testUtils.js";
 import { Storage } from "./Storage.js";
 
 const client = new Client("", "");

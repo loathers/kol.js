@@ -85,7 +85,10 @@ describe("evaluate", () => {
   test("unarmed", async () => {
     const sealTooth = await gameData.query.findOne(Item, { id: 2 }); // seal tooth (weapon)
     const noWeapon: ExpressionContext = { ...ctx, equipment: new Map() };
-    const withWeapon: ExpressionContext = { ...ctx, equipment: new Map([["weapon", sealTooth!]]) };
+    const withWeapon: ExpressionContext = {
+      ...ctx,
+      equipment: new Map([["weapon", sealTooth!]]),
+    };
     expect(evaluate("unarmed", noWeapon)).toBe(1);
     expect(evaluate("unarmed", withWeapon)).toBe(0);
     expect(evaluate("3*unarmed", noWeapon)).toBe(3);
@@ -95,7 +98,11 @@ describe("evaluate", () => {
     await gameData.load();
     const location = await gameData.query.findOne(Location, { id: 166 }); // A Maze of Sewer Tunnels
     const path = await gameData.query.findOne(Path, { id: 8 }); // Avatar of Boris
-    const locCtx: ExpressionContext = { ...ctx, location: location ?? undefined, path: path ?? undefined };
+    const locCtx: ExpressionContext = {
+      ...ctx,
+      location: location ?? undefined,
+      path: path ?? undefined,
+    };
 
     expect(evaluate("zone(Hobopolis)", locCtx)).toBe(1);
     expect(evaluate("zone(Other Zone)", locCtx)).toBe(0);
@@ -118,8 +125,12 @@ describe("evaluate", () => {
   });
 
   test("nested functions", () => {
-    expect(evaluate("max(1,min(33,floor(pref(_stinkyCheeseCount)/3)))", ctx)).toBe(5);
-    expect(evaluate("20*max(min(pref(yearbookCameraUpgrades)-9,1),0)", ctx)).toBe(20);
+    expect(
+      evaluate("max(1,min(33,floor(pref(_stinkyCheeseCount)/3)))", ctx),
+    ).toBe(5);
+    expect(
+      evaluate("20*max(min(pref(yearbookCameraUpgrades)-9,1),0)", ctx),
+    ).toBe(20);
   });
 
   test("parentheses", () => {
@@ -130,7 +141,6 @@ describe("evaluate", () => {
   test("from real item data", () => {
     expect(evaluate("1+3*pref(_saberMod,3)", ctx)).toBe(4);
   });
-
 
   test("positive unary prefix in expression", () => {
     // [+1*D] — D unknown, but the leading + should not trip the parser
@@ -147,13 +157,17 @@ describe("evaluate", () => {
     // [L^1.2] with level 10
     expect(evaluate("L^1.2", ctx)).toBeCloseTo(Math.pow(10, 1.2));
     // [2*lte(paradoxicity,21)*gte(paradoxicity,17)] — paradoxicity is a multi-letter variable
-    expect(evaluate("2*lte(paradoxicity,21)*gte(paradoxicity,17)", {
-      ...ctx,
-      variables: { ...ctx.variables, paradoxicity: 18 },
-    })).toBe(2);
-    expect(evaluate("2*lte(paradoxicity,21)*gte(paradoxicity,17)", {
-      ...ctx,
-      variables: { ...ctx.variables, paradoxicity: 25 },
-    })).toBe(0);
+    expect(
+      evaluate("2*lte(paradoxicity,21)*gte(paradoxicity,17)", {
+        ...ctx,
+        variables: { ...ctx.variables, paradoxicity: 18 },
+      }),
+    ).toBe(2);
+    expect(
+      evaluate("2*lte(paradoxicity,21)*gte(paradoxicity,17)", {
+        ...ctx,
+        variables: { ...ctx.variables, paradoxicity: 25 },
+      }),
+    ).toBe(0);
   });
 });

@@ -40,13 +40,15 @@ export abstract class Bookshelf {
 }
 
 export class Tome extends Bookshelf {
-  dailyLimit = async (client: Client) => {
-    if (!client.isRestricted()) return 3;
+  dailyLimit = (client: Client): Promise<number> => {
+    if (!client.isRestricted()) return Promise.resolve(3);
     // In ronin/hardcore all tomes share a pool of 3 casts/day.
     // Return an effective per-skill limit that, when subtracted from
     // castsToday(this), yields the correct shared remaining.
     const skillCasts = client.flags.get(DailyFlag.skillCasts);
-    return 3 - Tome.totalCastsToday(client) + (skillCasts[this.skillId] ?? 0);
+    return Promise.resolve(
+      3 - Tome.totalCastsToday(client) + (skillCasts[this.skillId] ?? 0),
+    );
   };
 
   static totalCastsToday(client: Client): number {
@@ -111,7 +113,7 @@ export class Libram extends Bookshelf {
 }
 
 export class Grimoire extends Bookshelf {
-  dailyLimit = async () => 1;
+  dailyLimit = (): Promise<number> => Promise.resolve(1);
 }
 
 export const snowcones = new Tome(7213, "summonsnowcone");

@@ -1,11 +1,8 @@
-import { Item } from "data-of-loathing";
+import { Item, ItemUse } from "data-of-loathing";
 
 import type { Client } from "../Client.js";
 import { gameData } from "../GameData.js";
-import {
-  type ActionResult,
-  defineAction,
-} from "../interceptors/action.js";
+import { type ActionResult, defineAction } from "../interceptors/action.js";
 import { cached } from "../utils/cached.js";
 import { resolveEntityId } from "../utils/utils.js";
 import type { ApiStatus } from "./ApiStatus.js";
@@ -36,21 +33,26 @@ type ParsedEntry = { slot: EquipmentSlot; id: number };
 
 type AccessorySlotNumber = 1 | 2 | 3;
 
-const ACCESSORY_SLOT_NUMBER: Partial<Record<EquipmentSlot, AccessorySlotNumber>> = {
+const ACCESSORY_SLOT_NUMBER: Partial<
+  Record<EquipmentSlot, AccessorySlotNumber>
+> = {
   acc1: 1,
   acc2: 2,
   acc3: 3,
 };
 
-function slotForItem(item: Item, accessorySlotNumber: AccessorySlotNumber = 1): EquipmentSlot | null {
+function slotForItem(
+  item: Item,
+  accessorySlotNumber: AccessorySlotNumber = 1,
+): EquipmentSlot | null {
   for (const use of item.uses) {
-    if (use === "hat") return "hat";
-    if (use === "shirt") return "shirt";
-    if (use === "pants") return "pants";
-    if (use === "weapon") return "weapon";
-    if (use === "offhand") return "offhand";
-    if (use === "container") return "container";
-    if (use === "accessory") return `acc${accessorySlotNumber}`;
+    if (use === ItemUse.Hat) return "hat";
+    if (use === ItemUse.Shirt) return "shirt";
+    if (use === ItemUse.Pants) return "pants";
+    if (use === ItemUse.Weapon) return "weapon";
+    if (use === ItemUse.Offhand) return "offhand";
+    if (use === ItemUse.Container) return "container";
+    if (use === ItemUse.Accessory) return `acc${accessorySlotNumber}`;
   }
   return null;
 }
@@ -71,7 +73,8 @@ const equipAction = defineAction({
     const itemId = parseInt(req.params.get("whichitem") ?? "", 10);
     const item = isNaN(itemId) ? null : await gameData.findItemById(itemId);
     if (!item) return failure("Item not found");
-    const accSlot = (parseInt(req.params.get("slot") ?? "1", 10) || 1) as AccessorySlotNumber;
+    const accSlot = (parseInt(req.params.get("slot") ?? "1", 10) ||
+      1) as AccessorySlotNumber;
     const slot = slotForItem(item, accSlot);
     if (!slot) return failure("Could not determine slot");
     return success({ item, slot });
@@ -131,9 +134,7 @@ export class Equipment {
         (id, i) => [`folder${i + 1}` as EquipmentSlot, id] as const,
       ),
     ];
-    return main
-      .filter(([, id]) => id > 0)
-      .map(([slot, id]) => ({ slot, id }));
+    return main.filter(([, id]) => id > 0).map(([slot, id]) => ({ slot, id }));
   }
 
   static async buildMap(status: ApiStatus): Promise<Map<EquipmentSlot, Item>> {
@@ -161,7 +162,8 @@ export class Equipment {
     item: Item | number,
     slot?: EquipmentSlot,
   ): Promise<ActionResult<EquipData>> {
-    const slotNumber = slot !== undefined ? ACCESSORY_SLOT_NUMBER[slot] : undefined;
+    const slotNumber =
+      slot !== undefined ? ACCESSORY_SLOT_NUMBER[slot] : undefined;
     return equipAction(this.#client, {
       method: "POST",
       form: {

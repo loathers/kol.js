@@ -1,10 +1,7 @@
 import { Item } from "data-of-loathing";
 
 import type { Client } from "../Client.js";
-import {
-  type ActionResult,
-  defineAction,
-} from "../interceptors/action.js";
+import { type ActionResult, defineAction } from "../interceptors/action.js";
 import { resolveEntityId } from "../utils/utils.js";
 
 function detectSuccess(body: string): boolean {
@@ -22,8 +19,9 @@ function detectSuccess(body: string): boolean {
 
 function failReason(body: string, verb: string): string {
   return (
-    body.match(/(?:You can't (?:eat|drink|use)|too (?:full|drunk))[^<]*/)?.[0] ??
-    `Failed to ${verb}`
+    body.match(
+      /(?:You can't (?:eat|drink|use)|too (?:full|drunk))[^<]*/,
+    )?.[0] ?? `Failed to ${verb}`
   );
 }
 
@@ -84,7 +82,10 @@ export class Consumption {
     });
   }
 
-  async drink(item: Item | number, quantity = 1): Promise<ActionResult<object>> {
+  async drink(
+    item: Item | number,
+    quantity = 1,
+  ): Promise<ActionResult<object>> {
     return drinkAction(this.#client, {
       query: { which: 1, whichitem: resolveEntityId(item), quantity, ajax: 1 },
     });

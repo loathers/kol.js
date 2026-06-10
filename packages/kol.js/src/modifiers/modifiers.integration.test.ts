@@ -12,7 +12,11 @@ const baseContext: ExpressionContext = {
 };
 
 describe("applyDR", () => {
-  const tiers = [{ upTo: 25, ratio: 1 }, { upTo: 75, ratio: 5 }, { upTo: Infinity, ratio: Infinity }];
+  const tiers = [
+    { upTo: 25, ratio: 1 },
+    { upTo: 75, ratio: 5 },
+    { upTo: Infinity, ratio: Infinity },
+  ];
 
   test("within first tier: 1:1", () => {
     expect(applyDR(10, tiers)).toBe(10);
@@ -107,7 +111,11 @@ describe("resolveModifiers (integration)", () => {
       baseContext,
     );
 
-    expect(result.get("HP Regen")).toMatchObject({ kind: "range", min: 2, max: 4 });
+    expect(result.get("HP Regen")).toMatchObject({
+      kind: "range",
+      min: 2,
+      max: 4,
+    });
     expect(ringMods).toBeDefined();
     expect(result.has("HP Regen Min")).toBe(false);
     expect(result.has("HP Regen Max")).toBe(false);
@@ -116,13 +124,29 @@ describe("resolveModifiers (integration)", () => {
   test("HP Regen range aggregated across sources", () => {
     const result = resolveModifiers(
       [
-        { label: "item1", modifiers: [{ name: "HP Regen Min", value: "2" }, { name: "HP Regen Max", value: "4" }] },
-        { label: "item2", modifiers: [{ name: "HP Regen Min", value: "3" }, { name: "HP Regen Max", value: "6" }] },
+        {
+          label: "item1",
+          modifiers: [
+            { name: "HP Regen Min", value: "2" },
+            { name: "HP Regen Max", value: "4" },
+          ],
+        },
+        {
+          label: "item2",
+          modifiers: [
+            { name: "HP Regen Min", value: "3" },
+            { name: "HP Regen Max", value: "6" },
+          ],
+        },
       ],
       baseContext,
     );
 
-    expect(result.get("HP Regen")).toMatchObject({ kind: "range", min: 5, max: 10 });
+    expect(result.get("HP Regen")).toMatchObject({
+      kind: "range",
+      min: 5,
+      max: 10,
+    });
   });
 
   test("effect modifier from real effect data", async () => {
@@ -135,17 +159,34 @@ describe("resolveModifiers (integration)", () => {
       baseContext,
     );
 
-    expect(result.get("Muscle Percent")).toMatchObject({ kind: "numeric", value: -30 });
+    expect(result.get("Muscle Percent")).toMatchObject({
+      kind: "numeric",
+      value: -30,
+    });
   });
 
   test("boolean flag modifier", () => {
     const result = resolveModifiers(
-      [{ label: "test", modifiers: [{ name: "Single Equip", value: "true" }, { name: "Never Fumble", value: "true" }] }],
+      [
+        {
+          label: "test",
+          modifiers: [
+            { name: "Single Equip", value: "true" },
+            { name: "Never Fumble", value: "true" },
+          ],
+        },
+      ],
       baseContext,
     );
 
-    expect(result.get("Single Equip")).toMatchObject({ kind: "boolean", value: true });
-    expect(result.get("Never Fumble")).toMatchObject({ kind: "boolean", value: true });
+    expect(result.get("Single Equip")).toMatchObject({
+      kind: "boolean",
+      value: true,
+    });
+    expect(result.get("Never Fumble")).toMatchObject({
+      kind: "boolean",
+      value: true,
+    });
   });
 
   test("Combat Rate DR tiers applied", () => {
@@ -153,7 +194,10 @@ describe("resolveModifiers (integration)", () => {
       [{ label: "test", modifiers: [{ name: "Combat Rate", value: "30" }] }],
       baseContext,
     );
-    expect(result.get("Combat Rate")).toMatchObject({ kind: "numeric", value: 26 });
+    expect(result.get("Combat Rate")).toMatchObject({
+      kind: "numeric",
+      value: 26,
+    });
   });
 
   test("Combat Rate DR: negative direction", () => {
@@ -161,7 +205,10 @@ describe("resolveModifiers (integration)", () => {
       [{ label: "test", modifiers: [{ name: "Combat Rate", value: "-30" }] }],
       baseContext,
     );
-    expect(result.get("Combat Rate")).toMatchObject({ kind: "numeric", value: -26 });
+    expect(result.get("Combat Rate")).toMatchObject({
+      kind: "numeric",
+      value: -26,
+    });
   });
 
   test("Combat Rate DR: beyond cap returns capped value", () => {
@@ -169,18 +216,26 @@ describe("resolveModifiers (integration)", () => {
       [{ label: "test", modifiers: [{ name: "Combat Rate", value: "100" }] }],
       baseContext,
     );
-    expect(result.get("Combat Rate")).toMatchObject({ kind: "numeric", value: 35 });
+    expect(result.get("Combat Rate")).toMatchObject({
+      kind: "numeric",
+      value: 35,
+    });
   });
 
   test("collect aggregation produces string[] for Conditional Skill", () => {
     const result = resolveModifiers(
-      [{
-        label: "sweat pants",
-        modifiers: [
-          { name: "Conditional Skill (Equipped)", value: '"Sip Some Sweat"' },
-          { name: "Conditional Skill (Inventory)", value: '"Sweat Out Some Booze"' },
-        ],
-      }],
+      [
+        {
+          label: "sweat pants",
+          modifiers: [
+            { name: "Conditional Skill (Equipped)", value: '"Sip Some Sweat"' },
+            {
+              name: "Conditional Skill (Inventory)",
+              value: '"Sweat Out Some Booze"',
+            },
+          ],
+        },
+      ],
       baseContext,
     );
 
@@ -197,8 +252,14 @@ describe("resolveModifiers (integration)", () => {
   test("collect aggregation accumulates across multiple sources", () => {
     const result = resolveModifiers(
       [
-        { label: "item1", modifiers: [{ name: "Skill", value: '"Thrust-Smack"' }] },
-        { label: "item2", modifiers: [{ name: "Skill", value: '"Lunging Thrust-Smack"' }] },
+        {
+          label: "item1",
+          modifiers: [{ name: "Skill", value: '"Thrust-Smack"' }],
+        },
+        {
+          label: "item2",
+          modifiers: [{ name: "Skill", value: '"Lunging Thrust-Smack"' }],
+        },
       ],
       baseContext,
     );
@@ -215,7 +276,12 @@ describe("resolveModifiers (integration)", () => {
 
   test("positional group with no secondary uses duration 0", () => {
     const result = resolveModifiers(
-      [{ label: "orphaned effect", modifiers: [{ name: "Effect", value: '"Bugged"' }] }],
+      [
+        {
+          label: "orphaned effect",
+          modifiers: [{ name: "Effect", value: '"Bugged"' }],
+        },
+      ],
       baseContext,
     );
     expect(result.get("Effect")).toMatchObject({
@@ -226,15 +292,17 @@ describe("resolveModifiers (integration)", () => {
 
   test("multi-occurrence effect grants (synthetic data)", () => {
     const result = resolveModifiers(
-      [{
-        label: "cup of sugar",
-        modifiers: [
-          { name: "Effect", value: '"Sugar Rush"' },
-          { name: "Effect Duration", value: "10" },
-          { name: "Effect", value: '"Sweet Talkin\'"' },
-          { name: "Effect Duration", value: "100" },
-        ],
-      }],
+      [
+        {
+          label: "cup of sugar",
+          modifiers: [
+            { name: "Effect", value: '"Sugar Rush"' },
+            { name: "Effect Duration", value: "10" },
+            { name: "Effect", value: '"Sweet Talkin\'"' },
+            { name: "Effect Duration", value: "100" },
+          ],
+        },
+      ],
       baseContext,
     );
 

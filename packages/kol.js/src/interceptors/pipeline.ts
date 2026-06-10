@@ -41,7 +41,8 @@ export async function runDecoratePipeline(
 ): Promise<string> {
   let html = typeof res.body === "string" ? res.body : "";
   for (const i of getMatchingInterceptors(req)) {
-    if (i.decorate) html = await i.decorate(client, req, { ...res, body: html });
+    if (i.decorate)
+      html = await i.decorate(client, req, { ...res, body: html });
   }
   return html;
 }

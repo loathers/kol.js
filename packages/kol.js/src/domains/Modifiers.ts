@@ -1,7 +1,5 @@
 import type { Skill } from "data-of-loathing";
 
-import { familiarBaseWeight } from "./Familiar.js";
-
 import type { Client } from "../Client.js";
 import { gameData } from "../GameData.js";
 import type {
@@ -12,6 +10,7 @@ import type {
 import { resolveModifiers } from "../modifiers/index.js";
 import { Effects } from "./Effects.js";
 import { Equipment } from "./Equipment.js";
+import { familiarBaseWeight } from "./Familiar.js";
 
 export class Modifiers {
   #client: Client;
@@ -46,7 +45,10 @@ export class Modifiers {
     return {
       variables: {
         L: status.level,
-        F: status.familiarexp !== undefined ? familiarBaseWeight(status.familiarexp) : 0,
+        F:
+          status.familiarexp !== undefined
+            ? familiarBaseWeight(status.familiarexp)
+            : 0,
       },
       prefs: {},
       skills,
@@ -116,7 +118,10 @@ export class Modifiers {
     ]);
     const mods = modsMap.get(itemId);
     if (!mods) return new Map();
-    return resolveModifiers([{ label: `item:${itemId}`, modifiers: mods }], context);
+    return resolveModifiers(
+      [{ label: `item:${itemId}`, modifiers: mods }],
+      context,
+    );
   }
 
   async #addSkillSources(sources: ModifierSource[]): Promise<void> {

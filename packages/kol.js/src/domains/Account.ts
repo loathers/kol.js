@@ -1,13 +1,9 @@
 import type { Client } from "../Client.js";
-import {
-  type ActionResult,
-  defineAction,
-} from "../interceptors/action.js";
+import { type ActionResult, defineAction } from "../interceptors/action.js";
 
-export type AccountFlag =
-  | "ignorezonewarnings"
-  | "aabosses"
-  | string;
+// `string & {}` keeps the literal suggestions for autocomplete without
+// collapsing the union to a bare `string`.
+export type AccountFlag = "ignorezonewarnings" | "aabosses" | (string & {});
 
 const setFlagAction = defineAction({
   path: "account.php",
@@ -29,7 +25,10 @@ export class Account {
     this.#client = client;
   }
 
-  async setFlag(flag: AccountFlag, value: 0 | 1): Promise<ActionResult<object>> {
+  async setFlag(
+    flag: AccountFlag,
+    value: 0 | 1,
+  ): Promise<ActionResult<object>> {
     return setFlagAction(this.#client, {
       query: { am: 1, action: `flag_${flag}`, value, ajax: 1 },
     });

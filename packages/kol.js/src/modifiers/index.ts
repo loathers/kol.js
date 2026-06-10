@@ -1,4 +1,9 @@
-export { CATALOG, POSITIONAL_GROUPS, RANGE_PAIRS, getModifierDef } from "./catalog.js";
+export {
+  CATALOG,
+  POSITIONAL_GROUPS,
+  RANGE_PAIRS,
+  getModifierDef,
+} from "./catalog.js";
 export type {
   AggregationRule,
   DRTier,

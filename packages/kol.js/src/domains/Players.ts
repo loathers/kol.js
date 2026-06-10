@@ -80,7 +80,7 @@ export class Players {
       return this.#resolveByName(name);
     }
 
-    return this.#resolveByName(identifier as string);
+    return this.#resolveByName(identifier);
   }
 
   async #resolveByName(name: string): Promise<Player | null> {

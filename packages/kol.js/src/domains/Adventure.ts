@@ -1,8 +1,5 @@
 import type { Client } from "../Client.js";
-import {
-  type ActionResult,
-  defineAction,
-} from "../interceptors/action.js";
+import { type ActionResult, defineAction } from "../interceptors/action.js";
 
 export type AdventureOutcome =
   | { type: "combat" }

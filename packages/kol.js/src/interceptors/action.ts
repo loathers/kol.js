@@ -79,6 +79,17 @@ type PerformFn<T extends object> = (
   options?: RequestOptions,
 ) => Promise<ActionResult<T>>;
 
+// Loosened shape for the implementation body — the overloads above enforce the
+// public contract, while this keeps every optional field accessible.
+type AnyActionDef<T extends object> = {
+  path?: string;
+  matches?: (req: KolRequest) => boolean;
+  parse?: ParseDef<T>["parse"];
+  onSuccess?: ParseDef<T>["onSuccess"];
+  onFailure?: ParseDef<T>["onFailure"];
+  decorate?: ParseDef<T>["decorate"] | DecorateOnly["decorate"];
+};
+
 const actionResultStorage = new AsyncLocalStorage<{
   result?: ActionResult<object>;
 }>();
@@ -86,13 +97,16 @@ const actionResultStorage = new AsyncLocalStorage<{
 export function defineAction<T extends object>(def: WithPath<T>): PerformFn<T>;
 export function defineAction<T extends object>(def: WithMatcher<T>): void;
 export function defineAction(def: DecorateOnly): void;
-// Implementation uses `any` — the overloads above enforce the public contract
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function defineAction<T extends object>(def: any): PerformFn<T> | void {
+export function defineAction<T extends object>(
+  def: AnyActionDef<T>,
+): PerformFn<T> | void {
   const decorateResults = new WeakMap<KolRequest, ActionResult<T>>();
   const parseFn: ParseDef<T>["parse"] | undefined = def.parse;
-  const decorateFn: ParseDef<T>["decorate"] | DecorateOnly["decorate"] | undefined =
-    def.decorate;
+  // The decorate callback always receives the concrete result we build below;
+  // the public overloads keep parse-only and decorate-only defs apart.
+  const decorateFn:
+    | ((ctx: DecorateCtx<T>) => string | Promise<string>)
+    | undefined = def.decorate;
 
   registerInterceptor({
     path: def.path,
@@ -102,14 +116,18 @@ export function defineAction<T extends object>(def: any): PerformFn<T> | void {
           if (typeof res.body !== "string") return;
           let result: ActionResult<T>;
           try {
-            result = await parseFn({ req, body: res.body, client, success, failure });
+            result = await parseFn({
+              req,
+              body: res.body,
+              client,
+              success,
+              failure,
+            });
           } catch (e) {
             result = failure(e instanceof Error ? e.message : "Parse error");
           }
           if (decorateFn) decorateResults.set(req, result);
-          const ctx = actionResultStorage.getStore() as
-            | { result?: ActionResult<T> }
-            | undefined;
+          const ctx = actionResultStorage.getStore();
           if (ctx) ctx.result = result;
           if (result.success) await def.onSuccess?.({ client, result, req });
           else await def.onFailure?.({ client, result, req });
@@ -119,7 +137,7 @@ export function defineAction<T extends object>(def: any): PerformFn<T> | void {
       ? async (client, req, res) => {
           const result = decorateResults.get(req) ?? null;
           decorateResults.delete(req);
-          return decorateFn({ client, req, res, result: result as never });
+          return decorateFn({ client, req, res, result: result });
         }
       : undefined,
   });

@@ -1,8 +1,5 @@
 import type { Client } from "../Client.js";
-import {
-  type ActionResult,
-  defineAction,
-} from "../interceptors/action.js";
+import { type ActionResult, defineAction } from "../interceptors/action.js";
 
 export type CombatMacro = { id: number; name: string };
 
@@ -25,19 +22,25 @@ export class CombatMacros {
 
   async list(): Promise<CombatMacro[]> {
     const html = await this.#client.fetchText("account_combatmacros.php");
-    return [
-      ...html.matchAll(/<option value="?(\d+)"?>([^<]+)<\/option>/g),
-    ].map(([, id, name]) => ({ id: Number(id), name: name.trim() }));
+    return [...html.matchAll(/<option value="?(\d+)"?>([^<]+)<\/option>/g)].map(
+      ([, id, name]) => ({ id: Number(id), name: name.trim() }),
+    );
   }
 
   async getText(id: number): Promise<string> {
     const html = await this.#client.fetchText("account_combatmacros.php", {
       query: { macroid: id },
     });
-    return html.match(/<textarea[^>]*>([\s\S]*?)<\/textarea>/i)?.[1]?.trim() ?? "";
+    return (
+      html.match(/<textarea[^>]*>([\s\S]*?)<\/textarea>/i)?.[1]?.trim() ?? ""
+    );
   }
 
-  async save(name: string, text: string, id = 0): Promise<ActionResult<{ id: number }>> {
+  async save(
+    name: string,
+    text: string,
+    id = 0,
+  ): Promise<ActionResult<{ id: number }>> {
     return saveMacroAction(this.#client, {
       method: "POST",
       form: { macroid: id, macroname: name, macrotext: text, action: "save" },

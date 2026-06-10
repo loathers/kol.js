@@ -9,9 +9,24 @@ describe("parseModifiers", () => {
       { name: "Moxie", value: "-3" },
       { name: "Maximum HP", value: "10" },
     ]);
-    expect(result).toContainEqual({ kind: "numeric", name: "Muscle", groupIndex: 0, value: 5 });
-    expect(result).toContainEqual({ kind: "numeric", name: "Moxie", groupIndex: 0, value: -3 });
-    expect(result).toContainEqual({ kind: "numeric", name: "Maximum HP", groupIndex: 0, value: 10 });
+    expect(result).toContainEqual({
+      kind: "numeric",
+      name: "Muscle",
+      groupIndex: 0,
+      value: 5,
+    });
+    expect(result).toContainEqual({
+      kind: "numeric",
+      name: "Moxie",
+      groupIndex: 0,
+      value: -3,
+    });
+    expect(result).toContainEqual({
+      kind: "numeric",
+      name: "Maximum HP",
+      groupIndex: 0,
+      value: 10,
+    });
   });
 
   test("boolean flag", () => {
@@ -19,8 +34,16 @@ describe("parseModifiers", () => {
       { name: "Single Equip", value: "true" },
       { name: "Never Fumble", value: "true" },
     ]);
-    expect(result).toContainEqual({ kind: "boolean", name: "Single Equip", value: true });
-    expect(result).toContainEqual({ kind: "boolean", name: "Never Fumble", value: true });
+    expect(result).toContainEqual({
+      kind: "boolean",
+      name: "Single Equip",
+      value: true,
+    });
+    expect(result).toContainEqual({
+      kind: "boolean",
+      name: "Never Fumble",
+      value: true,
+    });
   });
 
   test("expression values", () => {
@@ -47,12 +70,24 @@ describe("parseModifiers", () => {
       { name: "Effect", value: '"Bloody Hand"' },
       { name: "Class", value: '"Seal Clubber"' },
     ]);
-    expect(result).toContainEqual({ kind: "string", name: "Effect", groupIndex: 0, value: "Bloody Hand" });
-    expect(result).toContainEqual({ kind: "string", name: "Class", groupIndex: 0, value: "Seal Clubber" });
+    expect(result).toContainEqual({
+      kind: "string",
+      name: "Effect",
+      groupIndex: 0,
+      value: "Bloody Hand",
+    });
+    expect(result).toContainEqual({
+      kind: "string",
+      name: "Class",
+      groupIndex: 0,
+      value: "Seal Clubber",
+    });
   });
 
   test("ID+name combo for Effect", () => {
-    const result = parseModifiers([{ name: "Effect", value: '"[599]A Little Bit Evil"' }]);
+    const result = parseModifiers([
+      { name: "Effect", value: '"[599]A Little Bit Evil"' },
+    ]);
     expect(result).toContainEqual({
       kind: "string",
       name: "Effect",
@@ -62,7 +97,9 @@ describe("parseModifiers", () => {
   });
 
   test("familiar effect string", () => {
-    const result = parseModifiers([{ name: "Familiar Effect", value: '"atk, cap 2"' }]);
+    const result = parseModifiers([
+      { name: "Familiar Effect", value: '"atk, cap 2"' },
+    ]);
     expect(result).toContainEqual({
       kind: "string",
       name: "Familiar Effect",
@@ -76,8 +113,18 @@ describe("parseModifiers", () => {
       { name: "Effect", value: '"Bloody Hand"' },
       { name: "Effect Duration", value: "3" },
     ]);
-    expect(result).toContainEqual({ kind: "string", name: "Effect", groupIndex: 0, value: "Bloody Hand" });
-    expect(result).toContainEqual({ kind: "numeric", name: "Effect Duration", groupIndex: 0, value: 3 });
+    expect(result).toContainEqual({
+      kind: "string",
+      name: "Effect",
+      groupIndex: 0,
+      value: "Bloody Hand",
+    });
+    expect(result).toContainEqual({
+      kind: "numeric",
+      name: "Effect Duration",
+      groupIndex: 0,
+      value: 3,
+    });
   });
 
   test("real item: hamethyst ring", () => {
@@ -89,8 +136,17 @@ describe("parseModifiers", () => {
       { name: "Single Equip", value: "true" },
     ]);
     expect(result).toHaveLength(5);
-    expect(result).toContainEqual({ kind: "numeric", name: "Muscle", groupIndex: 0, value: 5 });
-    expect(result).toContainEqual({ kind: "boolean", name: "Single Equip", value: true });
+    expect(result).toContainEqual({
+      kind: "numeric",
+      name: "Muscle",
+      groupIndex: 0,
+      value: 5,
+    });
+    expect(result).toContainEqual({
+      kind: "boolean",
+      name: "Single Equip",
+      value: true,
+    });
   });
 
   test("def.kind drives output kind: boolean catalog entry always yields boolean", () => {
@@ -99,12 +155,19 @@ describe("parseModifiers", () => {
     expect(result[0].kind).toBe("boolean");
 
     // An expression for a boolean-catalog modifier should parse as expression (not boolean)
-    const expr = parseModifiers([{ name: "Free Pull", value: "[path(Avatar of Boris)]" }]);
-    expect(expr[0]).toMatchObject({ kind: "expression", expr: "path(Avatar of Boris)" });
+    const expr = parseModifiers([
+      { name: "Free Pull", value: "[path(Avatar of Boris)]" },
+    ]);
+    expect(expr[0]).toMatchObject({
+      kind: "expression",
+      expr: "path(Avatar of Boris)",
+    });
   });
 
   test("def.kind drives output kind: unknown modifier is stringified", () => {
-    const result = parseModifiers([{ name: "Completely Unknown Modifier", value: "42" }]);
+    const result = parseModifiers([
+      { name: "Completely Unknown Modifier", value: "42" },
+    ]);
     expect(result[0]).toMatchObject({ kind: "string", value: "42" });
   });
 
@@ -115,9 +178,29 @@ describe("parseModifiers", () => {
       { name: "Effect", value: '"Sweet Talkin\'"' },
       { name: "Effect Duration", value: "100" },
     ]);
-    expect(result).toContainEqual({ kind: "string", name: "Effect", groupIndex: 0, value: "Sugar Rush" });
-    expect(result).toContainEqual({ kind: "string", name: "Effect", groupIndex: 1, value: "Sweet Talkin'" });
-    expect(result).toContainEqual({ kind: "numeric", name: "Effect Duration", groupIndex: 0, value: 10 });
-    expect(result).toContainEqual({ kind: "numeric", name: "Effect Duration", groupIndex: 1, value: 100 });
+    expect(result).toContainEqual({
+      kind: "string",
+      name: "Effect",
+      groupIndex: 0,
+      value: "Sugar Rush",
+    });
+    expect(result).toContainEqual({
+      kind: "string",
+      name: "Effect",
+      groupIndex: 1,
+      value: "Sweet Talkin'",
+    });
+    expect(result).toContainEqual({
+      kind: "numeric",
+      name: "Effect Duration",
+      groupIndex: 0,
+      value: 10,
+    });
+    expect(result).toContainEqual({
+      kind: "numeric",
+      name: "Effect Duration",
+      groupIndex: 1,
+      value: 100,
+    });
   });
 });

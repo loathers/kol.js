@@ -77,6 +77,8 @@ export class Player {
   }
 }
 
+// Namespace merges with the Player class to expose Player.Profiled.
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Player {
   export class Profiled extends Player {
     readonly level: number;
@@ -106,8 +108,8 @@ export namespace Player {
       this.hasDisplayCase = data.hasDisplayCase;
     }
 
-    override async fetch(): Promise<Player.Profiled> {
-      return this;
+    override fetch(): Promise<Player.Profiled> {
+      return Promise.resolve(this);
     }
 
     static async parseProfile(
