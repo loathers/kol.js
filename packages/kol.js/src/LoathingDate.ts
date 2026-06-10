@@ -355,39 +355,55 @@ export class LoathingDate {
   getMoonsAsSvg(font?: string) {
     const moonIcons = ["🌑", "🌘", "🌗", "🌖", "🌕", "🌔", "🌓", "🌒"];
 
-    const hamburglarPositions = [
-      73,
-      87,
-      100,
-      null,
-      60,
-      40,
-      null,
-      0,
-      13,
-      27,
-      50,
+    // Each moon is a fixed-radius disc (a vector circle used as a clip path)
+    // filled with an oversized phase emoji. The clip pins the visible disc to a
+    // known box on every renderer; the oversized emoji just supplies texture
+    // underneath. This lets the Hamburglar overlay be positioned by exact
+    // arithmetic off the disc instead of guessing at the emoji's own metrics.
+    const R = 15;
+    const CY = 25;
+    const RONALD_CX = 25;
+    const GRIMACE_CX = 85;
+
+    // Hamburglar centre per phase (null = hidden behind a moon). The "side"
+    // positions sit on the outer quarter of the disc so they read clearly as
+    // in front of the moon's left or right.
+    const SIDE = R * 0.75;
+    const hamburglarCentres = [
+      GRIMACE_CX - SIDE, // 0: in front of Grimace's left side
+      GRIMACE_CX + SIDE, // 1: in front of Grimace's right side
+      GRIMACE_CX + R, // 2: heading behind Grimace
+      null, // 3: hidden behind Grimace
+      GRIMACE_CX - R, // 4: appearing from behind Grimace
+      RONALD_CX + R, // 5: disappearing behind Ronald
+      null, // 6: hidden behind Ronald
+      RONALD_CX - R, // 7: returning from behind Ronald
+      RONALD_CX - SIDE, // 8: in front of Ronald's left side
+      RONALD_CX + SIDE, // 9: in front of Ronald's right side
+      (RONALD_CX + GRIMACE_CX) / 2, // 10: front and centre
     ];
+
     const hamburglarPhase = this.getHamburglarPhase();
-    const hamburglarX = hamburglarPhase
-      ? hamburglarPositions[hamburglarPhase]
-      : null;
+    const hamburglarCentre =
+      hamburglarPhase !== null ? hamburglarCentres[hamburglarPhase] : null;
     const hamburglarIcon = this.getHamburglarLight() > 0 ? "🌕" : "🌑";
 
     const fontFamily = font ? ` font-family="${font}"` : "";
 
+    // An oversized (36px) emoji clipped to the disc: the clip fixes the bounds,
+    // the extra size guarantees the emoji blankets the circle.
+    const moon = (id: string, cx: number, phase: number) =>
+      `<clipPath id="${id}-clip"><circle cx="${cx}" cy="${CY}" r="${R}" /></clipPath><g clip-path="url(#${id}-clip)"><text id="${id}" x="${cx - 18}" y="${CY + 13}" font-size="36"${fontFamily}>${moonIcons[phase]}</text></g>`;
+
     return dedent`
       <?xml version="1.0" encoding="UTF-8" standalone="no"?>
       <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="110" height="50" viewBox="0 0 110 50">
-        <text id="ronald" x="10" y="35" font-size="30"${fontFamily}>${
-          moonIcons[this.getRonaldPhase()]
-        }</text>
-        <text id="grimace" x="70" y="35" font-size="30"${fontFamily}>${
-          moonIcons[this.getGrimacePhase()]
-        }</text>
+        ${moon("ronald", RONALD_CX, this.getRonaldPhase())}
+        ${moon("grimace", GRIMACE_CX, this.getGrimacePhase())}
         ${
-          hamburglarX !== null &&
-          `<text id="hamburglar" x="${hamburglarX}" y="35" font-size="10"${fontFamily}>${hamburglarIcon}</text>`
+          hamburglarCentre !== null
+            ? `<text id="hamburglar" x="${hamburglarCentre - 5}" y="${CY + 4}" font-size="10"${fontFamily}>${hamburglarIcon}</text>`
+            : ""
         }
       </svg>
     `;
