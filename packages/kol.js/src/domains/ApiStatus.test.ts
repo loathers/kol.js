@@ -41,6 +41,9 @@ describe("ApiStatusSchema", () => {
       maxhp: 10,
       mp: "10",
       maxmp: 10,
+      spleen: "10",
+      full: "10",
+      drunk: "10",
       effects: [],
       intrinsics: [],
     });

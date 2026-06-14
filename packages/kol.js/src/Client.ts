@@ -203,6 +203,9 @@ export class Client extends Emittery<Events> {
   #maxHp = 0;
   #mp = 0;
   #maxMp = 0;
+  #inebriety = 0;
+  #fullness = 0;
+  #toxicity = 0;
 
   constructor(
     username: string = "",
@@ -262,6 +265,18 @@ export class Client extends Emittery<Events> {
 
   get maxMp() {
     return this.#maxMp;
+  }
+
+  get fullness() {
+    return this.#fullness;
+  }
+
+  get inebriety() {
+    return this.#inebriety;
+  }
+
+  get toxicity() {
+    return this.#toxicity;
   }
 
   async #withRecovery<T>(fn: () => Promise<T>): Promise<T> {
@@ -447,6 +462,9 @@ export class Client extends Emittery<Events> {
       this.#maxHp = api.maxhp;
       this.#mp = api.mp;
       this.#maxMp = api.maxmp;
+      this.#fullness = api.full;
+      this.#inebriety = api.drunk;
+      this.#toxicity = api.spleen;
       this.#class =
         api.class > 0 ? await gameData.findClassById(api.class) : null;
       this.#path = api.path > 0 ? await gameData.findPathById(api.path) : null;
