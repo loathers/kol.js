@@ -462,9 +462,9 @@ export class Client extends Emittery<Events> {
       this.#maxHp = api.maxhp;
       this.#mp = api.mp;
       this.#maxMp = api.maxmp;
-      this.#fullness = parseInt(api.full);
-      this.#inebriety = parseInt(api.drunk);
-      this.#toxicity = parseInt(api.spleen);
+      this.#fullness = api.full;
+      this.#inebriety = api.drunk;
+      this.#toxicity = api.spleen;
       this.#class =
         api.class > 0 ? await gameData.findClassById(api.class) : null;
       this.#path = api.path > 0 ? await gameData.findPathById(api.path) : null;
