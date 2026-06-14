@@ -17,6 +17,9 @@ export const ApiStatusSchema = z.object({
   maxhp: z.coerce.number(),
   mp: z.coerce.number(),
   maxmp: z.coerce.number(),
+  full: z.coerce.number(),
+  drunk: z.coerce.number(),
+  spleen: z.coerce.number(),
   equipment: z
     .object({
       hat: z.coerce.number().default(0),
