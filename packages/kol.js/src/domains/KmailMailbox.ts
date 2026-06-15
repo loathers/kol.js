@@ -192,6 +192,6 @@ export class KmailMailbox extends Mailbox<KmailMessage> {
       i++;
     }
 
-    await this.client.fetchText("sendmessage.php", { query: form });
+    await this.client.fetchText("sendmessage.php", { form });
   }
 }
