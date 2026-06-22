@@ -17,6 +17,8 @@ export type ProfileData = {
   createdDate: Date;
   lastLogin: Date;
   hasDisplayCase: boolean;
+  inRonin: boolean;
+  inHardcore: boolean;
 };
 
 export class Player {
@@ -147,6 +149,10 @@ export namespace Player {
         ),
         hasDisplayCase:
           html.match(/Display Case<\/b><\/a> in the Museum<\/td>/) !== null,
+        inRonin: 
+          html.match(/<b>\(In Ronin\)<\/b>/) !== null,
+        inHardcore: 
+          html.match(/<b>\(Hardcore\)<\/b>/) !== null,
       };
     }
   }
