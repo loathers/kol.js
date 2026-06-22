@@ -100,6 +100,8 @@ describe("Player class", () => {
       createdDate: new Date(),
       lastLogin: new Date(),
       hasDisplayCase: false,
+      inHardcore: false,
+      inRonin: false,
     });
     expect(await profiled.fetch()).toBe(profiled);
   });
