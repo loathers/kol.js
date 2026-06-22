@@ -94,6 +94,8 @@ export namespace Player {
     readonly createdDate: Date;
     readonly lastLogin: Date;
     readonly hasDisplayCase: boolean;
+    readonly inHardcore: boolean;
+    readonly inRonin: boolean;
 
     constructor(client: Client, data: ProfileData) {
       super(client, data.id, data.name);
@@ -108,6 +110,8 @@ export namespace Player {
       this.createdDate = data.createdDate;
       this.lastLogin = data.lastLogin;
       this.hasDisplayCase = data.hasDisplayCase;
+      this.inHardcore = data.inHardcore;
+      this.inRonin = data.inRonin;
     }
 
     override fetch(): Promise<Player.Profiled> {
