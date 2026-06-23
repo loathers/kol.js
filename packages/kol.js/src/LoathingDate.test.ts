@@ -213,7 +213,7 @@ describe("SVG", () => {
     expect(d.getMoonsAsSvg()).toBe(dedent`
     <?xml version="1.0" encoding="UTF-8" standalone="no"?>
     <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="110" height="50" viewBox="0 0 110 50">
-      <clipPath id="ronald-clip"><circle cx="25" cy="25" r="15" /></clipPath><g clip-path="url(#ronald-clip)"><text id="ronald" x="7" y="38" font-size="36">🌘</text></g>
+      <clipPath id="ronald-clip"><circle cx="25" cy="25" r="15" /></clipPath><g clip-path="url(#ronald-clip)"><text id="ronald" x="7" y="38" font-size="36">🌒</text></g>
       <clipPath id="grimace-clip"><circle cx="85" cy="25" r="15" /></clipPath><g clip-path="url(#grimace-clip)"><text id="grimace" x="67" y="38" font-size="36">🌕</text></g>
       <text id="hamburglar" x="91.25" y="29" font-size="10">🌑</text>
     </svg>

@@ -353,7 +353,7 @@ export class LoathingDate {
   }
 
   getMoonsAsSvg(font?: string) {
-    const moonIcons = ["🌑", "🌘", "🌗", "🌖", "🌕", "🌔", "🌓", "🌒"];
+    const moonIcons = ["🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘"];
 
     // Each moon is a fixed-radius disc (a vector circle used as a clip path)
     // filled with an oversized phase emoji. The clip pins the visible disc to a
