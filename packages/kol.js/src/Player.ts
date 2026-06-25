@@ -19,6 +19,7 @@ export type ProfileData = {
   hasDisplayCase: boolean;
   inRonin: boolean;
   inHardcore: boolean;
+  path: string | null;
 };
 
 export class Player {
@@ -96,6 +97,7 @@ export namespace Player {
     readonly hasDisplayCase: boolean;
     readonly inHardcore: boolean;
     readonly inRonin: boolean;
+    readonly path: string | null;
 
     constructor(client: Client, data: ProfileData) {
       super(client, data.id, data.name);
@@ -112,6 +114,7 @@ export namespace Player {
       this.hasDisplayCase = data.hasDisplayCase;
       this.inHardcore = data.inHardcore;
       this.inRonin = data.inRonin;
+      this.path = data.path;
     }
 
     override fetch(): Promise<Player.Profiled> {
@@ -157,6 +160,8 @@ export namespace Player {
           html.match(/<b>\(In Ronin\)<\/b>/) !== null,
         inHardcore: 
           html.match(/<b>\(Hardcore\)<\/b>/) !== null,
+        path:
+          html.match(/>Path:<\/b><\/td><td>(.*?)<\/td>/)?.[1] ?? null,
       };
     }
   }

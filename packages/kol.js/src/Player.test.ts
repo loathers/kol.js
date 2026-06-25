@@ -102,6 +102,7 @@ describe("Player class", () => {
       hasDisplayCase: false,
       inHardcore: false,
       inRonin: false,
+      path: null,
     });
     expect(await profiled.fetch()).toBe(profiled);
   });
