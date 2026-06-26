@@ -1,7 +1,36 @@
 import { addDays } from "date-fns";
+import { readFileSync } from "fs";
+import { dirname, join } from "path";
 import { dedent } from "ts-dedent";
+import { fileURLToPath } from "url";
 
-import moonSymbols from "./moonSymbols.js";
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const moonPhaseNames = [
+  "new",
+  "waxing-crescent",
+  "first-quarter",
+  "waxing-gibbous",
+  "full",
+  "waning-gibbous",
+  "last-quarter",
+  "waning-crescent",
+];
+
+function extractSvgInner(svg: string): string {
+  return svg
+    .replace(/<\?xml[^>]*\?>\s*/g, "")
+    .replace(/<!--[\s\S]*?-->\s*/g, "")
+    .replace(/<svg[^>]*>\s*/, "")
+    .replace(/\s*<\/svg>\s*$/, "")
+    .trim();
+}
+
+const moonSymbols = moonPhaseNames.map((phase) =>
+  extractSvgInner(
+    readFileSync(join(__dirname, `moons/moon-${phase}.svg`), "utf-8"),
+  ),
+);
 
 const GAME_HOLIDAYS = new Map<`${number},${number}`, string>([
   ["0,1", "Festival of Jarlsberg"],
