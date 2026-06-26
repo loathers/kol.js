@@ -212,13 +212,13 @@ describe("SVG", () => {
     const d = new LoathingDate(new Date(Date.UTC(2023, 10, 16, 12, 0, 0)));
     const svg = d.getMoonsAsSvg();
     expect(svg).toContain(
-      `<use id="ronald" href="#moon-1" x="10" y="10" width="30" height="30"/>`,
+      `<use id="ronald" href="#moon-waxing-crescent" x="10" y="10" width="30" height="30"/>`,
     );
     expect(svg).toContain(
-      `<use id="grimace" href="#moon-4" x="70" y="10" width="30" height="30"/>`,
+      `<use id="grimace" href="#moon-full" x="70" y="10" width="30" height="30"/>`,
     );
-    expect(svg).toContain(`<symbol id="moon-1"`);
-    expect(svg).toContain(`<symbol id="moon-4"`);
+    expect(svg).toContain(`<symbol id="moon-waxing-crescent"`);
+    expect(svg).toContain(`<symbol id="moon-full"`);
   });
 
   test("Hamburglar placed at correct position when visible", () => {
@@ -226,7 +226,7 @@ describe("SVG", () => {
     const d = new LoathingDate(new Date(Date.UTC(2023, 10, 16, 12, 0, 0)));
     const svg = d.getMoonsAsSvg();
     expect(svg).toContain(
-      `<use id="hamburglar" href="#moon-0" x="91.25" y="20" width="10" height="10"/>`,
+      `<use id="hamburglar" href="#moon-new" x="91.25" y="20" width="10" height="10"/>`,
     );
   });
 
