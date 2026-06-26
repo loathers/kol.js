@@ -1,6 +1,8 @@
 import { addDays } from "date-fns";
 import { dedent } from "ts-dedent";
 
+import moonSymbols from "./moonSymbols.js";
+
 const GAME_HOLIDAYS = new Map<`${number},${number}`, string>([
   ["0,1", "Festival of Jarlsberg"],
   ["1,4", "Valentine's Day"],
@@ -352,14 +354,7 @@ export class LoathingDate {
     return `Ronald is ${this.getRonaldPhaseDescription()}, Grimace is ${this.getGrimacePhaseDescription()}, and Hamburglar is ${this.getHamburglarPhaseDescription()}. In total the moonlight is of strength ${this.getMoonlight()}.`;
   }
 
-  getMoonsAsSvg(font?: string) {
-    const moonIcons = ["🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘"];
-
-    // Each moon is a fixed-radius disc (a vector circle used as a clip path)
-    // filled with an oversized phase emoji. The clip pins the visible disc to a
-    // known box on every renderer; the oversized emoji just supplies texture
-    // underneath. This lets the Hamburglar overlay be positioned by exact
-    // arithmetic off the disc instead of guessing at the emoji's own metrics.
+  getMoonsAsSvg() {
     const R = 15;
     const CY = 25;
     const RONALD_CX = 25;
@@ -386,23 +381,35 @@ export class LoathingDate {
     const hamburglarPhase = this.getHamburglarPhase();
     const hamburglarCentre =
       hamburglarPhase !== null ? hamburglarCentres[hamburglarPhase] : null;
-    const hamburglarIcon = this.getHamburglarLight() > 0 ? "🌕" : "🌑";
+    const hamburglarSymbol = this.getHamburglarLight() > 0 ? 4 : 0;
 
-    const fontFamily = font ? ` font-family="${font}"` : "";
+    const ronaldPhase = this.getRonaldPhase();
+    const grimacePhase = this.getGrimacePhase();
 
-    // An oversized (36px) emoji clipped to the disc: the clip fixes the bounds,
-    // the extra size guarantees the emoji blankets the circle.
+    const neededPhases = new Set([ronaldPhase, grimacePhase]);
+    if (hamburglarCentre !== null) neededPhases.add(hamburglarSymbol);
+
+    const defs = [...neededPhases]
+      .map(
+        (p) =>
+          `<symbol id="moon-${p}" viewBox="0 0 128 128">${moonSymbols[p]}</symbol>`,
+      )
+      .join("\n    ");
+
     const moon = (id: string, cx: number, phase: number) =>
-      `<clipPath id="${id}-clip"><circle cx="${cx}" cy="${CY}" r="${R}" /></clipPath><g clip-path="url(#${id}-clip)"><text id="${id}" x="${cx - 18}" y="${CY + 13}" font-size="36"${fontFamily}>${moonIcons[phase]}</text></g>`;
+      `<use id="${id}" href="#moon-${phase}" x="${cx - R}" y="${CY - R}" width="${2 * R}" height="${2 * R}"/>`;
 
     return dedent`
       <?xml version="1.0" encoding="UTF-8" standalone="no"?>
       <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="110" height="50" viewBox="0 0 110 50">
-        ${moon("ronald", RONALD_CX, this.getRonaldPhase())}
-        ${moon("grimace", GRIMACE_CX, this.getGrimacePhase())}
+        <defs>
+          ${defs}
+        </defs>
+        ${moon("ronald", RONALD_CX, ronaldPhase)}
+        ${moon("grimace", GRIMACE_CX, grimacePhase)}
         ${
           hamburglarCentre !== null
-            ? `<text id="hamburglar" x="${hamburglarCentre - 5}" y="${CY + 4}" font-size="10"${fontFamily}>${hamburglarIcon}</text>`
+            ? `<use id="hamburglar" href="#moon-${hamburglarSymbol}" x="${hamburglarCentre - 5}" y="${CY - 5}" width="10" height="10"/>`
             : ""
         }
       </svg>

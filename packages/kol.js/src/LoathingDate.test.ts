@@ -1,4 +1,3 @@
-import { dedent } from "ts-dedent";
 import { describe, expect, test } from "vitest";
 
 import { LoathingDate } from "./LoathingDate.js";
@@ -208,28 +207,27 @@ describe("Holidays", () => {
 });
 
 describe("SVG", () => {
-  test("One example of SVG", () => {
+  test("Ronald and Grimace placed at correct positions with correct phases", () => {
+    // 2023-11-16: Ronald=waxing crescent (1), Grimace=full (4)
     const d = new LoathingDate(new Date(Date.UTC(2023, 10, 16, 12, 0, 0)));
-    expect(d.getMoonsAsSvg()).toBe(dedent`
-    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-    <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="110" height="50" viewBox="0 0 110 50">
-      <clipPath id="ronald-clip"><circle cx="25" cy="25" r="15" /></clipPath><g clip-path="url(#ronald-clip)"><text id="ronald" x="7" y="38" font-size="36">🌒</text></g>
-      <clipPath id="grimace-clip"><circle cx="85" cy="25" r="15" /></clipPath><g clip-path="url(#grimace-clip)"><text id="grimace" x="67" y="38" font-size="36">🌕</text></g>
-      <text id="hamburglar" x="91.25" y="29" font-size="10">🌑</text>
-    </svg>
-    `);
+    const svg = d.getMoonsAsSvg();
+    expect(svg).toContain(
+      `<use id="ronald" href="#moon-1" x="10" y="10" width="30" height="30"/>`,
+    );
+    expect(svg).toContain(
+      `<use id="grimace" href="#moon-4" x="70" y="10" width="30" height="30"/>`,
+    );
+    expect(svg).toContain(`<symbol id="moon-1"`);
+    expect(svg).toContain(`<symbol id="moon-4"`);
   });
 
-  test("Another example of SVG", () => {
-    const d = new LoathingDate(new Date(Date.UTC(2023, 10, 15, 12, 0, 0)));
-    expect(d.getMoonsAsSvg("Noto Color Emoji")).toBe(dedent`
-    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-    <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="110" height="50" viewBox="0 0 110 50">
-      <clipPath id="ronald-clip"><circle cx="25" cy="25" r="15" /></clipPath><g clip-path="url(#ronald-clip)"><text id="ronald" x="7" y="38" font-size="36" font-family="Noto Color Emoji">🌑</text></g>
-      <clipPath id="grimace-clip"><circle cx="85" cy="25" r="15" /></clipPath><g clip-path="url(#grimace-clip)"><text id="grimace" x="67" y="38" font-size="36" font-family="Noto Color Emoji">🌕</text></g>
-      <text id="hamburglar" x="50" y="29" font-size="10" font-family="Noto Color Emoji">🌕</text>
-    </svg>
-    `);
+  test("Hamburglar placed at correct position when visible", () => {
+    // 2023-11-16: Hamburglar phase 1 (in front of Grimace's right side), centre=96.25
+    const d = new LoathingDate(new Date(Date.UTC(2023, 10, 16, 12, 0, 0)));
+    const svg = d.getMoonsAsSvg();
+    expect(svg).toContain(
+      `<use id="hamburglar" href="#moon-0" x="91.25" y="20" width="10" height="10"/>`,
+    );
   });
 
   test("Renders Hamburglar in phase 0 (in front of Grimace's left side)", () => {
@@ -237,7 +235,7 @@ describe("SVG", () => {
     const d = new LoathingDate(new Date(Date.UTC(2006, 5, 3, 12, 0, 0)));
     expect(d.getHamburglarPhase()).toBe(0);
     expect(d.getMoonsAsSvg()).toContain(
-      `<text id="hamburglar" x="68.75" y="29" font-size="10">`,
+      `x="68.75" y="20" width="10" height="10"`,
     );
   });
 });
