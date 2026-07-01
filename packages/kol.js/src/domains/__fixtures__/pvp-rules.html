@@ -1,0 +1,87 @@
+<html><head>
+<script language=Javascript>
+<!--
+if (parent.frames.length == 0) location.href="game.php";
+//-->
+</script>
+<script language=Javascript src="https://d2uyhvukfffg5a.cloudfront.net/scripts/jquery-1.3.1.min.js"></script>
+<script language=Javascript src="https://d2uyhvukfffg5a.cloudfront.net/scripts/keybinds.min.2.js"></script>
+<script language=Javascript src="https://d2uyhvukfffg5a.cloudfront.net/scripts/window.20111231.js"></script>
+<script language="javascript">function chatFocus(){if(top.chatpane.document.chatform.graf) top.chatpane.document.chatform.graf.focus();}
+if (typeof defaultBind != 'undefined') { defaultBind(47, 2, chatFocus); defaultBind(190, 2, chatFocus);defaultBind(191, 2, chatFocus); defaultBind(47, 8, chatFocus);defaultBind(190, 8, chatFocus); defaultBind(191, 8, chatFocus); }</script><script language="javascript">
+	function updateParseItem(iid, field, info) {
+		var tbl = $('#ic'+iid);
+		var data = parseItem(tbl);
+		if (!data) return;
+		data[field] = info;
+		var out = [];
+		for (i in data) {
+			if (!data.hasOwnProperty(i)) continue;
+			out.push(i+'='+data[i]);
+		}
+		tbl.attr('rel', out.join('&'));
+	}
+	function parseItem(tbl) {
+		tbl = $(tbl);
+		var rel = tbl.attr('rel');
+		var data = {};
+		if (!rel) return data;
+		var parts = rel.split('&');
+		for (i in parts) {
+			if (!parts.hasOwnProperty(i)) continue;
+			var kv = parts[i].split('=');
+			tbl.data(kv[0], kv[1]);
+			data[kv[0]] = kv[1];
+		}
+		return data;
+	}
+</script><script type="text/javascript" src="https://d2uyhvukfffg5a.cloudfront.net/scripts/pop_query.20230713.js"></script>
+<script type="text/javascript"> function pop_ircm(clicked) { return false; } </script><script type="text/javascript">
+	document.documentElement.className = 'js';
+	jQuery(function (_) {
+		_('#ranked').change(function (e) {
+			var cl = '.ranked' + _(this).val();
+			_('.ranked').hide().attr('disabled', true);
+			_(cl).show().attr('disabled', false);
+			var dis = _('option:selected:disabled');
+			if (dis.length > 0) {
+				dis.parent().val(dis.next().val());
+			}
+		}).change();
+		_('.if').click(function (e) {
+			e.preventDefault();
+			var url = _(this).attr('href');
+			var div = _(this).parent().find('.ift');
+			if (div.find('iframe').length) {
+				div.empty();
+			} else {
+				var ifr = _('<iframe />').css({width: '100%', height: 400});
+				ifr.attr('src', url);
+				div.append(ifr);
+			}
+		});
+	});
+</script>
+<style type="text/css">
+	.js .hide {display: none;}
+	.mini td { padding-top: 1em; border-bottom: 1px solid black; vertical-align:top;}
+	.js .mini { display: none; }
+	.js .final { display: none; }
+	.wf { font-size: 130%; font-weight: bold}
+	.minidesc { border: 1px solid black; padding: .5em; }
+	.miniclick { text-decoration: underline }
+</style>	<link rel="stylesheet" type="text/css" href="https://d2uyhvukfffg5a.cloudfront.net/styles.20230117d.css">
+<style type='text/css'>
+.faded {
+	zoom: 1;
+	filter: alpha(opacity=35);
+	opacity: 0.35;
+	-khtml-opacity: 0.35; 
+    -moz-opacity: 0.35;
+}
+</style>
+
+</head>
+
+<body>
+<center><table  width=95%  cellspacing=0 cellpadding=0><tr><td style="background-color: blue" align=center ><b style="color: white">Information Booth</b></td></tr><tr><td style="padding: 5px; border: 1px solid blue;"><center><table><tr><td><p><b>Current Season: </b>86<br /><p style='font-family: courier'>Greetings Contestant.  Increase your PvP parameters as specified below and then select a target or allow our algorithm to select for you.  Select one comparison parameter and then our algorithm will select 6 additional parameters and compare them to the parameters of your target.  if (tie) assign_victory(target). The current season will end on <b>2026-09-01</b>.  The post-season period (leaderboards will be frozen) begins on <b>2026-08-15</b>.</p><p><b>Active Parameter Comparisons</b><table><tr><th>Name</th><th>Description</th><th nowrap>Your Score</th><th>(HC)</th></tr><tr class="small"><td valign="top" nowrap><b>Craft Brew is Optimal*</b></td><td valign="top">Nothing says optimal like a delicious hand crafted Blue Moon! (Most drinks from the Gnomish Microbrewery.)</td><td valign="top" align="center" colspan="1">0</td><td valign="top" align="center">0</td></tr><tr class="small"><td valign="top" nowrap><b>DEFACE</b></td><td valign="top">Which outfit fits best into a four-bit array? (most hexadecimal digits in the outfit name.)</td><td valign="top" align="center" colspan="1">38</td><td valign="top" align="center">38</td></tr><tr class="small"><td valign="top" nowrap><b>Familiar Rotation*</b></td><td valign="top">Who has kept their familiars in balance by rotating them each non-casual ascension?  (Most unique familiars shown in ascension history since the season started.)</td><td valign="top" align="center" colspan="1">0</td><td valign="top" align="center">0</td></tr><tr class="small"><td valign="top" nowrap><b>Obviously Optimal*</b></td><td valign="top">Who has fetched the most optimal drinks? (The Pan-Dimensional Gargle Blaster from Fernswarthy's basement is obviously optimal.)</td><td valign="top" align="center" colspan="1">0</td><td valign="top" align="center">0</td></tr><tr class="small"><td valign="top" nowrap><b>Optimal Ascension</b></td><td valign="top">Who is the most optimal? (Ascended most recently.)</td><td valign="top" align="center" colspan="1">195138</td><td valign="top" align="center">195138</td></tr><tr class="small"><td valign="top" nowrap><b>Optimal Dresser</b></td><td valign="top">Who has wasted the least energy applying body coverings? (Lowest total pants/shirt/hat power)</td><td valign="top" align="center" colspan="1">385</td><td valign="top" align="center">385</td></tr><tr class="small"><td valign="top" nowrap><b>Optimal Drinking*</b></td><td valign="top">Who has obtained the most turns of effects while also drinking?</td><td valign="top" align="center" colspan="1">0</td><td valign="top" align="center">0</td></tr><tr class="small"><td valign="top" nowrap><b>Optimal PvP*</b></td><td valign="top">Who is optimal at PvP? (Most total fame gained this season.)</td><td valign="top" align="center" colspan="1">0</td><td valign="top" align="center">0</td></tr><tr class="small"><td valign="top" nowrap><b>Optimal War*</b></td><td valign="top">Who is an optimal warmonger? (most iron betas of industry collected)</td><td valign="top" align="center" colspan="1">0</td><td valign="top" align="center">0</td></tr><tr class="small"><td valign="top" nowrap><b>Outfit Compression</b></td><td valign="top">Who uses the fewest bytes for outfit storage?  (Shortest equipment names, 23 points for an empty slot.)</td><td valign="top" align="center" colspan="1">181</td><td valign="top" align="center">181</td></tr><tr class="small"><td valign="top" nowrap><b>The Optimal Stat</b></td><td valign="top">Who has the highest Item Drop Bonus?</td><td valign="top" align="center" colspan="1">42</td><td valign="top" align="center">42</td></tr><tr class="small"><td valign="top" nowrap><b>Totally Optimal*</b></td><td valign="top">Who has taken the optimal path through the Copperhead quest and beat up the most non-straggling protesters at the Zeppelin?</td><td valign="top" align="center" colspan="1">0</td><td valign="top" align="center">0</td></tr></table><p><small>* Scores are tallied separately in Hardcore and Not-Hardcore, outside of ronin the highest of your two scores will be used.  (No score is added in casual runs before 1500 turns have passed  or in Hardcore until you have ascended once in the season.)</small></p><p><center><a href="peevpee.php">Back to The Colosseum</a></center></td></tr></table></center></td></tr><tr><td height=4></td></tr></table></center></body></html>

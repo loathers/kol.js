@@ -1,6 +1,6 @@
 {
   "name": "kol.js",
-  "version": "0.10.9",
+  "version": "0.11.0",
   "main": "./dist/index.node.js",
   "types": "./dist/index.node.d.ts",
   "exports": {
