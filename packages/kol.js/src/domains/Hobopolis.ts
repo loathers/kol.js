@@ -1,4 +1,5 @@
 import type { Client } from "../Client.js";
+import { parseAdventureBody } from "./Adventure.js";
 import { ClanDungeon } from "./ClanDungeon.js";
 
 /**
@@ -37,19 +38,24 @@ export class HobopolisDungeon extends ClanDungeon {
   }
 
   static parseSewerEncounter(body: string): SewerEncounter {
-    if (/Despite All Your Rage/.test(body)) {
+    const parsed = parseAdventureBody(body);
+    const name = "name" in parsed ? parsed.name : "";
+
+    if (name === "Despite All Your Rage") {
       // There are two possible choice ids for the cage encounter.
       return {
         type: "cage",
-        whichchoice: / value=211>/.test(body) ? 211 : 212,
+        whichchoice: parsed.kind === "choice" && parsed.id === 212 ? 212 : 211,
       };
     }
 
-    if (/Disgustin' Junction/.test(body)) return { type: "junction" };
-    if (/Somewhat Higher and Mostly Dry/.test(body))
+    if (name === "Disgustin' Junction") return { type: "junction" };
+    if (name === "Somewhat Higher and Mostly Dry")
       return { type: "higherAndDry" };
-    if (/The Former or the Ladder/.test(body)) return { type: "ladder" };
-    if (/Pop!/.test(body)) return { type: "gnawedCage" };
+    if (name === "The Former or the Ladder") return { type: "ladder" };
+    if (name === "Pop!") return { type: "gnawedCage" };
+
+    // These are plain-text pages with no encounter name to extract
     if (/You shouldn't be here\./.test(body))
       return { type: "hodgmanDefeated" };
 
@@ -103,21 +109,14 @@ export class HobopolisDungeon extends ClanDungeon {
 
   /** Spend a turn adventuring in the Old Sewers. */
   async exploreSewer(): Promise<SewerEncounter> {
-    const body = await this.#client.fetchText("adventure.php", {
-      query: { snarfblat: 166 },
-    });
-    return HobopolisDungeon.parseSewerEncounter(body);
-  }
-
-  async #choice(whichchoice: number, option: number): Promise<string> {
-    return await this.#client.fetchText("choice.php", {
-      query: { whichchoice, option },
-    });
+    const result = await this.#client.adventure.adventure(166);
+    if (!result.success) return { type: "other" };
+    return HobopolisDungeon.parseSewerEncounter(result.body);
   }
 
   /** Stay in the cage ("Despite All Your Rage", option 2). */
   async acceptCage(): Promise<void> {
-    await this.#choice(211, 2);
+    await this.#client.adventure.choice(211, 2);
   }
 
   /**
@@ -127,33 +126,41 @@ export class HobopolisDungeon extends ClanDungeon {
   async chewThroughCage(
     whichchoice: 211 | 212,
   ): Promise<{ stillInChoice: boolean }> {
-    const body = await this.#choice(whichchoice, 1);
-    return { stillInChoice: /whichchoice/.test(body) };
+    const result = await this.#client.adventure.choice(whichchoice, 1);
+    return { stillInChoice: result.success && result.type === "choice" };
   }
 
   /** Squeeze out of a gnawed-through cage ("Pop!", choice 296). */
   async squeezeOut(): Promise<{ stillCaged: boolean }> {
-    const body = await this.#choice(296, 1);
-    return { stillCaged: /Despite All Your Rage/.test(body) };
+    const result = await this.#client.adventure.choice(296, 1);
+    return {
+      stillCaged:
+        result.success &&
+        result.type === "choice" &&
+        result.name === "Despite All Your Rage",
+    };
   }
 
   /** Open the grate at a Disgustin' Junction (choice 198). */
   async openGrate(): Promise<{ opened: boolean }> {
-    const body = await this.#choice(198, 3);
+    const result = await this.#client.adventure.choice(198, 3);
     // If we were too tired to explore the tunnel, a turn was spent opening
     // the grate. Otherwise the encounter was a free turn.
     return {
-      opened: /too tired to explore the tunnel on the other side/i.test(body),
+      opened:
+        result.success &&
+        /too tired to explore the tunnel on the other side/i.test(result.body),
     };
   }
 
   /** Twist the valve at Somewhat Higher and Mostly Dry (choice 197). */
   async twistValve(): Promise<{ twisted: boolean }> {
-    const body = await this.#choice(197, 3);
+    const result = await this.#client.adventure.choice(197, 3);
     return {
       twisted:
+        result.success &&
         /as the water level in the sewer lowers by a couple of inches/i.test(
-          body,
+          result.body,
         ),
     };
   }
@@ -164,18 +171,19 @@ export class HobopolisDungeon extends ClanDungeon {
    * differs, in which case we cannot be caged ourselves.
    */
   async rescueClanmate(): Promise<{ cageOccupied: boolean }> {
-    const body = await this.#choice(199, 3);
+    const result = await this.#client.adventure.choice(199, 3);
     return {
       cageOccupied:
+        !result.success ||
         !/You stare at it for 4 minutes and 33 seconds before getting bored and climbing back out of the sewer/.test(
-          body,
+          result.body,
         ),
     };
   }
 
   /** Fight the C. H. U. M.s at The Former or the Ladder (choice 199, option 2). */
   async fightChum(): Promise<void> {
-    await this.#choice(199, 2);
+    await this.#client.adventure.choice(199, 2);
   }
 
   /**
@@ -183,19 +191,19 @@ export class HobopolisDungeon extends ClanDungeon {
    * case where the cage has been gnawed through by squeezing back out first.
    */
   async isCaged(): Promise<boolean> {
-    const page = await this.#client.fetchText("place.php");
+    const encounter = await this.#client.adventure.currentEncounter();
+    if (encounter?.type !== "choice") return false;
 
-    if (/Pop!/.test(page)) {
+    if (encounter.name === "Pop!") {
       const { stillCaged } = await this.squeezeOut();
       return stillCaged;
     }
 
-    return /Despite All Your Rage/.test(page);
+    return encounter.name === "Despite All Your Rage";
   }
 
   /** Whether the character is unexpectedly stuck in a choice adventure. */
   async stuckInChoice(): Promise<boolean> {
-    const page = await this.#client.fetchText("place.php");
-    return /whichchoice/.test(page);
+    return this.#client.adventure.inChoice();
   }
 }

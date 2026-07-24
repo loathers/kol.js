@@ -12,7 +12,7 @@ describe("parseSewerEncounter", () => {
   });
 
   test("cage with choice 212", () => {
-    const body = `<center><b>Despite All Your Rage</b></center> value=212>`;
+    const body = `<center><b>Despite All Your Rage</b></center><input type=hidden name=whichchoice value=212>`;
     expect(HobopolisDungeon.parseSewerEncounter(body)).toEqual({
       type: "cage",
       whichchoice: 212,
@@ -44,7 +44,11 @@ describe("parseSewerEncounter", () => {
   });
 
   test("gnawed-through cage", () => {
-    expect(HobopolisDungeon.parseSewerEncounter(`<b>Pop!</b>`)).toEqual({
+    expect(
+      HobopolisDungeon.parseSewerEncounter(
+        `<center><b>Pop!</b></center><input type=hidden name=whichchoice value=296>`,
+      ),
+    ).toEqual({
       type: "gnawedCage",
     });
   });
