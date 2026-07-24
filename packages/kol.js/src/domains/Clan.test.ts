@@ -260,3 +260,32 @@ describe("transferLeadership", () => {
     });
   });
 });
+
+describe("parseWhiteboard", () => {
+  test("editable whiteboard", () => {
+    const html = `<form><textarea maxlength=5000 name=whiteboard rows=15 cols=60>Hello &lt;world&gt;\r\nSecond line</textarea><br></form>`;
+
+    expect(Clan.parseWhiteboard(html)).toEqual({
+      editable: true,
+      text: "Hello <world>\nSecond line",
+    });
+  });
+
+  test("read-only whiteboard", () => {
+    const html = `<td style="padding: 5px; border: 1px solid black;'>First line<br>Second line</td>`;
+
+    expect(Clan.parseWhiteboard(html)).toEqual({
+      editable: false,
+      text: "First line\nSecond line",
+    });
+  });
+
+  test("read-only empty whiteboard", () => {
+    const html = `<td style="padding: 5px; border: 1px solid black;'><i>(nothing)</i></td>`;
+
+    expect(Clan.parseWhiteboard(html)).toEqual({
+      editable: false,
+      text: "",
+    });
+  });
+});

@@ -577,6 +577,13 @@ export class Client extends Emittery<Events> {
     return status;
   }
 
+  async secondsToRollover(): Promise<number> {
+    if (this.isRollover()) return 0;
+
+    const status = await this.fetchStatus();
+    return Math.max(0, status.rollover - Math.floor(Date.now() / 1000));
+  }
+
   async getMallPrice(item: Item | number): Promise<MallPrice> {
     const itemId = resolveEntityId(item);
     const prices = await this.fetchText("backoffice.php", {

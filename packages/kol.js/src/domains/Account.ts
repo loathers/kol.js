@@ -1,5 +1,6 @@
 import type { Client } from "../Client.js";
 import { type ActionResult, defineAction } from "../interceptors/action.js";
+import type { CombatMacro } from "./CombatMacros.js";
 
 // `string & {}` keeps the literal suggestions for autocomplete without
 // collapsing the union to a bare `string`.
@@ -38,5 +39,49 @@ export class Account {
     return setFlagAction(this.#client, {
       query: { am: 1, action: "autoattack", value: macroId, ajax: 1 },
     });
+  }
+
+  /**
+   * Parse the combat macros offered by the combat tab's autoattack dropdown.
+   *
+   * The ids here are the option values, which are what setAutoattack()
+   * expects. For combat macros they are not the same as the ids used by
+   * account_combatmacros.php.
+   */
+  static parseAutoattackMacros(html: string): {
+    options: CombatMacro[];
+    selected: CombatMacro | null;
+  } {
+    // Only matches combat macros, not skills
+    const matches = html.matchAll(
+      /<option( selected="selected")? value="(\d+)">([^<]*?) \(Combat Macro\)<\/option>/g,
+    );
+
+    const options: CombatMacro[] = [];
+    let selected: CombatMacro | null = null;
+
+    for (const [, isSelected, id, name] of matches) {
+      const macro = { id: Number(id), name };
+      options.push(macro);
+      if (isSelected) selected = macro;
+    }
+
+    return { options, selected };
+  }
+
+  async #fetchCombatTab(): Promise<string> {
+    return await this.#client.fetchText("account.php", {
+      query: { action: "loadtab", value: "combat" },
+    });
+  }
+
+  /** All combat macros available as autoattacks. */
+  async getAutoattackMacros(): Promise<CombatMacro[]> {
+    return Account.parseAutoattackMacros(await this.#fetchCombatTab()).options;
+  }
+
+  /** The currently selected autoattack, if it is a combat macro. */
+  async getAutoattackMacro(): Promise<CombatMacro | null> {
+    return Account.parseAutoattackMacros(await this.#fetchCombatTab()).selected;
   }
 }
