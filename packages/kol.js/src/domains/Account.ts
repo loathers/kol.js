@@ -76,13 +76,25 @@ export class Account {
     });
   }
 
+  /**
+   * The autoattack combat macros and which one is currently selected, from a
+   * single fetch. Prefer this over getAutoattackMacros()/getAutoattackMacro()
+   * when you need both.
+   */
+  async getAutoattacks(): Promise<{
+    options: CombatMacro[];
+    selected: CombatMacro | null;
+  }> {
+    return Account.parseAutoattackMacros(await this.#fetchCombatTab());
+  }
+
   /** All combat macros available as autoattacks. */
   async getAutoattackMacros(): Promise<CombatMacro[]> {
-    return Account.parseAutoattackMacros(await this.#fetchCombatTab()).options;
+    return (await this.getAutoattacks()).options;
   }
 
   /** The currently selected autoattack, if it is a combat macro. */
   async getAutoattackMacro(): Promise<CombatMacro | null> {
-    return Account.parseAutoattackMacros(await this.#fetchCombatTab()).selected;
+    return (await this.getAutoattacks()).selected;
   }
 }
