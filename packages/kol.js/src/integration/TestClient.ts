@@ -187,6 +187,7 @@ export class TestClient extends Client {
               // KoL serialises empty associative arrays as `[]`, not `{}`
               effects: [],
               intrinsics: [],
+              rollover: "1778556599",
             }),
           );
           return;

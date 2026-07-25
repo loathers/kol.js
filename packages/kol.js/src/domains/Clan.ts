@@ -1,3 +1,5 @@
+import { decodeHTML } from "entities";
+
 import type { Client, Result } from "../Client.js";
 
 export const Privilege = {
@@ -52,6 +54,11 @@ export type ClanInfo = {
   website: string | null;
   memberCount: number;
   trophies: Record<string, number>;
+};
+
+export type Whiteboard = {
+  text: string;
+  editable: boolean;
 };
 
 export class Clan {
@@ -198,13 +205,96 @@ export class Clan {
     });
   }
 
-  async readWhiteboard(): Promise<string> {
+  /**
+   * Found a new clan with the logged-in player as its leader. Requires being
+   * clanless (leave the current clan first) and level 7+ or at least one
+   * ascension.
+   */
+  async create(name: string, credo: string): Promise<Result> {
+    const response = await this.#client.fetchText("clan_signup.php", {
+      method: "POST",
+      form: { action: "formclan", newname: name, credo },
+    });
+    // Success lands on the new clan's hall
+    if (response.includes(">Clan Hall</b>")) return { success: true };
+    const reason = response.match(
+      /Results:<\/b>[\s\S]*?<td>([^<]+)<\/td>/,
+    )?.[1];
+    return { success: false, reason: reason ?? "Unknown" };
+  }
+
+  /** The clan the logged-in player is currently a member of. */
+  async getCurrentClanId(): Promise<number | null> {
+    const html = await this.#client.fetchText("showplayer.php", {
+      query: { who: this.#client.playerId },
+    });
+    const match = html.match(
+      /<b><a class=nounder href="showclan\.php\?whichclan=(\d+)/,
+    );
+    return match ? Number(match[1]) : null;
+  }
+
+  /**
+   * The player id of a clan's leader. Lighter-weight than getInfo(), which
+   * returns null unless the whole clan page parses.
+   */
+  async getLeader(clanId: number): Promise<number | null> {
+    const html = await this.#client.fetchText("showclan.php", {
+      query: { whichclan: clanId },
+    });
+    const match = html.match(
+      />Leader:<\/td><td valign=top><b><a href="showplayer\.php\?who=(\d+)">/,
+    );
+    return match ? Number(match[1]) : null;
+  }
+
+  /** The player id of the first inactive member of the current clan. */
+  async getInactiveMember(): Promise<number | null> {
+    const html = await this.#client.fetchText("clan_members.php");
+    const match = html.match(
+      /href="showplayer\.php\?who=(\d+)">[^<]+?<\/a><font color=gray><b> \(inactive\)<\/b>/,
+    );
+    return match ? Number(match[1]) : null;
+  }
+
+  static parseWhiteboard(html: string): Whiteboard {
+    let editable = true;
+    let text = "";
+
+    const textareaMatch = html.match(
+      /<textarea maxlength=5000 name=whiteboard rows=15 cols=60>(.*?)<\/textarea><br>/s,
+    );
+
+    if (textareaMatch) {
+      text = textareaMatch[1];
+    } else {
+      editable = false;
+      const readOnlyMatch = html.match(/border: 1px solid black;'>(.*?)<\/td>/);
+
+      if (readOnlyMatch) {
+        text = readOnlyMatch[1]
+          .replaceAll("\n", "")
+          .replaceAll("<br>", "\n")
+          // What the whiteboard shows when it is empty
+          .replace("<i>(nothing)</i>", "");
+      }
+    }
+
+    return {
+      editable,
+      text: decodeHTML(text.replaceAll("\r", "")),
+    };
+  }
+
+  /**
+   * Read the whiteboard, reporting whether the logged-in player can edit it.
+   * Handles both the editable and read-only renderings.
+   */
+  async readWhiteboard(): Promise<Whiteboard> {
     const html = await this.#client.fetchText("clan_basement.php", {
       query: { whiteboard: 1 },
     });
-    return (
-      html.match(/<textarea[^>]*>([\s\S]*?)<\/textarea>/i)?.[1]?.trim() ?? ""
-    );
+    return Clan.parseWhiteboard(html);
   }
 
   async writeWhiteboard(text: string): Promise<Result> {

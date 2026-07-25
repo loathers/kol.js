@@ -60,6 +60,7 @@ describe("parseEntries", () => {
       spleen: "10",
       full: "10",
       drunk: "10",
+      rollover: "1778556599",
     });
     expect(Equipment.parseEntries(status)).toEqual([]);
   });

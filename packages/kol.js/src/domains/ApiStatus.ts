@@ -66,6 +66,11 @@ export const ApiStatusSchema = z.object({
     .optional()
     .default({}),
   familiarexp: z.coerce.number().optional(),
+  /** Current familiar id, if any. */
+  familiar: z.coerce.number().optional(),
+  meat: z.coerce.number().optional(),
+  /** Unix timestamp of the next rollover. */
+  rollover: z.coerce.number(),
   lastadv: z
     .object({
       id: z.coerce.number(),

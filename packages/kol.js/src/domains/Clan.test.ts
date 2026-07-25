@@ -260,3 +260,77 @@ describe("transferLeadership", () => {
     });
   });
 });
+
+describe("parseWhiteboard", () => {
+  test("editable whiteboard", () => {
+    const html = `<form><textarea maxlength=5000 name=whiteboard rows=15 cols=60>Hello &lt;world&gt;\r\nSecond line</textarea><br></form>`;
+
+    expect(Clan.parseWhiteboard(html)).toEqual({
+      editable: true,
+      text: "Hello <world>\nSecond line",
+    });
+  });
+
+  test("read-only whiteboard", () => {
+    const html = `<td style="padding: 5px; border: 1px solid black;'>First line<br>Second line</td>`;
+
+    expect(Clan.parseWhiteboard(html)).toEqual({
+      editable: false,
+      text: "First line\nSecond line",
+    });
+  });
+
+  test("read-only empty whiteboard", () => {
+    const html = `<td style="padding: 5px; border: 1px solid black;'><i>(nothing)</i></td>`;
+
+    expect(Clan.parseWhiteboard(html)).toEqual({
+      editable: false,
+      text: "",
+    });
+  });
+
+  test("parses a real whiteboard page", async () => {
+    const html = await loadFixture(__dirname, "clan_whiteboard.html");
+    expect(Clan.parseWhiteboard(html)).toEqual({
+      editable: true,
+      text: "dfadfsd",
+    });
+  });
+});
+
+describe("getInactiveMember", () => {
+  const client = new Client("", "");
+  const clan = new Clan(client);
+
+  test("finds the first inactive member on a real members page", async () => {
+    vi.spyOn(client, "fetchText").mockResolvedValueOnce(
+      await loadFixture(__dirname, "clan_members.html"),
+    );
+    expect(await clan.getInactiveMember()).toBe(21);
+  });
+});
+
+describe("create", () => {
+  const client = new Client("", "");
+  const clan = new Clan(client);
+
+  test("succeeds, landing on the new clan hall", async () => {
+    vi.spyOn(client, "fetchText").mockResolvedValueOnce(
+      await loadFixture(__dirname, "clan_create_success.html"),
+    );
+    expect(await clan.create("koljs test clan", "Testing kol.js")).toEqual({
+      success: true,
+    });
+  });
+
+  test("fails while still in a clan, reporting the reason", async () => {
+    vi.spyOn(client, "fetchText").mockResolvedValueOnce(
+      await loadFixture(__dirname, "clan_create_in_clan_failure.html"),
+    );
+    expect(await clan.create("koljs test clan", "Testing kol.js")).toEqual({
+      success: false,
+      reason:
+        "You can't form a new clan while you're still in an existing clan.",
+    });
+  });
+});

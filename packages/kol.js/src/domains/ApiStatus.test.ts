@@ -46,9 +46,11 @@ describe("ApiStatusSchema", () => {
       drunk: "10",
       effects: [],
       intrinsics: [],
+      rollover: "1778556599",
     });
 
     expect(status.effects).toEqual({});
     expect(status.intrinsics).toEqual({});
+    expect(status.rollover).toBe(1778556599);
   });
 });

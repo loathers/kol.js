@@ -48,6 +48,7 @@ describe("Raffle", () => {
       spleen: "10",
       full: "10",
       drunk: "10",
+      rollover: "1778556599",
     });
 
     const raffle = new Raffle(client);

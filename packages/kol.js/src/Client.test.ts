@@ -48,6 +48,7 @@ class TestClient extends Client {
           spleen: "10",
           full: "10",
           drunk: "10",
+          rollover: "1778556599",
         }),
         { headers: { "content-type": "application/json" } },
       );
