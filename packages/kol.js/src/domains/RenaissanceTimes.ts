@@ -2,6 +2,7 @@ import { tz } from "@date-fns/tz";
 import { addDays, isAfter, isValid, parse, subYears } from "date-fns";
 
 import type { Client } from "../Client.js";
+import { LoathingDate } from "../LoathingDate.js";
 
 export const KNIGHTS = [
   "Open Mic Knight",
@@ -38,9 +39,6 @@ const HISTORY_ROW = new RegExp(
   "g",
 );
 
-// KoL server time is fixed to Arizona (UTC-7, no DST).
-const SERVER_TZ = "America/Phoenix";
-
 /**
  * Parse a betting-counter time ("Jul 25 12:00 am") into an absolute Date.
  *
@@ -49,7 +47,9 @@ const SERVER_TZ = "America/Phoenix";
  * the previous year's. The day of slack absorbs client/server clock skew.
  */
 export function parseJoustTime(text: string, now: Date): Date | null {
-  const time = parse(text, "MMM d h:mm a", now, { in: tz(SERVER_TZ) });
+  const time = parse(text, "MMM d h:mm a", now, {
+    in: tz(LoathingDate.SERVER_TIMEZONE),
+  });
   if (!isValid(time)) return null;
   return isAfter(time, addDays(now, 1)) ? subYears(time, 1) : time;
 }

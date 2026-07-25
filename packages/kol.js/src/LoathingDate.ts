@@ -90,6 +90,10 @@ const HAMBURGLAR_CENTRES: (number | null)[] = [
 ];
 
 export class LoathingDate {
+  // The wall-clock timezone the KoL server renders times in: Arizona
+  // (Mountain Standard, fixed UTC-7, no DST).
+  static SERVER_TIMEZONE = "America/Phoenix";
+
   static EPOCH = new Date(Date.UTC(2003, 1, 10, 3, 30));
   // The epoch is not Jarlsuary 1 Year 1 — gameday 0 falls 9 days into
   // the KoL calendar, so we offset when converting between gameday and
