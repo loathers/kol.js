@@ -107,6 +107,19 @@ export class HobopolisDungeon extends ClanDungeon {
     return /Old Sewers/.test(page);
   }
 
+  /** Close the current clan's Hobopolis instance, ending the raid. */
+  async close() {
+    return this.closeDungeon("hobopolis");
+  }
+
+  /**
+   * Open a fresh Hobopolis instance in the current clan (1,000,000 meat
+   * from the clan coffer).
+   */
+  async open() {
+    return this.openDungeon("hobopolis");
+  }
+
   /** Spend a turn adventuring in the Old Sewers. */
   async exploreSewer(): Promise<SewerEncounter> {
     const result = await this.#client.adventure.adventure(166);

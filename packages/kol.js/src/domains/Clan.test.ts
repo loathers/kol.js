@@ -309,3 +309,28 @@ describe("getInactiveMember", () => {
     expect(await clan.getInactiveMember()).toBe(21);
   });
 });
+
+describe("create", () => {
+  const client = new Client("", "");
+  const clan = new Clan(client);
+
+  test("succeeds, landing on the new clan hall", async () => {
+    vi.spyOn(client, "fetchText").mockResolvedValueOnce(
+      await loadFixture(__dirname, "clan_create_success.html"),
+    );
+    expect(await clan.create("koljs test clan", "Testing kol.js")).toEqual({
+      success: true,
+    });
+  });
+
+  test("fails while still in a clan, reporting the reason", async () => {
+    vi.spyOn(client, "fetchText").mockResolvedValueOnce(
+      await loadFixture(__dirname, "clan_create_in_clan_failure.html"),
+    );
+    expect(await clan.create("koljs test clan", "Testing kol.js")).toEqual({
+      success: false,
+      reason:
+        "You can't form a new clan while you're still in an existing clan.",
+    });
+  });
+});

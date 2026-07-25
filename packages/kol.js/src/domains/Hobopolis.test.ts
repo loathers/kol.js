@@ -1,5 +1,6 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
+import { Client } from "../Client.js";
 import { loadFixture } from "../testUtils.js";
 import { HobopolisDungeon } from "./Hobopolis.js";
 
@@ -118,5 +119,43 @@ describe("real fixtures", () => {
     expect(HobopolisDungeon.parseSewerEncounter(html)).toEqual({
       type: "hodgmanDefeated",
     });
+  });
+
+  test.each([
+    ["sewer_cage.html", { type: "cage", whichchoice: 211 }],
+    ["sewer_junction.html", { type: "junction" }],
+    ["sewer_higher_and_dry.html", { type: "higherAndDry" }],
+    ["sewer_ladder.html", { type: "ladder" }],
+    ["sewer_passed_through.html", { type: "passedThrough" }],
+  ])("classifies %s", async (fixture, expected) => {
+    const html = await loadFixture(__dirname, fixture);
+    expect(HobopolisDungeon.parseSewerEncounter(html)).toEqual(expected);
+  });
+
+  test("isCaged is true when place.php shows the cage choice", async () => {
+    const client = new Client("", "");
+    const dungeon = new HobopolisDungeon(client);
+    vi.spyOn(client, "fetchText").mockResolvedValueOnce(
+      await loadFixture(__dirname, "place_in_cage.html"),
+    );
+    expect(await dungeon.isCaged()).toBe(true);
+  });
+
+  test("isCaged is false in an ordinary pending choice", async () => {
+    const client = new Client("", "");
+    const dungeon = new HobopolisDungeon(client);
+    vi.spyOn(client, "fetchText").mockResolvedValueOnce(
+      await loadFixture(__dirname, "place_pending_choice.html"),
+    );
+    expect(await dungeon.isCaged()).toBe(false);
+  });
+
+  test("the valve result contains the twistValve success text", async () => {
+    const html = await loadFixture(__dirname, "sewer_valve_result.html");
+    expect(
+      /as the water level in the sewer lowers by a couple of inches/i.test(
+        html,
+      ),
+    ).toBe(true);
   });
 });

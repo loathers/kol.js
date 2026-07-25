@@ -205,6 +205,24 @@ export class Clan {
     });
   }
 
+  /**
+   * Found a new clan with the logged-in player as its leader. Requires being
+   * clanless (leave the current clan first) and level 7+ or at least one
+   * ascension.
+   */
+  async create(name: string, credo: string): Promise<Result> {
+    const response = await this.#client.fetchText("clan_signup.php", {
+      method: "POST",
+      form: { action: "formclan", newname: name, credo },
+    });
+    // Success lands on the new clan's hall
+    if (response.includes(">Clan Hall</b>")) return { success: true };
+    const reason = response.match(
+      /Results:<\/b>[\s\S]*?<td>([^<]+)<\/td>/,
+    )?.[1];
+    return { success: false, reason: reason ?? "Unknown" };
+  }
+
   /** The clan the logged-in player is currently a member of. */
   async getCurrentClanId(): Promise<number | null> {
     const html = await this.#client.fetchText("showplayer.php", {

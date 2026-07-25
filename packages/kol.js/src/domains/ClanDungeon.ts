@@ -1,4 +1,20 @@
-import type { Client } from "../Client.js";
+import type { Client, Result } from "../Client.js";
+
+export type ClanDungeonName = "hobopolis" | "slimetube" | "dreadsylvania";
+
+const DUNGEON_CLOSE_ACTIONS: Record<ClanDungeonName, string> = {
+  hobopolis: "floodsewer",
+  slimetube: "sealtube",
+  dreadsylvania: "foldmap",
+};
+
+// Opening pays the instance cost from the clan coffer: Hobopolis 1,000,000,
+// The Slime Tube 250,000, Dreadsylvania 1,000,000.
+const DUNGEON_OPEN_ACTIONS: Record<ClanDungeonName, string> = {
+  hobopolis: "cleansewer",
+  slimetube: "cleanspot",
+  dreadsylvania: "translatemap",
+};
 
 export class RaidLogMissingError extends Error {
   constructor() {
@@ -162,6 +178,40 @@ export class ClanDungeon {
 
   constructor(client: Client) {
     this.#client = client;
+  }
+
+  /**
+   * Close a dungeon in the current clan, ending its active raid. Requires
+   * dungeon administration rights. Fails if the dungeon still has
+   * undistributed loot.
+   */
+  async closeDungeon(dungeon: ClanDungeonName): Promise<Result> {
+    const action = DUNGEON_CLOSE_ACTIONS[dungeon];
+    const response = await this.#client.fetchText("clan_basement.php", {
+      query: { action, confirm: "on" },
+    });
+    if (/undistributed loot from that dungeon/i.test(response))
+      return { success: false, reason: "Dungeon has undistributed loot" };
+    // An open dungeon shows its close form on the basement page, so its
+    // absence confirms the close took effect.
+    if (response.includes(`value="${action}"`))
+      return { success: false, reason: "Dungeon is still open" };
+    return { success: true };
+  }
+
+  /**
+   * Open a dungeon in the current clan, starting a fresh raid paid for from
+   * the clan coffer. Requires dungeon administration rights.
+   */
+  async openDungeon(dungeon: ClanDungeonName): Promise<Result> {
+    const response = await this.#client.fetchText("clan_basement.php", {
+      method: "POST",
+      form: { action: DUNGEON_OPEN_ACTIONS[dungeon] },
+    });
+    // A newly opened dungeon shows its close form on the basement page
+    if (!response.includes(`value="${DUNGEON_CLOSE_ACTIONS[dungeon]}"`))
+      return { success: false, reason: "Dungeon did not open" };
+    return { success: true };
   }
 
   async getCurrentRaid(clanId: number): Promise<string> {

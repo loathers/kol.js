@@ -92,4 +92,27 @@ describe("real fixtures", () => {
     );
     expect(await client.adventure.currentEncounter()).toBeNull();
   });
+
+  test("a pending choice shown by place.php uses the blue page header", async () => {
+    const body = await loadFixture(__dirname, "place_pending_choice.html");
+    expect(extractEncounterName(body)).toBe("Disgustin' Junction");
+    expect(parseAdventureBody(body)).toEqual({
+      kind: "choice",
+      id: 198,
+      name: "Disgustin' Junction",
+    });
+  });
+
+  test("currentEncounter reports the pending cage choice", async () => {
+    const client = new Client("", "");
+    vi.spyOn(client, "fetchText").mockResolvedValueOnce(
+      await loadFixture(__dirname, "place_in_cage.html"),
+    );
+    const encounter = await client.adventure.currentEncounter();
+    expect(encounter).toMatchObject({
+      type: "choice",
+      id: 211,
+      name: "Despite All Your Rage",
+    });
+  });
 });

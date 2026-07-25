@@ -18,6 +18,8 @@ export function extractEncounterName(body: string): string {
   return (
     body.match(/<center><b>([^<]+)<\/b>/)?.[1]?.trim() ??
     body.match(/<b>([^<]+)<\/b>\s*<p>/)?.[1]?.trim() ??
+    // The blue page header, as used when place.php shows a pending choice
+    body.match(/<b style="color: white">([^<]+)<\/b>/)?.[1]?.trim() ??
     ""
   );
 }
