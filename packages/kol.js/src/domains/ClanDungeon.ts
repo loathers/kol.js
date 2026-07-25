@@ -174,10 +174,10 @@ export function parseLine(
  * raid instances from the fetched HTML.
  */
 export class ClanDungeon {
-  #client: Client;
+  protected client: Client;
 
   constructor(client: Client) {
-    this.#client = client;
+    this.client = client;
   }
 
   /**
@@ -187,7 +187,7 @@ export class ClanDungeon {
    */
   async closeDungeon(dungeon: ClanDungeonName): Promise<Result> {
     const action = DUNGEON_CLOSE_ACTIONS[dungeon];
-    const response = await this.#client.fetchText("clan_basement.php", {
+    const response = await this.client.fetchText("clan_basement.php", {
       query: { action, confirm: "on" },
     });
     if (/undistributed loot from that dungeon/i.test(response))
@@ -204,7 +204,7 @@ export class ClanDungeon {
    * the clan coffer. Requires dungeon administration rights.
    */
   async openDungeon(dungeon: ClanDungeonName): Promise<Result> {
-    const response = await this.#client.fetchText("clan_basement.php", {
+    const response = await this.client.fetchText("clan_basement.php", {
       method: "POST",
       form: { action: DUNGEON_OPEN_ACTIONS[dungeon] },
     });
@@ -215,18 +215,18 @@ export class ClanDungeon {
   }
 
   async getCurrentRaid(clanId: number): Promise<string> {
-    return await this.#client.actionMutex.runExclusive(async () => {
-      await this.#client.ensureClan(clanId);
-      const log = await this.#client.fetchText("clan_raidlogs.php");
+    return await this.client.actionMutex.runExclusive(async () => {
+      await this.client.ensureClan(clanId);
+      const log = await this.client.fetchText("clan_raidlogs.php");
       if (!log) throw new RaidLogMissingError();
       return log;
     });
   }
 
   async getRaidById(clanId: number, raidId: number): Promise<string> {
-    return await this.#client.actionMutex.runExclusive(async () => {
-      await this.#client.ensureClan(clanId);
-      return await this.#client.fetchText("clan_viewraidlog.php", {
+    return await this.client.actionMutex.runExclusive(async () => {
+      await this.client.ensureClan(clanId);
+      return await this.client.fetchText("clan_viewraidlog.php", {
         query: {
           viewlog: raidId,
           backstart: 0,
@@ -236,9 +236,9 @@ export class ClanDungeon {
   }
 
   async getRaidIds(clanId: number, exclude: number[] = []): Promise<number[]> {
-    return await this.#client.actionMutex.runExclusive(async () => {
-      await this.#client.ensureClan(clanId);
-      let raidLogs = await this.#client.fetchText("clan_oldraidlogs.php");
+    return await this.client.actionMutex.runExclusive(async () => {
+      await this.client.ensureClan(clanId);
+      let raidLogs = await this.client.fetchText("clan_oldraidlogs.php");
       const raidIds: number[] = [];
       let row = 0;
       let done = false;
@@ -260,7 +260,7 @@ export class ClanDungeon {
         }
         if (!done) {
           row += 10;
-          raidLogs = await this.#client.fetchText("clan_oldraidlogs.php", {
+          raidLogs = await this.client.fetchText("clan_oldraidlogs.php", {
             query: {
               startrow: row,
             },

@@ -1,3 +1,6 @@
+import { tz } from "@date-fns/tz";
+import { addDays, isAfter, isValid, parse, subYears } from "date-fns";
+
 import type { Client } from "../Client.js";
 
 export const KNIGHTS = [
@@ -35,52 +38,27 @@ const HISTORY_ROW = new RegExp(
   "g",
 );
 
-const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
+// KoL server time is fixed to Arizona (UTC-7, no DST).
+const SERVER_TZ = "America/Phoenix";
 
-// KoL server time is fixed UTC-7 (Arizona, no DST)
-const SERVER_UTC_OFFSET_HOURS = 7;
-const HOUR = 60 * 60 * 1000;
-const DAY = 24 * HOUR;
-
-// Betting counter times ("Jul 25 12:00 am") carry no year, so infer it from
-// the current server-time year, stepping back one if that lands in the future
-// (the history only covers 72 hours, so anything further ahead is a wrap).
+/**
+ * Parse a betting-counter time ("Jul 25 12:00 am") into an absolute Date.
+ *
+ * The timestamps carry no year but always name a joust from the recent past,
+ * so if assuming the current server-time year lands in the future it must be
+ * the previous year's. The day of slack absorbs client/server clock skew.
+ */
 export function parseJoustTime(text: string, now: Date): Date | null {
-  const match = text.match(
-    /^([A-Z][a-z]{2}) (\d{1,2}) (\d{1,2}):(\d{2}) ([ap]m)$/,
-  );
-  if (!match) return null;
+  const time = parse(text, "MMM d h:mm a", now, { in: tz(SERVER_TZ) });
+  if (!isValid(time)) return null;
+  return isAfter(time, addDays(now, 1)) ? subYears(time, 1) : time;
+}
 
-  const month = MONTHS.indexOf(match[1]);
-  if (month < 0) return null;
-
-  const day = Number(match[2]);
-  const hour = (Number(match[3]) % 12) + (match[5] === "pm" ? 12 : 0);
-  const minute = Number(match[4]);
-
-  const serverNow = new Date(now.getTime() - SERVER_UTC_OFFSET_HOURS * HOUR);
-  const serverYear = serverNow.getUTCFullYear();
-  const utcHour = hour + SERVER_UTC_OFFSET_HOURS;
-
-  let time = Date.UTC(serverYear, month, day, utcHour, minute);
-  if (time - now.getTime() > 2 * DAY) {
-    time = Date.UTC(serverYear - 1, month, day, utcHour, minute);
-  }
-
-  return new Date(time);
+/** Build a fully-typed odds record from the odds-table rows. */
+function parseJoustOdds(rows: RegExpMatchArray[]): JoustOdds {
+  return Object.fromEntries(
+    rows.map((m) => [m[1] as Knight, Number(m[2])]),
+  ) as JoustOdds;
 }
 
 export class RenaissanceTimes {
@@ -90,9 +68,11 @@ export class RenaissanceTimes {
     this.#client = client;
   }
 
-  // Visit the Jousting Area (choice 1600) and its betting counter (choice
-  // 1602), then back all the way out so the account is not left mid-choice.
-  // Returns null when the tower has faded back into the mists (i.e. closed).
+  /**
+   * Visit the Jousting Area (choice 1600) and its betting counter (choice
+   * 1602), then back all the way out so the account is not left mid-choice.
+   * Returns null when the tower has faded back into the mists (i.e. closed).
+   */
   async #visitBettingCounter(): Promise<string | null> {
     return await this.#client.actionMutex.runExclusive(async () => {
       const arena = await this.#client.fetchText("place.php", {
@@ -119,8 +99,10 @@ export class RenaissanceTimes {
     });
   }
 
-  // Returns null when the tower is closed; throws if the page is present but
-  // unrecognizable.
+  /**
+   * Returns null when the tower is closed; throws if the page is present but
+   * unrecognizable.
+   */
   async getBettingCounter(now = new Date()): Promise<BettingCounter | null> {
     const page = await this.#visitBettingCounter();
     if (page === null) return null;
@@ -139,9 +121,7 @@ export class RenaissanceTimes {
     if (oddsPosted) {
       const oddsRows = [...page.matchAll(ODDS_ROW)];
       if (oddsRows.length === KNIGHTS.length) {
-        odds = Object.fromEntries(
-          oddsRows.map((m) => [m[1], Number(m[2])]),
-        ) as JoustOdds;
+        odds = parseJoustOdds(oddsRows);
       }
     }
 

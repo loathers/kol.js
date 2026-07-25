@@ -1,4 +1,3 @@
-import type { Client } from "../Client.js";
 import { parseAdventureBody } from "./Adventure.js";
 import { ClanDungeon } from "./ClanDungeon.js";
 
@@ -30,13 +29,6 @@ export type SewerProgress = {
 };
 
 export class HobopolisDungeon extends ClanDungeon {
-  #client: Client;
-
-  constructor(client: Client) {
-    super(client);
-    this.#client = client;
-  }
-
   static parseSewerEncounter(body: string): SewerEncounter {
     const parsed = parseAdventureBody(body);
     const name = "name" in parsed ? parsed.name : "";
@@ -75,7 +67,7 @@ export class HobopolisDungeon extends ClanDungeon {
     let valves = 0;
 
     for (const match of raidLog.matchAll(
-      /opened (?:a|(?:\d+)) sewer grates? (?:\d+ times )?\((\d+) turns?\)/g,
+      /opened (?:a|\d+) sewer grates? (?:\d+ times )?\((\d+) turns?\)/g,
     )) {
       grates += parseInt(match[1]);
     }
@@ -97,13 +89,13 @@ export class HobopolisDungeon extends ClanDungeon {
    * would take the client's action mutex and switch clans.
    */
   async getSewerProgress(): Promise<SewerProgress> {
-    const raidLog = await this.#client.fetchText("clan_raidlogs.php");
+    const raidLog = await this.client.fetchText("clan_raidlogs.php");
     return HobopolisDungeon.parseSewerProgress(raidLog);
   }
 
   /** Whether the current clan's Old Sewers are accessible. */
   async sewersOpen(): Promise<boolean> {
-    const page = await this.#client.fetchText("clan_hobopolis.php");
+    const page = await this.client.fetchText("clan_hobopolis.php");
     return /Old Sewers/.test(page);
   }
 
@@ -122,14 +114,14 @@ export class HobopolisDungeon extends ClanDungeon {
 
   /** Spend a turn adventuring in the Old Sewers. */
   async exploreSewer(): Promise<SewerEncounter> {
-    const result = await this.#client.adventure.adventure(166);
+    const result = await this.client.adventure.adventure(166);
     if (!result.success) return { type: "other" };
     return HobopolisDungeon.parseSewerEncounter(result.body);
   }
 
   /** Stay in the cage ("Despite All Your Rage", option 2). */
   async acceptCage(): Promise<void> {
-    await this.#client.adventure.choice(211, 2);
+    await this.client.adventure.choice(211, 2);
   }
 
   /**
@@ -139,13 +131,13 @@ export class HobopolisDungeon extends ClanDungeon {
   async chewThroughCage(
     whichchoice: 211 | 212,
   ): Promise<{ stillInChoice: boolean }> {
-    const result = await this.#client.adventure.choice(whichchoice, 1);
+    const result = await this.client.adventure.choice(whichchoice, 1);
     return { stillInChoice: result.success && result.type === "choice" };
   }
 
   /** Squeeze out of a gnawed-through cage ("Pop!", choice 296). */
   async squeezeOut(): Promise<{ stillCaged: boolean }> {
-    const result = await this.#client.adventure.choice(296, 1);
+    const result = await this.client.adventure.choice(296, 1);
     return {
       stillCaged:
         result.success &&
@@ -156,7 +148,7 @@ export class HobopolisDungeon extends ClanDungeon {
 
   /** Open the grate at a Disgustin' Junction (choice 198). */
   async openGrate(): Promise<{ opened: boolean }> {
-    const result = await this.#client.adventure.choice(198, 3);
+    const result = await this.client.adventure.choice(198, 3);
     // If we were too tired to explore the tunnel, a turn was spent opening
     // the grate. Otherwise the encounter was a free turn.
     return {
@@ -168,7 +160,7 @@ export class HobopolisDungeon extends ClanDungeon {
 
   /** Twist the valve at Somewhat Higher and Mostly Dry (choice 197). */
   async twistValve(): Promise<{ twisted: boolean }> {
-    const result = await this.#client.adventure.choice(197, 3);
+    const result = await this.client.adventure.choice(197, 3);
     return {
       twisted:
         result.success &&
@@ -184,7 +176,7 @@ export class HobopolisDungeon extends ClanDungeon {
    * differs, in which case we cannot be caged ourselves.
    */
   async rescueClanmate(): Promise<{ cageOccupied: boolean }> {
-    const result = await this.#client.adventure.choice(199, 3);
+    const result = await this.client.adventure.choice(199, 3);
     return {
       cageOccupied:
         !result.success ||
@@ -196,7 +188,7 @@ export class HobopolisDungeon extends ClanDungeon {
 
   /** Fight the C. H. U. M.s at The Former or the Ladder (choice 199, option 2). */
   async fightChum(): Promise<void> {
-    await this.#client.adventure.choice(199, 2);
+    await this.client.adventure.choice(199, 2);
   }
 
   /**
@@ -204,7 +196,7 @@ export class HobopolisDungeon extends ClanDungeon {
    * case where the cage has been gnawed through by squeezing back out first.
    */
   async isCaged(): Promise<boolean> {
-    const encounter = await this.#client.adventure.currentEncounter();
+    const encounter = await this.client.adventure.currentEncounter();
     if (encounter?.type !== "choice") return false;
 
     if (encounter.name === "Pop!") {
@@ -217,6 +209,6 @@ export class HobopolisDungeon extends ClanDungeon {
 
   /** Whether the character is unexpectedly stuck in a choice adventure. */
   async stuckInChoice(): Promise<boolean> {
-    return this.#client.adventure.inChoice();
+    return this.client.adventure.inChoice();
   }
 }
