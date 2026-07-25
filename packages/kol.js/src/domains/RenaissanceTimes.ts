@@ -19,13 +19,6 @@ export type BettingCounter = {
   history: JoustResult[];
 };
 
-export class RenaissanceTimesParseError extends Error {
-  constructor() {
-    super("Could not parse the Renaissance Times betting counter");
-    this.name = "RenaissanceTimesParseError";
-  }
-}
-
 const KNIGHT_PATTERN = KNIGHTS.join("|");
 const ODDS_ROW = new RegExp(
   `<tr><td>(${KNIGHT_PATTERN})</td><td>(\\d+)%</td>`,
@@ -61,6 +54,19 @@ function parseJoustOdds(rows: RegExpMatchArray[]): JoustOdds {
   ) as JoustOdds;
 }
 
+/** Whether a page is the Oddsmaker's betting counter (odds posted or not). */
+function isBettingCounterPage(page: string): boolean {
+  return (
+    page.includes("Here are the latest odds!") ||
+    page.includes("The odds aren't posted yet")
+  );
+}
+
+// The jousting-area entry occasionally redirects to the main map right after
+// login/idle instead of forcing the choice; a single retry lands in it. If the
+// retry also fails it's a different problem further attempts won't fix.
+const VISIT_ATTEMPTS = 2;
+
 export class RenaissanceTimes {
   #client: Client;
 
@@ -71,51 +77,58 @@ export class RenaissanceTimes {
   /**
    * Visit the Jousting Area (choice 1600) and its betting counter (choice
    * 1602), then back all the way out so the account is not left mid-choice.
-   * Returns null when the tower has faded back into the mists (i.e. closed).
+   * Returns the raw betting-counter page, or null when it can't be reached
+   * (tower closed, or the entry keeps bouncing to the main map).
    */
   async #visitBettingCounter(): Promise<string | null> {
     return await this.#client.actionMutex.runExclusive(async () => {
-      const arena = await this.#client.fetchText("place.php", {
-        query: { whichplace: "twitch", action: "twitch_zone12b" },
-      });
-      if (arena.includes("faded back into the swirling mists")) return null;
-
-      try {
-        return await this.#client.fetchText("choice.php", {
-          query: { whichchoice: 1600, option: 4 },
+      for (let attempt = 0; attempt < VISIT_ATTEMPTS; attempt++) {
+        const arena = await this.#client.fetchText("place.php", {
+          query: { whichplace: "twitch", action: "twitch_zone12b" },
         });
-      } finally {
+        if (arena.includes("faded back into the swirling mists")) return null;
+        // Bounced to the main map instead of the jousting choice; retry.
+        if (!arena.includes("Visit the Betting Counter")) continue;
+
         try {
-          await this.#client.fetchText("choice.php", {
-            query: { whichchoice: 1602, option: 4 },
+          const counter = await this.#client.fetchText("choice.php", {
+            query: { whichchoice: 1600, option: 4 },
           });
-          await this.#client.fetchText("choice.php", {
-            query: { whichchoice: 1600, option: 6 },
-          });
-        } catch {
-          // Failing to back out cleanly shouldn't mask the actual result
+          if (isBettingCounterPage(counter)) return counter;
+        } finally {
+          await this.#backOutOfJoust();
         }
       }
+      return null;
     });
   }
 
+  /** Back out of the joust choices so the account isn't left mid-choice. */
+  async #backOutOfJoust(): Promise<void> {
+    try {
+      await this.#client.fetchText("choice.php", {
+        query: { whichchoice: 1602, option: 4 },
+      });
+      await this.#client.fetchText("choice.php", {
+        query: { whichchoice: 1600, option: 6 },
+      });
+    } catch {
+      // Failing to back out cleanly shouldn't mask the actual result
+    }
+  }
+
   /**
-   * Returns null when the tower is closed; throws if the page is present but
-   * unrecognizable.
+   * Read the betting counter. Returns null when it can't be reached — the tower
+   * is closed, or the jousting-area entry kept bouncing to the main map.
    */
   async getBettingCounter(now = new Date()): Promise<BettingCounter | null> {
     const page = await this.#visitBettingCounter();
-    if (page === null) return null;
-
-    const result = RenaissanceTimes.parse(page, now);
-    if (!result) throw new RenaissanceTimesParseError();
-    return result;
+    return page === null ? null : RenaissanceTimes.parse(page, now);
   }
 
   static parse(page: string, now = new Date()): BettingCounter | null {
+    if (!isBettingCounterPage(page)) return null;
     const oddsPosted = page.includes("Here are the latest odds!");
-    if (!oddsPosted && !page.includes("The odds aren't posted yet"))
-      return null;
 
     let odds: JoustOdds | null = null;
     if (oddsPosted) {

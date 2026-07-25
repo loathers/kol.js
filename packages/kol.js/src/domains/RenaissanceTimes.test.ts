@@ -2,11 +2,7 @@ import { describe, expect, it, test, vi } from "vitest";
 
 import { Client } from "../Client.js";
 import { loadFixture } from "../testUtils.js";
-import {
-  RenaissanceTimes,
-  RenaissanceTimesParseError,
-  parseJoustTime,
-} from "./RenaissanceTimes.js";
+import { RenaissanceTimes, parseJoustTime } from "./RenaissanceTimes.js";
 
 const { text } = vi.hoisted(() => ({ text: vi.fn() }));
 
@@ -77,7 +73,7 @@ describe("RenaissanceTimes.getBettingCounter", () => {
     );
     text.mockReset();
     text
-      .mockResolvedValueOnce("Jousting Area") // place.php arena
+      .mockResolvedValueOnce("Visit the Betting Counter") // place.php -> choice 1600
       .mockResolvedValueOnce(oddsPage) // choice 1600 option 4 -> betting counter
       .mockResolvedValueOnce("") // choice 1602 option 4 -> back to arena
       .mockResolvedValueOnce(""); // choice 1600 option 6 -> exit
@@ -95,6 +91,25 @@ describe("RenaissanceTimes.getBettingCounter", () => {
     });
   });
 
+  it("retries the visit when the entry bounces to the main map", async () => {
+    const oddsPage = await loadFixture(
+      import.meta.dirname,
+      "renaissance_times_odds.html",
+    );
+    text.mockReset();
+    text
+      .mockResolvedValueOnce("<html>the main map</html>") // 1st visit bounces
+      .mockResolvedValueOnce("Visit the Betting Counter") // retry -> choice 1600
+      .mockResolvedValueOnce(oddsPage) // choice 1600 option 4 -> counter
+      .mockResolvedValueOnce("") // back out 1602
+      .mockResolvedValueOnce(""); // back out 1600
+
+    const renaissanceTimes = new RenaissanceTimes(client);
+    const result = await renaissanceTimes.getBettingCounter(now);
+
+    expect(result?.odds).toMatchObject({ "Poker Knight": 57 });
+  });
+
   it("returns null when the tower has faded into the mists", async () => {
     text.mockReset();
     text.mockResolvedValueOnce("you faded back into the swirling mists");
@@ -106,19 +121,17 @@ describe("RenaissanceTimes.getBettingCounter", () => {
     expect(text).toHaveBeenCalledTimes(1);
   });
 
-  it("throws when the betting counter page is unrecognisable", async () => {
+  it("returns null when the entry keeps bouncing to the map", async () => {
     text.mockReset();
     text
-      .mockResolvedValueOnce("Jousting Area")
-      .mockResolvedValueOnce("<html>garbage</html>")
-      .mockResolvedValueOnce("")
-      .mockResolvedValueOnce("");
+      .mockResolvedValueOnce("<html>the main map</html>")
+      .mockResolvedValueOnce("<html>the main map</html>");
 
     const renaissanceTimes = new RenaissanceTimes(client);
 
-    await expect(
-      renaissanceTimes.getBettingCounter(now),
-    ).rejects.toBeInstanceOf(RenaissanceTimesParseError);
+    expect(await renaissanceTimes.getBettingCounter(now)).toBeNull();
+    // Two attempts, and never enters/backs out of a choice
+    expect(text).toHaveBeenCalledTimes(2);
   });
 });
 
