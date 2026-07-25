@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 
+import { loadFixture } from "../testUtils.js";
 import { Account } from "./Account.js";
 
 describe("parseAutoattackMacros", () => {
@@ -28,5 +29,30 @@ describe("parseAutoattackMacros", () => {
       ],
       selected: { id: 99000002, name: "CAGEBOT" },
     });
+  });
+
+  test("real combat tab with a macro selected", async () => {
+    const html = await loadFixture(
+      __dirname,
+      "account_combat_tab_selected.html",
+    );
+    const { options, selected } = Account.parseAutoattackMacros(html);
+
+    expect(options).toHaveLength(23);
+    expect(selected).toEqual({ id: 99124763, name: "justattack" });
+    expect(options).toContainEqual({ id: 99128184, name: "30rounds" });
+    // A macro with an empty name still parses
+    expect(options).toContainEqual({ id: 99211333, name: "" });
+  });
+
+  test("real combat tab with autoattack disabled", async () => {
+    const html = await loadFixture(
+      __dirname,
+      "account_combat_tab_unselected.html",
+    );
+    const { options, selected } = Account.parseAutoattackMacros(html);
+
+    expect(options).toHaveLength(23);
+    expect(selected).toBeNull();
   });
 });

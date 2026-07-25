@@ -52,9 +52,10 @@ export class Account {
     options: CombatMacro[];
     selected: CombatMacro | null;
   } {
-    // Only matches combat macros, not skills
+    // Only matches combat macros, not skills. The unselected form has two
+    // spaces before value (<option  value="...">), hence \s+.
     const matches = html.matchAll(
-      /<option( selected="selected")? value="(\d+)">([^<]*?) \(Combat Macro\)<\/option>/g,
+      /<option( selected="selected")?\s+value="(\d+)">([^<]*?) \(Combat Macro\)<\/option>/g,
     );
 
     const options: CombatMacro[] = [];

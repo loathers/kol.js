@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 
+import { loadFixture } from "../testUtils.js";
 import { HobopolisDungeon } from "./Hobopolis.js";
 
 describe("parseSewerEncounter", () => {
@@ -107,6 +108,15 @@ describe("parseSewerProgress", () => {
     expect(HobopolisDungeon.parseSewerProgress(log)).toEqual({
       grates: 4,
       valves: 6,
+    });
+  });
+});
+
+describe("real fixtures", () => {
+  test("hodgman-defeated page", async () => {
+    const html = await loadFixture(__dirname, "sewer_hodgman_defeated.html");
+    expect(HobopolisDungeon.parseSewerEncounter(html)).toEqual({
+      type: "hodgmanDefeated",
     });
   });
 });

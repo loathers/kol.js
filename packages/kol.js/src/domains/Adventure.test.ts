@@ -1,5 +1,7 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
+import { Client } from "../Client.js";
+import { loadFixture } from "../testUtils.js";
 import { extractEncounterName, parseAdventureBody } from "./Adventure.js";
 
 describe("extractEncounterName", () => {
@@ -74,5 +76,20 @@ describe("parseAdventureBody", () => {
     "You're out of adventures.",
   ])("out of adventures: %s", (message) => {
     expect(parseAdventureBody(message)).toEqual({ kind: "none" });
+  });
+});
+
+describe("real fixtures", () => {
+  test("an idle place.php page is not an encounter", async () => {
+    const body = await loadFixture(__dirname, "place_idle.html");
+    expect(parseAdventureBody(body).kind).toBe("noncombat");
+  });
+
+  test("currentEncounter is null on an idle page", async () => {
+    const client = new Client("", "");
+    vi.spyOn(client, "fetchText").mockResolvedValueOnce(
+      await loadFixture(__dirname, "place_idle.html"),
+    );
+    expect(await client.adventure.currentEncounter()).toBeNull();
   });
 });

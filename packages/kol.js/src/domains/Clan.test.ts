@@ -288,4 +288,24 @@ describe("parseWhiteboard", () => {
       text: "",
     });
   });
+
+  test("parses a real whiteboard page", async () => {
+    const html = await loadFixture(__dirname, "clan_whiteboard.html");
+    expect(Clan.parseWhiteboard(html)).toEqual({
+      editable: true,
+      text: "dfadfsd",
+    });
+  });
+});
+
+describe("getInactiveMember", () => {
+  const client = new Client("", "");
+  const clan = new Clan(client);
+
+  test("finds the first inactive member on a real members page", async () => {
+    vi.spyOn(client, "fetchText").mockResolvedValueOnce(
+      await loadFixture(__dirname, "clan_members.html"),
+    );
+    expect(await clan.getInactiveMember()).toBe(21);
+  });
 });

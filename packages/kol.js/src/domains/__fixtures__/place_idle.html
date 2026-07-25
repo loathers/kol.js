@@ -1,0 +1,110 @@
+<html><head>
+<script language=Javascript>
+<!--
+if (parent.frames.length == 0) location.href="game.php";
+var actions = {  }
+var notchat = true;//-->
+</script>
+<script language=Javascript src="https://d2uyhvukfffg5a.cloudfront.net/scripts/keybinds.min.2.js"></script>
+<script language=Javascript src="https://d2uyhvukfffg5a.cloudfront.net/scripts/window.20111231.js"></script>
+<script language="javascript">function chatFocus(){if(top.chatpane.document.chatform.graf) top.chatpane.document.chatform.graf.focus();}
+if (typeof defaultBind != 'undefined') { defaultBind(47, 2, chatFocus); defaultBind(190, 2, chatFocus);defaultBind(191, 2, chatFocus); defaultBind(47, 8, chatFocus);defaultBind(190, 8, chatFocus); defaultBind(191, 8, chatFocus); }</script><script> tp=top
+var todo = [];
+function nextAction() {
+	var next_todo = todo.shift();
+	if (next_todo) {
+		eval(next_todo);
+	}
+}
+function dojax(dourl, afterFunc, hoverCaller, failureFunc, method, params) {
+	$.ajax({
+		type: method || 'GET', url: dourl, cache: false,
+		data: params || null,
+		global: false,
+		success: function (out) {
+			nextAction();
+			if (out.match(/no\|/)) {
+				var parts = out.split(/\|/);
+				if (failureFunc) failureFunc(parts[1]);
+				else if (window.dojaxFailure) window.dojaxFailure(parts[1]);
+				else if (tp.chatpane.handleMessage) tp.chatpane.handleMessage({type: 'event', msg: 'Oops!  Sorry, Dave, you appear to be ' + parts[1]});
+				else  $('#ChatWindow').append('<font color="green">Oops!  Sorry, Dave, you appear to be ' + parts[1] + '.</font><br />' + "\n");
+				return;
+			}
+
+			if (hoverCaller)  {
+				float_results(hoverCaller, out);
+				if (afterFunc) { afterFunc(out); }
+				return;
+			}
+$(tp.mainpane.document).find("#effdiv").remove(); if(!window.dontscroll || (window.dontscroll && dontscroll==0)) { window.scroll(0,0);}
+			var $eff = $(tp.mainpane.document).find('#effdiv');
+			if ($eff.length == 0) {
+				var d = tp.mainpane.document.createElement('DIV');
+				d.id = 'effdiv';
+				var b = tp.mainpane.document.body;
+				if ($('#content_').length > 0) {
+					b = $('#content_ div:first')[0];
+				}
+				b.insertBefore(d, b.firstChild);
+				$eff = $(d);
+			}
+			$eff.find('a[name="effdivtop"]').remove().end()
+				.prepend('<a name="effdivtop"></a><center>' + out + '</center>').css('display','block');
+			if (!window.dontscroll || (window.dontscroll && dontscroll==0)) {
+				tp.mainpane.document.location = tp.mainpane.document.location + "#effdivtop";
+			}
+			if (afterFunc) { afterFunc(out); }
+		}
+	});
+}
+</script><script language=Javascript src="https://d2uyhvukfffg5a.cloudfront.net/scripts/jquery-1.3.1.min.js"></script>
+<script language=Javascript src='https://d2uyhvukfffg5a.cloudfront.net/scripts/rcm.20160406.js'></script>	<link rel="stylesheet" type="text/css" href="https://d2uyhvukfffg5a.cloudfront.net/styles.20230117d.css">
+<style type='text/css'>
+.faded {
+	zoom: 1;
+	filter: alpha(opacity=35);
+	opacity: 0.35;
+	-khtml-opacity: 0.35; 
+    -moz-opacity: 0.35;
+}
+</style>
+
+</head>
+
+<body>
+<div id='menu' class=rcm></div><center><div id="bfastholder"><table  width=95%  cellspacing=0 cellpadding=0><tr><td style="background-color: orange" align=center ><b style="color: white">Daily Reminders!</b></td></tr><tr><td style="padding: 5px; border: 1px solid orange;"><center><table><tr><td><center><div><button id="bid_121" title="Take a shower" alt="Take a shower" class="button bfast" rel="use april shower thoughts shield"><table><tr><td valign="center" align="center"><img src="https://d2uyhvukfffg5a.cloudfront.net/itemimages/aprilcal.gif" height="30" width="30" /></td><td valign="center" align="center" width="200"><div class="b">April Shower Thoughts shield</div></td></tr></table></button><button id="bid_120" title="Summon a knife!" alt="Summon a knife!" class="button bfast" rel="cast Generate Irony"><table><tr><td valign="center" align="center"><img src="https://d2uyhvukfffg5a.cloudfront.net/itemimages/book5.gif" height="30" width="30" /></td><td valign="center" align="center" width="200"><div class="b">Generate Irony</div></td></tr></table></button><button id="bid_117" title="Consider your Mayam Calendar" alt="Consider your Mayam Calendar" class="button bfast" rel="use mayam calendar"><table><tr><td valign="center" align="center"><img src="https://d2uyhvukfffg5a.cloudfront.net/itemimages/yamcal.gif" height="30" width="30" /></td><td valign="center" align="center" width="200"><div class="b">Mayam Calendar</div></td></tr></table></button><button id="bid_86" title="Exercise your right to vote!" alt="Exercise your right to vote!" class="button bfast" rel="vote"><table><tr><td valign="center" align="center"><img src="https://d2uyhvukfffg5a.cloudfront.net/itemimages/vrform.gif" height="30" width="30" /></td><td valign="center" align="center" width="200"><div class="b">Vote!</div></td></tr></table></button></div></center></td></tr></table></center></td></tr><tr><td height=4></td></tr></table></div>		<style>button.bfast { margin: 0px 5px 5px 0px; } .bfast .b {display: table-cell; height: 41px; vertical-align: middle; font-weight: bold; } #effdiv { min-height: 250px; }</style>
+		<script>
+				var checkbut = function (bid) {
+					var but = $('#bid_'+bid);
+					$.get('main.php?checkbfast=' + bid, function (res) {
+						if (res == 0) {
+							but.remove();
+							if ($('#bfastholder .bfast').length == 0) $('#bfastholder').remove();
+						}
+						else {
+							but.css({backgroundColor: ''});
+						}
+					}, 'json');
+				};
+			jQuery(function ($) {
+				$('.bfast').click(function (e) {
+					e.preventDefault();
+					var but = $(this);
+					var bid = but.attr('id').replace('bid_', '');
+					but.css({backgroundColor: '#ccc'});
+					var cmd = $(this).attr('rel');
+					$.get('submitnewchat.php', 
+				      	{cli: 1, pwd: "REDACTEDREDACTEDREDACTEDREDACTED", graf: '/'+cmd}, 
+					  	function (resp) { 
+								jstest = /<!--js\((.+?)\)-->/g;
+								while (ev = jstest.exec(resp)) { todo.push(ev[1]); }
+								nextAction();
+								todo.push("checkbut("+bid+");");
+								//$('#results').prepend(resp);
+					  	});
+	
+					});
+			});
+		</script>
+	</center><center><table  width=95%  cellspacing=0 cellpadding=0><tr><td style="background-color: blue" align=center ><b style="color: white">The Kingdom of Loathing</b></td></tr><tr><td style="padding: 5px; border: 1px solid blue;"><center><table><tr><td><a href="devchat.php?whichchan=10">Dev Chat Archives</a>&nbsp;&nbsp;<center><p><b><a href="ilovebugs.php">1023 Unhandled Bugs to Hide</a>.</b></center><style>.x2 { image-rendering: auto; }</style><center><div id=background  style='position: relative; width:700px;height:600px'  ><img id="place_bg" class="x2" src="https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/background.png" srcset="https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/background2x.png 2x, https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/background.png 1x" style="position: absolute; bottom: 0; left: 0" border=0><div id=newmain_advsignal class="element" style=' position: absolute; top: 76; left: 200; height: 50; width: 40;'><div class="x2" style="background-image: url(https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/advsignal_strip6.png); background-image: -webkit-image-set(url(https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/advsignal_strip62x.png) 2x, url(https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/advsignal_strip6.png) 1x); background-image: image-set(url(https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/advsignal_strip62x.png) 2x, url(https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/advsignal_strip6.png) 1x); background-size: auto 50px; background-position-x: 0px; background-repeat: no-repeat; height: 50px; width: 40px;"></div><style> @keyframes strip-newmain_advsignal { from { background-position-x: 0px; } to { background-position-x: -240px }} #newmain_advsignal > div { background-position: 0px; animation: strip-newmain_advsignal 1200ms steps(6) infinite; }</style></div><div id=newmain_campground class="element" style=' position: absolute; top: 119; left: 265; height: 62; width: 87;'><a  href=campground.php><img src="https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/campground.png" class="x2" srcset="https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/campground2x.png 2x, https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/campground.png 1x" width=87 height=62 border=0 alt="The Campground" title="The Campground"></a></div><div id=newmain_mountains class="element" style=' position: absolute; top: 74; left: 366; height: 154; width: 153;'><a  href=place.php?whichplace=mountains><img src="https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/mountains.png" class="x2" srcset="https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/mountains2x.png 2x, https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/mountains.png 1x" width=153 height=154 border=0 alt="The Big Mountains" title="The Big Mountains"></a></div><div id=newmain_oldman1 class="element" style=' position: absolute; top: 224; left: 166; height: 31; width: 92;'><a  href=oldman.php><img src="https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/oldman1.png" class="x2" srcset="https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/oldman12x.png 2x, https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/oldman1.png 1x" width=92 height=31 border=0 alt="A Seaside Cabin" title="A Seaside Cabin"></a></div><div id=newmain_plains class="element" style=' position: absolute; top: 205; left: 256; height: 106; width: 192;'><a  href=place.php?whichplace=plains><img src="https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/plains.png" class="x2" srcset="https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/plains2x.png 2x, https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/plains.png 1x" width=192 height=106 border=0 alt="The Nearby Plains" title="The Nearby Plains"></a></div><div id=newmain_seasmoke class="element" style=' position: absolute; top: 197; left: 170; height: 40; width: 12;'><div style="background-image: url(https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/seasmoke_strip10.png); background-position-x: 0px; background-repeat: no-repeat; height: 40px; width: 12px;"></div><style> @keyframes strip-newmain_seasmoke { from { background-position-x: 0px; } to { background-position-x: -120px }} #newmain_seasmoke > div { background-position: 0px; animation: strip-newmain_seasmoke 1000ms steps(10) infinite; }</style></div><div id=newmain_sorclair class="element" style=' position: absolute; top: 256; left: 452; height: 103; width: 66;'><a  href=place.php?whichplace=nstower><img src="https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/sorclair.png" class="x2" srcset="https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/sorclair2x.png 2x, https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/sorclair.png 1x" width=66 height=103 border=0 alt="The Lair of the Naughty Sorceress" title="The Lair of the Naughty Sorceress"></a></div><div id=newmain_town class="element" style=' position: absolute; top: 102; left: 160; height: 81; width: 74;'><a  href=place.php?whichplace=town><img src="https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/seasidetown.png" class="x2" srcset="https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/seasidetown2x.png 2x, https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/seasidetown.png 1x" width=74 height=81 border=0 alt="Seaside Town" title="Seaside Town"></a></div><div id=newmain_twitchtower class="element" style=' position: absolute; top: 264; left: 180; height: 91; width: 53;'><a  href=place.php?whichplace=twitch><img src="https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/twitchtower.png" class="x2" srcset="https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/twitchtower2x.png 2x, https://d2uyhvukfffg5a.cloudfront.net/otherimages/main/twitchtower.png 1x" width=53 height=91 border=0 alt="The Time-Twitching Tower" title="The Time-Twitching Tower"></a></div></div><p></center></td></tr></table></center></td></tr><tr><td height=4></td></tr></table><center><b><font size=+1>Check Out An Account:</font></b></center><Div id=checkouts><center><table><tr><td align=right><b>Which &nbsp;</b></td><td><b> &nbsp;Who's Currently Got It</b></td><td>&nbsp;</td></tr><tr><td align=right>Devster1</td><td align=center>Open For Checkout</td><td align=center><form style='display: inline; margin: 0px; padding: 0px;' action=main.php method=post><input type=hidden name=action value='checkout'><input type=hidden name=account value=20><input type=submit class=button value='Check Out' disabled></form></td></tr><tr><td align=right>Devster2</td><td align=center>Open For Checkout</td><td align=center><form style='display: inline; margin: 0px; padding: 0px;' action=main.php method=post><input type=hidden name=action value='checkout'><input type=hidden name=account value=21><input type=submit class=button value='Check Out' disabled></form></td></tr><tr><td align=right>Devster3</td><td align=center>Open For Checkout</td><td align=center><form style='display: inline; margin: 0px; padding: 0px;' action=main.php method=post><input type=hidden name=action value='checkout'><input type=hidden name=account value=22><input type=submit class=button value='Check Out' disabled></form></td></tr><tr><td align=right>Devster4</td><td align=center>Open For Checkout</td><td align=center><form style='display: inline; margin: 0px; padding: 0px;' action=main.php method=post><input type=hidden name=action value='checkout'><input type=hidden name=account value=23><input type=submit class=button value='Check Out' disabled></form></td></tr><tr><td align=right>dEvstEr5</td><td align=center>GAusie (#1197090)</td><td align=center><form style='display: inline; margin: 0px; padding: 0px;' action=main.php method=post><input type=hidden name=action value='checkout'><input type=hidden name=account value=24><input type=submit class=button value='Check Out' disabled></form></td></tr><tr><td align=right>Devster6</td><td align=center>Cannonfire40 (#1955580)</td><td align=center><form style='display: inline; margin: 0px; padding: 0px;' action=main.php method=post><input type=hidden name=action value='checkout'><input type=hidden name=account value=25><input type=submit class=button value='Check Out' disabled></form></td></tr><tr><td align=right>DevSTer7</td><td align=center>Open For Checkout</td><td align=center><form style='display: inline; margin: 0px; padding: 0px;' action=main.php method=post><input type=hidden name=action value='checkout'><input type=hidden name=account value=26><input type=submit class=button value='Check Out' disabled></form></td></tr><tr><td align=right>Devster8</td><td align=center>Open For Checkout</td><td align=center><form style='display: inline; margin: 0px; padding: 0px;' action=main.php method=post><input type=hidden name=action value='checkout'><input type=hidden name=account value=27><input type=submit class=button value='Check Out' disabled></form></td></tr><tr><td align=right>Devster9</td><td align=center>Open For Checkout</td><td align=center><form style='display: inline; margin: 0px; padding: 0px;' action=main.php method=post><input type=hidden name=action value='checkout'><input type=hidden name=account value=28><input type=submit class=button value='Check Out' disabled></form></td></tr><tr><td align=right>Devster10</td><td align=center>KingBobson (#2311362)</td><td align=center><form style='display: inline; margin: 0px; padding: 0px;' action=main.php method=post><input type=hidden name=action value='checkout'><input type=hidden name=account value=29><input type=submit class=button value='Check Out' disabled></form></td></tr></table></center></div></td></tr></table></center></td></tr><tr><td height=4></td></tr></table></center></body></html>
