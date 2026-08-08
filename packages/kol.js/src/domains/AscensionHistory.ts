@@ -30,8 +30,6 @@ export class AscensionHistory {
   }
 
   static #parse(page: string, playerId: number): Ascension[] {
-    // Each ascension is a table row. The first cell holds the ascension
-    // number, so we anchor on a <tr> whose first cell starts with a digit.
     const rows = page.matchAll(
       /<tr><td[^>]*>\s*\d.*?<\/td><td.*?>.*?<\/td>(?:<td colspan.*?>.*?<\/td>|(?:<td.*?>.*?<\/td>){7})/gs,
     );

@@ -118,16 +118,28 @@ describe("AscensionHistory.parseAscensions", () => {
     ).toHaveProperty("dropped", true);
   });
 
-  it("parses a Grey Goo Goo Score", () => {
+  it("parses a Grey Goo Goo Score, stripping the thousands separator", async () => {
+    const page = await loadFixture(
+      import.meta.dirname,
+      "ascensionhistory_two_asterisks.html",
+    );
     expect(
-      gausieAscensions.find((a) => a.ascensionNumber === 275)?.extra,
-    ).toEqual({ "Goo Score": 995 });
+      AscensionHistory.parseAscensions(page)?.ascensions.find(
+        (a) => a.ascensionNumber === 272,
+      )?.extra,
+    ).toEqual({ "Goo Score": 2965 });
   });
 
-  it("parses an OCRS Fun score", () => {
+  it("parses an OCRS Fun score, stripping the thousands separator", async () => {
+    const page = await loadFixture(
+      import.meta.dirname,
+      "ascensionhistory_two_asterisks.html",
+    );
     expect(
-      gausieAscensions.find((a) => a.ascensionNumber === 279)?.extra,
-    ).toEqual({ Fun: 718 });
+      AscensionHistory.parseAscensions(page)?.ascensions.find(
+        (a) => a.ascensionNumber === 133,
+      )?.extra,
+    ).toEqual({ Fun: 1087 });
   });
 
   it("returns null for a manually elided account", async () => {
