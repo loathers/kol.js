@@ -28,7 +28,7 @@ describe("AscensionHistory.parseAscensions", () => {
   });
 
   it("parses all ascensions from a long page", () => {
-    expect(gausieAscensions).toHaveLength(1112);
+    expect(gausieAscensions).toHaveLength(1707);
   });
 
   it("parses the player from the page header", async () => {
@@ -38,7 +38,7 @@ describe("AscensionHistory.parseAscensions", () => {
     );
     expect(AscensionHistory.parseAscensions(page)?.player).toEqual({
       id: 1197090,
-      name: "gAUSIE",
+      name: "GAUsiE",
     });
   });
 
@@ -121,13 +121,13 @@ describe("AscensionHistory.parseAscensions", () => {
   it("parses a Grey Goo Goo Score", () => {
     expect(
       gausieAscensions.find((a) => a.ascensionNumber === 275)?.extra,
-    ).toEqual({ "Goo Score": 9950 });
+    ).toEqual({ "Goo Score": 995 });
   });
 
   it("parses an OCRS Fun score", () => {
     expect(
       gausieAscensions.find((a) => a.ascensionNumber === 279)?.extra,
-    ).toEqual({ Fun: 7018 });
+    ).toEqual({ Fun: 718 });
   });
 
   it("returns null for a manually elided account", async () => {
@@ -171,8 +171,8 @@ describe("AscensionHistory.getAscensions", () => {
     const history = new AscensionHistory(client);
     const result = await history.getAscensions(1197090);
 
-    expect(result?.ascensions).toHaveLength(1112);
-    expect(result?.player).toEqual({ id: 1197090, name: "gAUSIE" });
+    expect(result?.ascensions).toHaveLength(1707);
+    expect(result?.player).toEqual({ id: 1197090, name: "GAUsiE" });
     expect(text).toHaveBeenCalledWith("ascensionhistory.php", {
       query: { who: 1197090 },
     });
@@ -200,7 +200,7 @@ describe("AscensionHistory.getAscensions", () => {
     expect(text).toHaveBeenCalledWith("ascensionhistory.php", {
       query: { who: 1197090 },
     });
-    expect(result?.ascensions.length).toBeGreaterThan(1112);
+    expect(result?.ascensions.length).toBeGreaterThan(1707);
   });
 
   it("returns null for a non-existent player", async () => {
