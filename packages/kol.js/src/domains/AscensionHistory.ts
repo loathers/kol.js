@@ -31,7 +31,7 @@ export class AscensionHistory {
 
   static #parse(page: string, playerId: number): Ascension[] {
     const rows = page.matchAll(
-      /<\/tr>(?:<td.*?>.*?<\/td>){2}(?:<td colspan.*?>.*?<\/td>|(?:<td.*?>.*?<\/td>){7})/gs,
+      /<tr><td[^>]*>\s*\d.*?<\/td><td.*?>.*?<\/td>(?:<td colspan.*?>.*?<\/td>|(?:<td.*?>.*?<\/td>){7})/gs,
     );
     return [...rows].map((row) => AscensionHistory.#parseRow(playerId, row[0]));
   }
