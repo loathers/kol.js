@@ -19,7 +19,7 @@ export type Ascension = {
   familiarPercentage: number;
   lifestyle: Lifestyle;
   pathName: string;
-  extra: Record<string, number>;
+  extra: Record<string, number | string>;
 };
 
 export class AscensionHistory {
@@ -106,7 +106,15 @@ export class AscensionHistory {
     return "SOFTCORE";
   }
 
-  static #parseExtra(extra: string): Record<string, number> {
+  static #parseExtra(
+    name: string,
+    extra: string,
+  ): Record<string, number | string> {
+    // Blue vs. Red records the player's team in the parenthetical, not a score
+    if (name === "Blue vs. Red") {
+      const team = extra.match(/^(Blue|Red) Team$/)?.[1];
+      return team ? { Team: team } : {};
+    }
     if (extra === "") return {};
     return Object.fromEntries(
       extra.split(", ").map((pair) => {
@@ -118,10 +126,10 @@ export class AscensionHistory {
     );
   }
 
-  static #parsePath(path: string): [string, Record<string, number>] {
+  static #parsePath(path: string): [string, Record<string, number | string>] {
     const parts = path.match(/(.*?) \((.*?)\)/) ||
       path.match(/(.*?)\s*\n\s*(.*)/s) || [null, path, ""];
-    return [parts[1], AscensionHistory.#parseExtra(parts[2])];
+    return [parts[1], AscensionHistory.#parseExtra(parts[1], parts[2])];
   }
 
   static #parseDate(d: string): Date {
