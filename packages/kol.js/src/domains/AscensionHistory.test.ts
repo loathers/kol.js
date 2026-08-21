@@ -142,6 +142,36 @@ describe("AscensionHistory.parseAscensions", () => {
     ).toEqual({ Fun: 1087 });
   });
 
+  describe("Blue vs. Red", () => {
+    let rvbAscensions: Ascension[];
+
+    beforeAll(async () => {
+      const page = await loadFixture(
+        import.meta.dirname,
+        "ascensionhistory_rvb.html",
+      );
+      rvbAscensions = AscensionHistory.parseAscensions(page)?.ascensions ?? [];
+    });
+
+    it("does not leave the team in the path name", () => {
+      expect(
+        rvbAscensions.find((a) => a.ascensionNumber === 1950),
+      ).toHaveProperty("pathName", "Blue vs. Red");
+    });
+
+    it("parses a Blue Team run", () => {
+      expect(
+        rvbAscensions.find((a) => a.ascensionNumber === 1947)?.extra,
+      ).toEqual({ Team: "Blue" });
+    });
+
+    it("parses a Red Team run", () => {
+      expect(
+        rvbAscensions.find((a) => a.ascensionNumber === 1950)?.extra,
+      ).toEqual({ Team: "Red" });
+    });
+  });
+
   it("returns null for a manually elided account", async () => {
     const page = await loadFixture(
       import.meta.dirname,
