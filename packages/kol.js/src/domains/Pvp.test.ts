@@ -30,6 +30,15 @@ describe("Pvp", () => {
     expect(result.endsAt).toEqual(new Date("2026-09-01"));
   });
 
+  it("can parse a season name used without an article", async () => {
+    const rulesHtml = await loadFixture(import.meta.dirname, "pvp-rules.html");
+    const shopHtml = "You've earned 19250 swagger during bear season!";
+
+    expect(Pvp.parseSeason(rulesHtml, shopHtml)).toMatchObject({
+      seasonName: "Bear Season",
+    });
+  });
+
   it("can fetch the current season", async () => {
     text
       .mockResolvedValueOnce(

@@ -31,7 +31,7 @@ export class Pvp {
     );
 
     const nameMatch = shopHtml.match(
-      /You've earned [\d,]+ swagger during an? ([\w ]+) season\./i,
+      /You've earned [\d,]+ swagger during (?:an? )?([\w ]+) season[.!]/i,
     );
     if (!nameMatch)
       throw new Error("Could not parse PvP season name from peevpee.php");
