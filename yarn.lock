@@ -1873,9 +1873,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"data-of-loathing@npm:>=4.3.0":
-  version: 4.3.0
-  resolution: "data-of-loathing@npm:4.3.0"
+"data-of-loathing@npm:>=4.3.2":
+  version: 4.3.2
+  resolution: "data-of-loathing@npm:4.3.2"
   dependencies:
     "@mikro-orm/core": "npm:^7.0.14"
     "@mikro-orm/sql": "npm:^7.0.14"
@@ -1890,7 +1890,7 @@ __metadata:
       optional: true
     vite-plugin-node-polyfills:
       optional: true
-  checksum: 10c0/759be048afcb4c24dae23243e3601796853f1f37ec6337222b4dfe673c7ec3e16ce6fa6a38aef427c771f77d320266db44f1e957e5ada79145a1950f9ae64d98
+  checksum: 10c0/f8297ecc987bf1657d8a455e5a856a20489260a32561e6eab053f2a11e797f0ed1677296469404cc62e06e96563edec2ce6f58d9c5838d24db72ab15a89f615f
   languageName: node
   linkType: hard
 
@@ -2882,7 +2882,7 @@ __metadata:
     async-mutex: "npm:^0.5.0"
     chevrotain: "npm:^12.0.0"
     css-select: "npm:^6.0.0"
-    data-of-loathing: "npm:>=4.3.0"
+    data-of-loathing: "npm:>=4.3.2"
     date-fns: "npm:^4.1.0"
     debug: "npm:^4.4.3"
     domhandler: "npm:^5.0.3"
@@ -2905,7 +2905,7 @@ __metadata:
     vitest: "npm:^4.0.18"
     zod: "npm:^4.4.3"
   peerDependencies:
-    data-of-loathing: ">=4.3.0"
+    data-of-loathing: ">=4.3.2"
   languageName: unknown
   linkType: soft
 
