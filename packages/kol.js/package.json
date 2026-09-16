@@ -50,7 +50,7 @@
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "@types/debug": "^4.1.13",
     "@types/node": "^22.0.0",
-    "data-of-loathing": ">=4.3.0",
+    "data-of-loathing": ">=4.3.2",
     "eslint": "^10.0.2",
     "jiti": "^2.7.0",
     "prettier": "^3.8.1",
@@ -60,7 +60,7 @@
     "vitest": "^4.0.18"
   },
   "peerDependencies": {
-    "data-of-loathing": ">=4.3.0"
+    "data-of-loathing": ">=4.3.2"
   },
   "dependencies": {
     "@date-fns/tz": "^1.5.0",
