@@ -1,9 +1,8 @@
-import { Effect, EffectQuality } from "data-of-loathing";
+import { Effect } from "data-of-loathing";
 import RNG from "kol-rng";
 
 import type { Client } from "../Client.js";
 import { gameData } from "../GameData.js";
-import { cached } from "../utils/cached.js";
 
 /** A yam battery's three effects arrive with these durations, in this order. */
 export const YAM_BATTERY_DURATIONS = [10, 20, 30] as const;
@@ -18,29 +17,7 @@ export type YamBatteryEffect = {
   effect: Effect;
 };
 
-const POOL_MAX_EFFECT_ID = 2468; // Tiki Temerity
-const FISHY = 549;
-const FLOUNDERING = 2218;
-
-/**
- * The effects a yam battery can roll, in the order KoL indexes into them.
- *
- * For some reason the pool is the Two Crazy Random Summer effect pool minus Floundering.
- */
-export const getYamBatteryPool = cached(async (): Promise<Effect[]> => {
-  await gameData.load();
-  const effects = await gameData.query.find(Effect, {});
-  return effects
-    .filter(
-      (e) =>
-        e.id <= POOL_MAX_EFFECT_ID &&
-        e.quality === EffectQuality.Good &&
-        (!e.nohookah || e.id === FISHY) &&
-        !e.notcrs &&
-        e.id !== FLOUNDERING,
-    )
-    .sort((a, b) => a.id - b.id);
-});
+const TIKI_TEMERITY = 2468;
 
 export class MayamCalendar {
   #client: Client;
@@ -58,7 +35,7 @@ export class MayamCalendar {
   static async getYamBatteryEffects(
     gameday: number,
   ): Promise<YamBatteryEffect[]> {
-    const pool = await getYamBatteryPool();
+    const pool = await gameData.getGoodEffects(TIKI_TEMERITY);
     const rng = new RNG(11 * gameday);
     return YAM_BATTERY_DURATIONS.map((duration) => {
       // Rolls against an inclusive upper bound of the pool length, so the

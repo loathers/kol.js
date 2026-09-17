@@ -3,6 +3,7 @@ import {
   Consumable,
   Effect,
   EffectModifiers,
+  EffectQuality,
   Equipment,
   Familiar,
   FamiliarModifiers,
@@ -17,10 +18,14 @@ import {
   createClient,
 } from "data-of-loathing";
 
+import { cached } from "./utils/cached.js";
+
 export type ItemWithDetail = Item & {
   equipment: Equipment | null;
   consumable: Consumable | null;
 };
+
+const FISHY = 549;
 
 export class GameData {
   #client = createClient();
@@ -150,6 +155,25 @@ export class GameData {
       familiar: { id },
     });
     return row?.modifiers ?? null;
+  }
+
+  #getGoodEffects = cached(async (): Promise<Effect[]> => {
+    await this.load();
+    const effects = await this.#client.query.find(Effect, {});
+    return effects
+      .filter(
+        (e) =>
+          e.quality === EffectQuality.Good &&
+          (!e.nohookah || e.id === FISHY) &&
+          !e.notcrs,
+      )
+      .sort((a, b) => a.id - b.id);
+  });
+
+  /** Every good effect up to and including `latestEffectId`, in id order. */
+  async getGoodEffects(latestEffectId: number): Promise<Effect[]> {
+    const effects = await this.#getGoodEffects();
+    return effects.filter((e) => e.id <= latestEffectId);
   }
 }
 
