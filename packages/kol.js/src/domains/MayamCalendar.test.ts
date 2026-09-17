@@ -18,7 +18,7 @@ describe("yam battery pool", () => {
 
 describe("MayamCalendar.getYamBatteryEffects", () => {
   const roll = async (gameday: number) =>
-    (await MayamCalendar.getYamBatteryEffects(gameday)).map(
+    [...(await MayamCalendar.getYamBatteryEffects(gameday))].map(
       (e) => [e.duration, e.effect.name] as const,
     );
 

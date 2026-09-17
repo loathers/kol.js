@@ -22,6 +22,7 @@ export type {
   PermanentFlags,
 } from "./flags/registry.js";
 export { DailyFlag } from "./flags/registry.js";
+export { EffectList, type EffectDuration } from "./EffectList.js";
 export { LoathingDate } from "./LoathingDate.js";
 export { statsForLevel, levelForMainstat, levelForSubstat } from "./stats.js";
 export type { EvaluatedModifier } from "./modifiers/index.js";

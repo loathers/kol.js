@@ -65,6 +65,11 @@ export class GameData {
     return this.#client.query.findOne(Effect, { name: name.trim() });
   }
 
+  async findEffectByDescid(descid: string): Promise<Effect | null> {
+    await this.load();
+    return this.#client.query.findOne(Effect, { descid });
+  }
+
   async findEffectsByIds(ids: number[]): Promise<Effect[]> {
     await this.load();
     return this.#client.query.find(Effect, { id: { $in: ids } });
