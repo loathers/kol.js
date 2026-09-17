@@ -1,6 +1,7 @@
 import { Effect } from "data-of-loathing";
 
 import type { Client } from "../Client.js";
+import { EffectList } from "../EffectList.js";
 import { gameData } from "../GameData.js";
 import { cached } from "../utils/cached.js";
 import type { ApiStatus } from "./ApiStatus.js";
@@ -13,7 +14,7 @@ export class Effects {
   constructor(client: Client) {
     this.#client = client;
     client.on("apiStatus", async (status) => {
-      this.get.setValue(await Effects.buildMap(status));
+      this.get.setValue(await Effects.build(status));
     });
   }
 
@@ -27,21 +28,21 @@ export class Effects {
     return [...effectEntries, ...intrinsicEntries];
   }
 
-  static async buildMap(status: ApiStatus): Promise<Map<Effect, number>> {
+  static async build(status: ApiStatus): Promise<EffectList> {
     const entries = Effects.parseEntries(status);
     const effects = await gameData.findEffectsByIds(entries.map((e) => e.id));
     const byId = new Map(effects.map((e) => [e.id, e]));
-    return new Map(
+    return new EffectList(
       entries.flatMap(({ id, duration }) => {
         const effect = byId.get(id);
-        return effect ? [[effect, duration]] : [];
+        return effect ? [{ effect, duration }] : [];
       }),
     );
   }
 
-  get = cached(async (): Promise<Map<Effect, number>> => {
+  get = cached(async (): Promise<EffectList> => {
     const status = await this.#client.fetchStatus();
-    return Effects.buildMap(status);
+    return Effects.build(status);
   });
 
   async hasEffect(effect: Effect): Promise<boolean> {
@@ -49,6 +50,6 @@ export class Effects {
   }
 
   async remainingEffectTurns(effect: Effect): Promise<number> {
-    return (await this.get()).get(effect) ?? 0;
+    return (await this.get()).durationOf(effect);
   }
 }

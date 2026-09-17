@@ -8,6 +8,7 @@ import { CookieJar } from "tough-cookie";
 import type { Dispatcher } from "undici";
 
 import pkg from "../package.json" with { type: "json" };
+import type { EffectDuration } from "./EffectList.js";
 import { gameData } from "./GameData.js";
 import { Account } from "./domains/Account.js";
 import { Adventure } from "./domains/Adventure.js";
@@ -630,11 +631,7 @@ export class Client extends Emittery<Events> {
     melting: boolean;
     singleEquip: boolean;
     blueText: string;
-    effect?: {
-      name: string;
-      duration: number;
-      descid: string;
-    };
+    effect?: EffectDuration;
   }> {
     const description = await this.fetchText("desc_item.php", {
       query: { whichitem: descId },
@@ -642,9 +639,12 @@ export class Client extends Emittery<Events> {
     const blueText = description.match(
       /<center>\s*<b>\s*<font color="?[\w]+"?>(?<description>[\s\S]+)<\/center>/i,
     );
-    const effect = description.match(
+    const effectMatch = description.match(
       /Effect: \s?<b>\s?<a[^>]+href="desc_effect\.php\?whicheffect=(?<descid>[^"]+)[^>]+>(?<effect>[\s\S]+)<\/a>[^(]+\((?<duration>[\d]+)/,
     );
+    const effect = effectMatch?.groups?.descid
+      ? await gameData.findEffectByDescid(effectMatch.groups.descid)
+      : null;
     const melting = description.match(
       /This item will disappear at the end of the day\./,
     );
@@ -656,12 +656,8 @@ export class Client extends Emittery<Events> {
       melting: !!melting,
       singleEquip: !!singleEquip,
       blueText: sanitiseBlueText(blueText?.groups?.description),
-      effect: effect?.groups
-        ? {
-            name: effect.groups?.effect,
-            duration: Number(effect.groups?.duration) || 0,
-            descid: effect.groups?.descid,
-          }
+      effect: effect
+        ? { effect, duration: Number(effectMatch?.groups?.duration) || 0 }
         : undefined,
     };
   }
