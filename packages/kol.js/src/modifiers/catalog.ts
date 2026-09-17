@@ -116,6 +116,13 @@ export const CATALOG: Record<string, ModifierDef> = {
   Thorns: DEFAULT_DEF,
   "Sporadic Thorns": DEFAULT_DEF,
   "Combat Item Damage Percent": DEFAULT_DEF,
+  "Damage vs. Bugbears": DEFAULT_DEF,
+  "Damage vs. Ghosts": DEFAULT_DEF,
+  "Damage vs. Orcs": DEFAULT_DEF,
+  "Damage vs. Skeletons": DEFAULT_DEF,
+  "Damage vs. Vampires": DEFAULT_DEF,
+  "Damage vs. Werewolves": DEFAULT_DEF,
+  "Damage vs. Zombies": DEFAULT_DEF,
 
   // Elemental resistance
   "Hot Resistance": DEFAULT_DEF,
