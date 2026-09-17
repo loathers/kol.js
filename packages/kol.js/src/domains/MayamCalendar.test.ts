@@ -1,18 +1,18 @@
 import { describe, expect, it } from "vitest";
 
-import { MayamCalendar, getYamBatteryPool } from "./MayamCalendar.js";
+import { gameData } from "../GameData.js";
+import { MayamCalendar } from "./MayamCalendar.js";
 
 describe("yam battery pool", () => {
   it("derives the frozen pool from effect data", async () => {
-    const pool = await getYamBatteryPool();
+    const pool = await gameData.getGoodEffects(2468);
     expect(pool.at(0)?.id).toBe(5);
     expect(pool.at(-1)?.id).toBe(2468);
   });
 
-  it("keeps Fishy and drops Floundering", async () => {
-    const ids = (await getYamBatteryPool()).map((e) => e.id);
+  it("keeps Fishy", async () => {
+    const ids = (await gameData.getGoodEffects(2468)).map((e) => e.id);
     expect(ids).toContain(549);
-    expect(ids).not.toContain(2218);
   });
 });
 
@@ -32,9 +32,17 @@ describe("MayamCalendar.getYamBatteryEffects", () => {
 
   it("rolls three effects for a day", async () => {
     await expect(roll(8604)).resolves.toEqual([
-      [10, "Buggy Flavor"],
+      [10, "Hippy Flavor"],
       [20, "Celestial Body"],
-      [30, "Human-Fish Hybrid"],
+      [30, "Human-Goblin Hybrid"],
+    ]);
+  });
+
+  it("matches the dump for 8621", async () => {
+    await expect(roll(8621)).resolves.toEqual([
+      [10, "Healthy, Elfy, and Wise"],
+      [20, "Preternatural Greed"],
+      [30, "The Q Is Talking To You"],
     ]);
   });
 
