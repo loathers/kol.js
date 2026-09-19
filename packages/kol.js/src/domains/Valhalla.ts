@@ -2,6 +2,9 @@ import type { AscensionClass } from "data-of-loathing";
 import { decodeHTML } from "entities";
 
 import type { Client, Result } from "../Client.js";
+import { Gender, genderId } from "../Gender.js";
+import { Lifestyle, lifestyleId } from "../Lifestyle.js";
+import { MoonSign, moonSignId } from "../MoonSign.js";
 import { parseKoLNumber, resolveEntityId } from "../utils/utils.js";
 
 /**
@@ -11,26 +14,6 @@ import { parseKoLNumber, resolveEntityId } from "../utils/utils.js";
  * `pwd`; {@link Client} logs in through the parsers below. Ascending is two
  * POSTs, and only the second, carrying `confirmascend=1`, commits.
  */
-
-export const Lifestyle = { Casual: 1, Softcore: 2, Hardcore: 3 } as const;
-export type Lifestyle = (typeof Lifestyle)[keyof typeof Lifestyle];
-
-export const Gender = { Male: 1, Female: 2 } as const;
-export type Gender = (typeof Gender)[keyof typeof Gender];
-
-export const MoonSign = {
-  Mongoose: 1,
-  Wallaby: 2,
-  Vole: 3,
-  Platypus: 4,
-  Opossum: 5,
-  Marmot: 6,
-  Wombat: 7,
-  Blender: 8,
-  Packrat: 9,
-  BadMoon: 10,
-} as const;
-export type MoonSign = (typeof MoonSign)[keyof typeof MoonSign];
 
 export type ValhallaPlace = "permery" | "deli" | "armory" | "reincarnate";
 
@@ -118,7 +101,7 @@ export class Valhalla {
       method: "GET",
       query: {
         info: 1,
-        hc: lifestyle,
+        hc: lifestyleId(lifestyle),
         playerclass: resolveEntityId(playerClass),
         path,
       },
@@ -154,10 +137,10 @@ export class Valhalla {
     const html = await this.#client.fetchText("afterlife.php", {
       form: {
         action: "ascend",
-        asctype: choice.lifestyle,
+        asctype: lifestyleId(choice.lifestyle),
         whichclass: resolveEntityId(choice.class),
-        gender: choice.gender,
-        whichsign: choice.sign,
+        gender: genderId(choice.gender),
+        whichsign: moonSignId(choice.sign),
         whichpath: choice.path,
       },
     });

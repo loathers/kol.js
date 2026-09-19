@@ -31,6 +31,14 @@ export type {
 } from "./flags/registry.js";
 export { DailyFlag } from "./flags/registry.js";
 export { EffectList, type EffectDuration } from "./EffectList.js";
+export { Gender, genderId, genderFromId } from "./Gender.js";
+export { Lifestyle, lifestyleId, lifestyleFromId } from "./Lifestyle.js";
+export {
+  MoonSign,
+  moonSignId,
+  moonSignFromId,
+  toMoonSign,
+} from "./MoonSign.js";
 export { LoathingDate } from "./LoathingDate.js";
 export { statsForLevel, levelForMainstat, levelForSubstat } from "./stats.js";
 export type { EvaluatedModifier } from "./modifiers/index.js";
