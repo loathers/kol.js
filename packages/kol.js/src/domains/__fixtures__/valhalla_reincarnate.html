@@ -1,0 +1,154 @@
+<html><head>
+<script language=Javascript>
+<!--
+if (parent.frames.length == 0) location.href="game.php";
+//-->
+</script>
+<script language=Javascript src="https://images.kingdomofloathing.com/scripts/jquery-1.5.1.js"></script>
+<script language=Javascript src="https://images.kingdomofloathing.com/scripts/keybinds.min.2.js"></script>
+<script language=Javascript src="https://images.kingdomofloathing.com/scripts/window.20111231.js"></script>
+<script language="javascript">function chatFocus(){if(top.chatpane.document.chatform.graf) top.chatpane.document.chatform.graf.focus();}
+if (typeof defaultBind != 'undefined') { defaultBind(47, 2, chatFocus); defaultBind(190, 2, chatFocus);defaultBind(191, 2, chatFocus); defaultBind(47, 8, chatFocus);defaultBind(190, 8, chatFocus); defaultBind(191, 8, chatFocus); }</script><script language=Javascript>
+function showdiv(whichone) { document.getElementById(whichone).style.display='block'; }
+function hidediv(whichone) { document.getElementById(whichone).style.display='none'; }
+
+var lifestyle = 0
+function lifestyleoptions() {
+	lifestyle = document.ascform.asctype.value;
+	if (document.ascform.asctype.value==0) {
+		hidediv('casualblurb'); hidediv('softcoreblurb'); hidediv('hardcoreblurb');
+		hidediv('classgender'); hidediv('moonsigns'); 
+		hidediv('submission');
+		$('select[name="whichsign"] option[value=10]').remove();
+		moonpreview();
+		hidediv('path');
+		$('.challengebonus').text(50);
+	}
+	if (document.ascform.asctype.value==1) {
+		showdiv('casualblurb'); hidediv('softcoreblurb'); hidediv('hardcoreblurb');
+		showdiv('classgender'); showdiv('moonsigns');
+		showdiv('submission');
+		$('select[name="whichsign"] option[value=10]').remove();
+		moonpreview();
+		hidediv('path');
+		$('.challengebonus').text(50);
+	}
+	if (document.ascform.asctype.value==2) {
+		hidediv('casualblurb'); showdiv('softcoreblurb'); hidediv('hardcoreblurb');
+		showdiv('classgender'); showdiv('moonsigns'); showdiv('path');
+		showdiv('submission');
+		$('select[name="whichsign"] option[value=10]').remove();
+		moonpreview();
+		$('.challengebonus').text(50);
+	}
+	if (document.ascform.asctype.value==3) {
+		hidediv('casualblurb'); hidediv('softcoreblurb'); showdiv('hardcoreblurb');
+		showdiv('classgender'); showdiv('moonsigns'); showdiv('path');
+		showdiv('submission');
+		$('select[name="whichsign"] option[value=10]').remove();
+		moonpreview();
+		$('.challengebonus').text(100);
+	}
+	pathoptions();
+}
+
+function classgenderoptions() {
+	pathoptions();
+	var classimage;
+	switch(document.ascform.whichclass.value) {
+		case '1': classimage='classav1a'; break;
+		case '2': classimage='classav2a'; break;
+		case '3': classimage='classav3a'; break;
+		case '4': classimage='classav4a'; break;
+		case '5': classimage='classav5a'; break;
+		case '6': classimage='classav6a'; break;
+	}
+
+	if (document.ascform.whichpath.value == 8) classimage = "boris_avatar";
+	if (document.ascform.whichpath.value == 10) classimage = "zombavatar";
+	if (document.ascform.whichpath.value == 12) classimage = "jarlsberg_avatar";
+	if (document.ascform.whichpath.value == 17) classimage = "peteavatar";
+	if (document.ascform.whichpath.value == 23) classimage = "ed_av1";
+	if (document.ascform.whichpath.value == 29) classimage = "gelatinousavatar";
+	if (document.ascform.whichpath.value == 35) classimage = "vampyrevatar";
+	if (document.ascform.whichpath.value == 38) classimage = "mariovatar0";
+	if (document.ascform.whichpath.value == 44) classimage = "goovatar";
+	if (document.ascform.whichpath.value == 50) classimage = "wereprofavatar";
+	if (document.ascform.whichpath.value == 53) classimage = "zootomist";
+	if (document.ascform.whichpath.value == 56) classimage = "meatvatar";
+	if (document.ascform.gender.value==2) classimage+="_f";
+	if (document.ascform.whichpath.value == 44) classimage = "goovatar";
+	document.classpreview.src="https://images.kingdomofloathing.com/otherimages/"+classimage+".gif";
+}
+
+var lastfoo = -1;
+function pathoptions() {
+	var p =  $(':input[name="whichpath"]:checked').val();
+	try {p = parseInt(p); } catch (e) { }
+	var l = document.ascform.asctype.value;
+	var c = document.ascform.whichclass.value;
+	var foo = p+'-'+l+'-'+c;
+	if (foo == lastfoo) return;
+	lastfoo = foo;
+	switch(p) {
+		case 8: case 10: case 12:
+		case 17: case 23: case 26: case 29: case 35: case 38: case 44: case 47: case 50: case 53:
+		case 56:
+			$('#classpick select').val(1);
+			hidediv('classpick');
+			break;
+		default:
+			showdiv('classpick');
+			break;
+	}
+	classgenderoptions();
+	var hc = $('#hc').val();
+	$.get('/afterlife.php?info=1&hc='+hc+'&playerclass='+c+'&path='+escape(p), function (res) {
+		document.pathpic.src="https://images.kingdomofloathing.com/adventureimages/"+res.image+".gif";
+		document.getElementById("pathdesc").innerHTML=res.text;
+	},'json');
+}
+
+function moonpreview() {
+	var sign = document.ascform.whichsign.value;
+	for(x=1;x<=10;x++) hidediv('moonsign'+x);
+	showdiv('moonsign'+sign);
+	if (sign == 10) { hidediv('path');
+		showdiv('classpick');
+	}
+	else if (lifestyle >  1 ) showdiv('path');
+}
+jQuery(function (e) {
+	$('.opptog').toggle(function () {
+		$(this).text('hide old paths');
+		$('.opp').toggle();
+	}, function () {
+		$(this).text('old paths');
+		$('.opp').toggle();
+		$(':input[name="whichpath"][value="22"]').attr('checked', true).change();
+	});
+	$(':input[name="whichpath"]').change(function () {
+		pathoptions();
+	}).click(function () { $(this).change();}).change();
+});
+
+</script>
+<style>
+	.ms { min-height: 160px; }
+	.opp { /* we are not down */ display: none; }
+</style>
+	<link rel="stylesheet" type="text/css" href="https://images.kingdomofloathing.com/styles.20230117d.css">
+<style type='text/css'>
+.faded {
+	zoom: 1;
+	filter: alpha(opacity=35);
+	opacity: 0.35;
+	-khtml-opacity: 0.35; 
+    -moz-opacity: 0.35;
+}
+</style>
+
+</head>
+
+<body>
+<centeR><table  width=95%  cellspacing=0 cellpadding=0><tr><td style="background-color: blue" align=center ><b style="color: white">The Bureau of Reincarnation</b></td></tr><tr><td style="padding: 5px; border: 1px solid blue;"><center><table><tr><td><form action=afterlife.php method=post name=ascform><input type=hidden name=action value=ascend><center><table><tr><td><img src=https://images.kingdomofloathing.com/adventureimages/astralman4.gif width=100 height=100 alt="After-Afterlife Al" title="After-Afterlife Al"></td><td valign=center><b>After-Afterlife Al, the President of Reincarnation:</b><p>&quot;Heya, kid.  Welcome to the Bureau.  Gettin' bored up here?  Ready to head back down there and give it another go?  I gotcha covered.&quot;</td></tr></table><p>Select a lifestyle: <select id='hc' name=asctype onChange="lifestyleoptions();"><option value=0 >-select a type-</option><option value=1 >Casual</option><option value=2 >Normal</option><option value=3 >Hardcore</option></select></center><p><div class=small id=casualblurb style='display: none; min-height: 70px;'>A casual incarnation means you'll be able to play through the game again with full access to the Meat and items you acquired in your last life, and no restrictions on your interactions with other players, but you won't be eligible for any ascension leaderboards.  <b><font color=blue>(reward: 11 Karma)</font></b></div><div class=small id=softcoreblurb style='display: none; min-height: 70px;'>A normal incarnation means you'll play the game again with limited access to the items and Meat you acquired in your last life.  You'll also be unable to receive items or buffs from other players for the first 1,000 turns of your new life.  <b><font color=blue>(reward: 111 Karma)</font></b></div><div class=small id=hardcoreblurb style='display: none; min-height: 70px;'>If you elect to play the game in Hardcore mode, you won't be able to receive any items, Meat, or buffs from other players (or from your own long-term storage) for the duration of the run. You will also not be able to retain any skills from previous normal ascensions, but you <i>will</i> retain any skills marked in your permanent skills list as <b>hardcore</b>.  <b><font color=blue>(reward: 211 Karma)</font></b></div><center><div id="classgender" style='display: none;'><hr><table><tr><td valign=center><div id="classpick">Select a class: <select name=whichclass onChange="classgenderoptions();"><option value=0>- select a class -</option><option value=1 selected>Seal Clubber</option><option value=2 >Turtle Tamer</option><option value=3 >Pastamancer</option><option value=4 >Sauceror</option><option value=5 >Disco Bandit</option><option value=6 >Accordion Thief</option></select><p></div><div id="gender"><p>Select a gender: <select onChange="classgenderoptions()" name=gender><option selected value=1>Male</option><option  value=2>Female</option></select><p></center></div></td><td><td><img name=classpreview src=https://images.kingdomofloathing.com/otherimages/classav1a.gif width=60 height=100></td></tr></table></div><div id=path style='display: none;'><hr><table width=90%><tr><td nowrap valign=top>Select a Path:<br><small><label><input type="radio" name="whichpath" value="22" checked /> Standard</label><br /><label><input type="radio" name="whichpath" value="58" selected /> Blue vs. Red</label><br /><div class="opp"><label><input type="radio" name="whichpath" value="57" selected /> Thrifty</label></div><div class="opp"><label><input type="radio" name="whichpath" value="56" selected /> Adventurer Meats World</label></div><div class="opp"><label><input type="radio" name="whichpath" value="55" selected /> 11,037 Leagues Under the Sea</label></div><div class="opp"><label><input type="radio" name="whichpath" value="54" selected /> Hat Trick</label></div><div class="opp"><label><input type="radio" name="whichpath" value="53" selected /> Z is for Zootomist</label></div><div class="opp"><label><input type="radio" name="whichpath" value="52" selected /> Avant Guard</label></div><div class="opp"><label><input type="radio" name="whichpath" value="51" selected /> 11 Things I Hate About U</label></div><div class="opp"><label><input type="radio" name="whichpath" value="50" selected /> WereProfessor</label></div><div class="opp"><label><input type="radio" name="whichpath" value="49" selected /> A Shrunken Adventurer am I</label></div><div class="opp"><label><input type="radio" name="whichpath" value="48" selected /> Legacy of Loathing</label></div><div class="opp"><label><input type="radio" name="whichpath" value="47" selected /> Avatar of Shadows Over Loathing</label></div><div class="opp"><label><input type="radio" name="whichpath" value="46" selected /> Fall of the Dinosaurs</label></div><div class="opp"><label><input type="radio" name="whichpath" value="45" selected /> Journeyman</label></div><div class="opp"><label><input type="radio" name="whichpath" value="44" selected /> Grey You</label></div><div class="opp"><label><input type="radio" name="whichpath" value="43" selected /> Wildfire</label></div><div class="opp"><label><input type="radio" name="whichpath" value="42" selected /> Quantum Terrarium</label></div><div class="opp"><label><input type="radio" name="whichpath" value="41" selected /> You, Robot</label></div><div class="opp"><label><input type="radio" name="whichpath" value="40" selected /> Grey Goo</label></div><div class="opp"><label><input type="radio" name="whichpath" value="39" selected /> Low Key Summer</label></div><div class="opp"><label><input type="radio" name="whichpath" value="38" selected /> Path of the Plumber</label></div><div class="opp"><label><input type="radio" name="whichpath" value="37" selected /> Kingdom of Exploathing</label></div><div class="opp"><label><input type="radio" name="whichpath" value="36" selected /> Two Crazy Random Summer</label></div><div class="opp"><label><input type="radio" name="whichpath" value="35" selected /> Dark Gyffte</label></div><div class="opp"><label><input type="radio" name="whichpath" value="34" selected /> Disguises Delimit</label></div><div class="opp"><label><input type="radio" name="whichpath" value="33" selected /> G-Lover</label></div><div class="opp"><label><input type="radio" name="whichpath" value="32" selected /> Pocket Familiars</label></div><div class="opp"><label><input type="radio" name="whichpath" value="31" selected /> Live. Ascend. Repeat.</label></div><div class="opp"><label><input type="radio" name="whichpath" value="30" selected /> License to Adventure</label></div><div class="opp"><label><input type="radio" name="whichpath" value="29" selected /> Gelatinous Noob</label></div><div class="opp"><label><input type="radio" name="whichpath" value="28" selected /> Nuclear Autumn</label></div><div class="opp"><label><input type="radio" name="whichpath" value="27" selected /> The Source</label></div><div class="opp"><label><input type="radio" name="whichpath" value="26" selected /> Avatar of West of Loathing</label></div><div class="opp"><label><input type="radio" name="whichpath" value="25" selected /> Community Service</label></div><div class="opp"><label><input type="radio" name="whichpath" value="24" selected /> One Crazy Random Summer</label></div><div class="opp"><label><input type="radio" name="whichpath" value="23" selected /> Actually Ed the Undying</label></div><div class="opp"><label><input type="radio" name="whichpath" value="21" selected /> Picky</label></div><div class="opp"><label><input type="radio" name="whichpath" value="19" selected /> Heavy Rains</label></div><div class="opp"><label><input type="radio" name="whichpath" value="18" selected /> Slow and Steady</label></div><div class="opp"><label><input type="radio" name="whichpath" value="17" selected /> Avatar of Sneaky Pete</label></div><div class="opp"><label><input type="radio" name="whichpath" value="16" selected /> Class Act II</label></div><div class="opp"><label><input type="radio" name="whichpath" value="15" selected /> KOLHS</label></div><div class="opp"><label><input type="radio" name="whichpath" value="14" selected /> BIG!</label></div><div class="opp"><label><input type="radio" name="whichpath" value="12" selected /> Avatar of Jarlsberg</label></div><div class="opp"><label><input type="radio" name="whichpath" value="11" selected /> Class Act</label></div><div class="opp"><label><input type="radio" name="whichpath" value="10" selected /> Zombie Slayer</label></div><div class="opp"><label><input type="radio" name="whichpath" value="9" selected /> Bugbear Invasion</label></div><div class="opp"><label><input type="radio" name="whichpath" value="8" selected /> Avatar of Boris</label></div><div class="opp"><label><input type="radio" name="whichpath" value="7" selected /> Trendy</label></div><div class="opp"><label><input type="radio" name="whichpath" value="6" selected /> Way of the Surprising Fist</label></div><div class="opp"><label><input type="radio" name="whichpath" value="4" selected /> Bees Hate You</label></div><div class="opp"><label><input type="radio" name="whichpath" value="3" selected /> Oxygenarian</label></div><div class="opp"><label><input type="radio" name="whichpath" value="2" selected /> Teetotaler</label></div><div class="opp"><label><input type="radio" name="whichpath" value="1" selected /> Boozetafarian</label></div><div class="opp"><label><input type="radio" name="whichpath" value="0" selected /> Unrestricted</label></div><p>[<a href="#" class="opptog">older paths</a>]</small></td><td valign='top'></td><td class=small valign='top'><Center><img name=pathpic src=https://images.kingdomofloathing.com/adventureimages/blank.gif></center><div id=pathdesc></div></td></tr></table></div><div id=moonsigns style='display: none;'><hr><table width=90%><tr><td valign=top>Select&nbsp;a&nbsp;Moon&nbsp;Sign:<br><select onChange='moonpreview();' name=whichsign><option value=1 >The Mongoose</option><option value=2 >The Wallaby</option><option value=3 >The Vole</option><option value=4 >The Platypus</option><option value=5 >The Opossum</option><option value=6 >The Marmot</option><option value=7 >The Wombat</option><option value=8 >The Blender</option><option value=9 >The Packrat</option><option value=10 >Bad Moon</option></select></td><td><div id=moonsign1 style='display: block;' class='ms'><table><tr><td valign=center><center><img src=https://images.kingdomofloathing.com/otherimages/skyobjects/mongo32d8.gif width=100 height=100></center><div style='min-height: 30px'><font size=2>Mongooses are tough but tender, and both relentless and flexible in the pursuit of their goals.</div><center><p><Table><Tr><td class=small valign=top><b>Benefits:</b></td><td width=10></td><td class=small valign=top><font color=blue><b>Unlocks Degrassi Knoll<br>+10% to all Muscle Gains<br>+20% Physical Damage</b></td></tr></table></font></b></font></center></td></tr></table></div><div id=moonsign2 style='display: none;' class='ms'><table><tr><td valign=center><center><img src=https://images.kingdomofloathing.com/otherimages/skyobjects/wall73a9.gif width=100 height=100></center><div style='min-height: 30px'><font size=2>With a Wallaby as your mate, you'll be sure to have a good day, Barbie.</div><center><p><Table><Tr><td class=small valign=top><b>Benefits:</b></td><td width=10></td><td class=small valign=top><font color=blue><b>Unlocks Degrassi Knoll<br>+10% to all Mysticality Gains<br>+20% Spell Damage</b></td></tr></table></font></b></font></center></td></tr></table></div><div id=moonsign3 style='display: none;' class='ms'><table><tr><td valign=center><center><img src=https://images.kingdomofloathing.com/otherimages/skyobjects/vol184q9.gif width=100 height=100></center><div style='min-height: 30px'><font size=2>Voles are sensibly reliable, and reliably sensible.</div><center><p><Table><Tr><td class=small valign=top><b>Benefits:</b></td><td width=10></td><td class=small valign=top><font color=blue><b>Unlocks Degrassi Knoll<br>+10% to all Moxie Gains<br>+20% Combat Initiative<br>+20 Maximum HP/MP</b></td></tr></table></font></b></font></center></td></tr></table></div><div id=moonsign4 style='display: none;' class='ms'><table><tr><td valign=center><center><img src=https://images.kingdomofloathing.com/otherimages/skyobjects/platyponic.gif width=100 height=100></center><div style='min-height: 30px'><font size=2>Platypuses are really pretty creepy, if you think about it.</div><center><p><Table><Tr><td class=small valign=top><b>Benefits:</b></td><td width=10></td><td class=small valign=top><font color=blue><b>Unlocks Little Canadia<br>+10% to all Muscle Gains<br>Familiar Weight +5 lbs.</b></td></tr></table></font></b></font></center></td></tr></table></div><div id=moonsign5 style='display: none;' class='ms'><table><tr><td valign=center><center><img src=https://images.kingdomofloathing.com/otherimages/skyobjects/opo08r0.gif width=100 height=100></center><div style='min-height: 30px'><font size=2>Opossums make short work of their problems, and shorter work of their breakfasts.</div><center><p><Table><Tr><td class=small valign=top><b>Benefits:</b></td><td width=10></td><td class=small valign=top><font color=blue><b>Unlocks Little Canadia<br>+10% to all Mysticality Gains<br>+5 Adventures per day from Food</b></td></tr></table></font></b></font></center></td></tr></table></div><div id=moonsign6 style='display: none;' class='ms'><table><tr><td valign=center><center><img src=https://images.kingdomofloathing.com/otherimages/skyobjects/marm0l0t.gif width=100 height=100></center><div style='min-height: 30px'><font size=2>Marmots like to take things slow, but are more than capable of getting up to speed when necessary.</div><center><p><Table><Tr><td class=small valign=top><b>Benefits:</b></td><td width=10></td><td class=small valign=top><font color=blue><b>Unlocks Little Canadia<br>+10% to all Moxie Gains<br>+1 Resistance to All Elements</b></td></tr></table></font></b></font></center></td></tr></table></div><div id=moonsign7 style='display: none;' class='ms'><table><tr><td valign=center><center><img src=https://images.kingdomofloathing.com/otherimages/skyobjects/womb8a8y.gif width=100 height=100></center><div style='min-height: 30px'><font size=2>Wombats are lucky and likable, and will almost always pick up the check.</div><center><p><Table><Tr><td class=small valign=top><b>Benefits:</b></td><td width=10></td><td class=small valign=top><font color=blue><b>Unlocks the Gnomish Gnomad Camp<br>+10% to all Muscle Gains<br>+20% Meat from Monsters</b></td></tr></table></font></b></font></center></td></tr></table></div><div id=moonsign8 style='display: none;' class='ms'><table><tr><td valign=center><center><img src=https://images.kingdomofloathing.com/otherimages/skyobjects/blend28f28.gif width=100 height=100></center><div style='min-height: 30px'><font size=2>Blenders know how to have a good time at a cocktail party.</div><center><p><Table><Tr><td class=small valign=top><b>Benefits:</b></td><td width=10></td><td class=small valign=top><font color=blue><b>Unlocks the Gnomish Gnomad Camp<br>+10% to all Mysticality Gains<br>+5 Adventures per day from Booze</b></td></tr></table></font></b></font></center></td></tr></table></div><div id=moonsign9 style='display: none;' class='ms'><table><tr><td valign=center><center><img src=https://images.kingdomofloathing.com/otherimages/skyobjects/pack547s.gif width=100 height=100></center><div style='min-height: 30px'><font size=2>Packrats know when to hold them, and also when to fold them.</div><center><p><Table><Tr><td class=small valign=top><b>Benefits:</b></td><td width=10></td><td class=small valign=top><font color=blue><b>Unlocks the Gnomish Gnomad Camp<br>+10% to all Moxie Gains<br>+10% Items from Monsters</b></td></tr></table></font></b></font></center></td></tr></table></div><div id=moonsign10 style='display: none;' class='ms'><table><tr><td valign=center><center><img src=https://images.kingdomofloathing.com/otherimages/skyobjects/sign_bm.gif width=100 height=100></center><div style='min-height: 30px'><font size=2></center><b>NOTE:</b>  You have unlocked the Bad Moon sign for your next run.  Be warned:  being born under a Bad Moon is very difficult.  It's like Hardcore, but you don't get to use any of your previous permanent skills -- just the ones you acquire on the run.  The spirits of your familiars will also not return with you, and you'll have to find them again if you want to use them during the run.  Being born under a Bad Moon will also cause you to have a lot of &quot;unlucky&quot; stuff happen to you in various places.<p>It's challenging, but it's fun, and it has its rewards, just like other challenging paths.  There is a separate set of leaderboards for Bad Moon, as well.<center></div><center><Table><Tr><td class=small valign=top></td><td class=small valign=top><font color=blue><b></b></td></tr></table></font></b></font></center></td></tr></table></div></td></tr></table></div><div id=submission style='display: none;'><hr><input type=submit class=button value="Once More Unto the Breach!"></div></centeR></form></td></tr></table></center></td></tr><tr><td height=4></td></tr></table><table  width=95%  cellspacing=0 cellpadding=0><tr><td style="background-color: blue" align=center ><b style="color: white">Beyond the Pale</b></td></tr><tr><td style="padding: 5px; border: 1px solid blue;"><center><table><tr><td><center><table><tr><td rowspan=2 align=center valign=center><a href=afterlife.php?place=permery><img src=https://images.kingdomofloathing.com/otherimages/valhalla/apermery.gif width=166 height=166 border=0 alt="Jermery's Permery" title="Jermery's Permery"></a></td><td align=center><a href=afterlife.php?place=deli><img src=https://images.kingdomofloathing.com/otherimages/valhalla/adelilama.gif width=166 height=166 border=0 alt="The Deli Lama" title="The Deli Lama"></a></td><td rowspan=2 align=center valign=center><a href=afterlife.php?place=armory><img src=https://images.kingdomofloathing.com/otherimages/valhalla/apetheaven.gif width=150 height=150 border=0 alt="Pet Heaven" title="Pet Heaven"</a></td></tr><tr><td><a href=afterlife.php?place=reincarnate><img src=https://images.kingdomofloathing.com/otherimages/valhalla/abureau.gif width=233 height=175 border=0 alt="The Bureau of Reincarnation" title="The Bureau of Reincarnation"></a></td></tr></table></centeR></td></tr></table></center></td></tr><tr><td height=4></td></tr></table></center></body></html>

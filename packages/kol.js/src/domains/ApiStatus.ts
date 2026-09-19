@@ -1,5 +1,16 @@
 import { z } from "zod";
 
+import { toMoonSign } from "./MoonSign.js";
+
+/**
+ * A string slot KoL fills in only sometimes, sending "" or null for the same
+ * absent value. Both normalise to "".
+ */
+const slot = z
+  .string()
+  .nullish()
+  .transform((v) => v ?? "");
+
 export const ApiStatusSchema = z.object({
   playerid: z.string(),
   pwd: z.string(),
@@ -10,7 +21,8 @@ export const ApiStatusSchema = z.object({
   level: z.coerce.number(),
   roninleft: z.coerce.number(),
   path: z.coerce.number(),
-  sign: z.string(),
+  /** Null for a character with no sign, which api.php spells "None". */
+  sign: z.string().transform(toMoonSign),
   adventures: z.coerce.number(),
   class: z.coerce.number(),
   hp: z.coerce.number(),
@@ -44,13 +56,7 @@ export const ApiStatusSchema = z.object({
       (v) => (Array.isArray(v) ? {} : v),
       z.record(
         z.string(),
-        z.tuple([
-          z.string(),
-          z.coerce.number(),
-          z.string(),
-          z.string(),
-          z.coerce.number(),
-        ]),
+        z.tuple([z.string(), z.coerce.number(), slot, slot, z.coerce.number()]),
       ),
     )
     .optional()
@@ -60,7 +66,7 @@ export const ApiStatusSchema = z.object({
       (v) => (Array.isArray(v) ? {} : v),
       z.record(
         z.string(),
-        z.tuple([z.string(), z.string(), z.string(), z.coerce.number()]),
+        z.tuple([z.string(), slot, slot, z.coerce.number()]),
       ),
     )
     .optional()

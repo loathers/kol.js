@@ -27,6 +27,7 @@ import { Modifiers } from "./domains/Modifiers.js";
 import { Players } from "./domains/Players.js";
 import { Skills } from "./domains/Skills.js";
 import { Storage } from "./domains/Storage.js";
+import { Valhalla } from "./domains/Valhalla.js";
 import { AuthError, JoinClanError, RolloverError } from "./errors.js";
 import { Flags, type FlagsBackend } from "./flags/Flags.js";
 import "./interceptors/acquisitions.js";
@@ -196,6 +197,7 @@ export class Client extends Emittery<Events> {
   inventory = new Inventory(this);
   players = new Players(this);
   storage = new Storage(this);
+  valhalla = new Valhalla(this);
   chat = new ChatMailbox(this);
   kmail = new KmailMailbox(this);
   flags: Flags;
@@ -301,7 +303,12 @@ export class Client extends Emittery<Events> {
   async #withRecovery<T>(fn: () => Promise<T>): Promise<T> {
     if (this.#isRollover) await this.waitForRolloverEnd();
 
-    if ((!this.#loggedIn || this.#inValhalla) && !(await this.login())) {
+    // Ascending is how we leave Valhalla, so while we are up there every
+    // request has to re-check; api.php alone answers that. A hiccup leaves the
+    // session we already have in place for the retry loop below to sort out.
+    if (this.#loggedIn && this.#inValhalla) await this.checkLoggedIn();
+
+    if (!this.#loggedIn && !(await this.login())) {
       if (this.#isRollover) {
         await this.waitForRolloverEnd();
         if (!(await this.login())) throw new AuthError();
@@ -520,6 +527,13 @@ export class Client extends Emittery<Events> {
   }
 
   async #checkValhalla(): Promise<boolean> {
+    // Already up here with a hash that works: an empty api.php is confirmation
+    // enough, and charpane.php would only say the same thing again.
+    if (this.#inValhalla && this.#pwd) {
+      this.#markLoggedIn(true);
+      return true;
+    }
+
     let charpane: string;
     try {
       charpane = await this.session("charpane.php", {
@@ -529,13 +543,12 @@ export class Client extends Emittery<Events> {
       return false;
     }
 
-    if (
-      !charpane.includes("otherimages/spirit.gif") &&
-      !charpane.includes("<br>Lvl. <img")
-    )
-      return false;
+    if (!Valhalla.parseInValhalla(charpane)) return false;
 
-    this.#pwd = charpane.match(/var pwdhash = "([0-9a-f]+)"/)?.[1] ?? "";
+    // Keep what we already have if the charpane declares neither: a hash that
+    // has been working beats no hash at all.
+    this.#pwd = Valhalla.parsePasswordHash(charpane) ?? this.#pwd;
+    this.#playerId = Valhalla.parsePlayerId(charpane) ?? this.#playerId;
     this.#resetCharacterState();
     this.#markLoggedIn(true);
     return true;

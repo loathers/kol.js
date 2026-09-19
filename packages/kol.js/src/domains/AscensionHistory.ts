@@ -1,7 +1,7 @@
 import type { Client } from "../Client.js";
 import { parseKoLNumber, trim } from "../utils/utils.js";
-
-export type Lifestyle = "CASUAL" | "SOFTCORE" | "HARDCORE";
+import { Lifestyle } from "./Lifestyle.js";
+import { type MoonSign, toMoonSign } from "./MoonSign.js";
 
 export type Ascension = {
   ascensionNumber: number;
@@ -11,7 +11,7 @@ export type Ascension = {
   abandoned: boolean;
   level: number;
   className: string;
-  sign: string;
+  sign: MoonSign | null;
   turns: number;
   days: number;
   familiarName: string | null;
@@ -101,9 +101,9 @@ export class AscensionHistory {
   }
 
   static #parseLifestyle(restrictions: string): Lifestyle {
-    if (restrictions.includes("beanbag.gif")) return "CASUAL";
-    if (restrictions.includes("hardcorex.gif")) return "HARDCORE";
-    return "SOFTCORE";
+    if (restrictions.includes("beanbag.gif")) return Lifestyle.Casual;
+    if (restrictions.includes("hardcorex.gif")) return Lifestyle.Hardcore;
+    return Lifestyle.Softcore;
   }
 
   static #parseExtra(
@@ -137,10 +137,6 @@ export class AscensionHistory {
     return new Date(`20${year}-${month}-${day}`);
   }
 
-  static #parseSign(sign: string): string {
-    return !sign || sign === "(none)" ? "None" : sign;
-  }
-
   static #parseIndex(index: string): [number, boolean] {
     // The ascension index can have multiple asterisks:
     // 1. Dropped path
@@ -171,13 +167,13 @@ export class AscensionHistory {
         abandoned: true,
         level: 0,
         className: "None",
-        sign: "None",
+        sign: null,
         turns: 0,
         days: 0,
         familiarName: null,
         familiarImage: null,
         familiarPercentage: 0,
-        lifestyle: "SOFTCORE",
+        lifestyle: Lifestyle.Softcore,
         pathName: "None",
         extra: {},
       };
@@ -200,7 +196,7 @@ export class AscensionHistory {
       abandoned: false,
       level: parseKoLNumber(AscensionHistory.#textContent(cells[2])),
       className: AscensionHistory.#extractTitle(cells[3]) ?? "None",
-      sign: AscensionHistory.#parseSign(cells[4]),
+      sign: toMoonSign(cells[4]),
       turns: parseKoLNumber(AscensionHistory.#textContent(cells[5])),
       days: parseKoLNumber(AscensionHistory.#textContent(cells[6])),
       familiarName: familiar?.[1] ?? null,

@@ -56,7 +56,7 @@ describe("AscensionHistory.parseAscensions", () => {
     const ascensions = AscensionHistory.parseAscensions(page)?.ascensions;
     expect(ascensions?.find((a) => a.ascensionNumber === 1)).toHaveProperty(
       "sign",
-      "None",
+      null,
     );
   });
 
