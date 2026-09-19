@@ -178,6 +178,11 @@ export class Valhalla {
     );
   }
 
+  /** Likewise, with api.php empty this is the only place to learn who we are. */
+  static parsePlayerId(charpane: string): string | null {
+    return /var\s+playerid\s*=\s*(\d+)/i.exec(charpane)?.[1] ?? null;
+  }
+
   static parseKarma(html: string): number | null {
     const match = /You gain ([\d,]+) Karma/i.exec(html);
     return match ? parseKoLNumber(match[1]) : null;
@@ -270,6 +275,10 @@ export class Valhalla {
   }
 
   static parseAscendResult(html: string): Result {
+    // Landing back in the Kingdom is the only thing we take for a completed
+    // ascension. The step is irreversible, so a page we cannot place is
+    // reported as a failure rather than assumed to have worked.
+    if (/Welcome back/i.test(html)) return { success: true };
     // Being handed the form back means nothing happened.
     if (/name=ascform/i.test(html)) {
       return { success: false, reason: "still on the reincarnation form" };
@@ -278,9 +287,12 @@ export class Valhalla {
     // the Pale heading is replaced.
     const stillUpHere =
       /Beyond the Pale/i.test(html) || html.includes("otherimages/valhalla/");
-    if (stillUpHere && !/Welcome back/i.test(html)) {
+    if (stillUpHere) {
       return { success: false, reason: "still in Valhalla" };
     }
-    return { success: true };
+    return {
+      success: false,
+      reason: "unrecognised response to the confirmation",
+    };
   }
 }

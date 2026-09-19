@@ -39,6 +39,16 @@ describe("parsePasswordHash", () => {
   });
 });
 
+describe("parsePlayerId", () => {
+  test("reads the id charpane declares", async () => {
+    expect(Valhalla.parsePlayerId(await fixture("charpane"))).toBe("24");
+  });
+
+  test.each(["afterlife", "reincarnate"])("%s carries none", async (name) => {
+    expect(Valhalla.parsePlayerId(await fixture(name))).toBeNull();
+  });
+});
+
 describe("parseKarma", () => {
   test("reads the Pearly Gates reward", async () => {
     expect(Valhalla.parseKarma(await fixture("pearlygates"))).toBe(11);
@@ -197,6 +207,15 @@ describe("parseAscendResult", () => {
     expect(
       Valhalla.parseAscendResult("<html>Welcome back to the Kingdom</html>"),
     ).toStrictEqual({ success: true });
+  });
+
+  test("a page we cannot place is not taken for a success", () => {
+    expect(
+      Valhalla.parseAscendResult("<html>You can't do that right now.</html>"),
+    ).toStrictEqual({
+      success: false,
+      reason: "unrecognised response to the confirmation",
+    });
   });
 });
 

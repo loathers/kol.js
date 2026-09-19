@@ -14,7 +14,9 @@ const KOL = "https://www.kingdomofloathing.com";
 
 const VALHALLA_PWD = "0123456789abcdef0123456789abcdef";
 
-const VALHALLA_CHARPANE = `<html><script>var pwdhash = "${VALHALLA_PWD}";</script><img src="otherimages/spirit.gif"></html>`;
+const VALHALLA_CHARPANE = `<html><script>var playerid = 24;\nvar pwdhash = "${VALHALLA_PWD}";</script><img src="otherimages/spirit.gif"></html>`;
+
+const VALHALLA_CHARPANE_NO_VARS = `<html><img src="otherimages/spirit.gif"></html>`;
 
 function statusPayload({ daynumber = "1", ascensions = "0" } = {}) {
   return {
@@ -44,6 +46,7 @@ function statusPayload({ daynumber = "1", ascensions = "0" } = {}) {
 class TestClient extends Client {
   agent = new MockAgent();
   simulatingValhalla = false;
+  charpaneRequests = 0;
 
   constructor() {
     super("testuser", "testpass");
@@ -119,7 +122,7 @@ class TestClient extends Client {
     return this;
   }
 
-  simulateValhalla() {
+  simulateValhalla(charpane = VALHALLA_CHARPANE) {
     this.simulatingValhalla = true;
     this.mock()
       .intercept({ path: /\/api\.php/, method: "GET" })
@@ -133,9 +136,14 @@ class TestClient extends Client {
       .persist();
     this.mock()
       .intercept({ path: /\/charpane\.php/ })
-      .reply(200, VALHALLA_CHARPANE, {
-        headers: { "content-type": "text/html" },
-      })
+      .reply(
+        200,
+        () => {
+          this.charpaneRequests++;
+          return charpane;
+        },
+        { headers: { "content-type": "text/html" } },
+      )
       .persist();
     return this;
   }
@@ -356,6 +364,65 @@ describe("valhalla", () => {
     expect(client.level).toBe(0);
     expect(client.adventures).toBe(0);
     expect(client.maxHp).toBe(0);
+  });
+
+  it("learns who it is from the charpane", async () => {
+    const client = new TestClient().simulateValhalla();
+
+    let payload: { playerName: string; playerId: string } | null = null;
+    client.on("login", (p) => {
+      payload = p;
+    });
+    await client.login();
+
+    expect(client.playerId).toBe("24");
+    expect(payload).toEqual({ playerName: "testuser", playerId: "24" });
+  });
+
+  it("keeps a working pwd when the charpane declares none", async () => {
+    const client = new TestClient().simulateLoggedIn();
+    await client.login();
+
+    client.simulateValhalla(VALHALLA_CHARPANE_NO_VARS);
+    await client.checkLoggedIn();
+
+    let requestedPath = "";
+    client
+      .mock()
+      .intercept({ path: /\/afterlife\.php/, method: "GET" })
+      .reply(200, (options) => {
+        requestedPath = options.path;
+        return "<html>Beyond the Pale</html>";
+      });
+    await client.fetchText("afterlife.php", {
+      method: "GET",
+      query: { place: "reincarnate" },
+    });
+
+    expect(client.inValhalla()).toBe(true);
+    expect(requestedPath).toBe("/afterlife.php?place=reincarnate&pwd=abc123");
+  });
+
+  it("re-checks with api.php alone rather than logging in again", async () => {
+    const client = new TestClient().simulateValhalla();
+    await client.login();
+    expect(client.charpaneRequests).toBe(1);
+
+    client.simulateResponse(/\/test\.php/, { ok: true });
+    await client.fetchJson("test.php");
+
+    // A second charpane, or any login POST, would be an unclaimed interceptor.
+    expect(client.charpaneRequests).toBe(1);
+  });
+
+  it("keeps going when the status re-check hiccups", async () => {
+    const client = new TestClient().simulateValhalla();
+    await client.login();
+
+    vi.spyOn(client, "checkLoggedIn").mockResolvedValueOnce(false);
+    client.simulateResponse(/\/test\.php/, { ok: true });
+
+    expect(await client.fetchJson("test.php")).toEqual({ ok: true });
   });
 
   it("picks the character back up once out of valhalla", async () => {

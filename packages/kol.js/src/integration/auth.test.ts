@@ -100,6 +100,7 @@ describe.concurrent("auth integration", () => {
 
     ctx.expect(await client.login()).toBe(true);
     ctx.expect(client.inValhalla()).toBe(true);
+    ctx.expect(client.playerId).toBe("1");
     ctx
       .expect(await client.fetchText("afterlife.php"))
       .toContain("Beyond the Pale");

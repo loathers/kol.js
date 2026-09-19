@@ -167,7 +167,8 @@ export class TestClient extends Client {
       case "charpane.php": {
         res.writeHead(200, { "content-type": "text/html" });
         res.end(
-          `<html><script>var pwdhash = "${session.pwd}";</script>` +
+          `<html><script>var playerid = ${session.playerId};` +
+            `var pwdhash = "${session.pwd}";</script>` +
             (this.simulatingValhalla
               ? '<img src="otherimages/spirit.gif">'
               : "") +
