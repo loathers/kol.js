@@ -130,6 +130,23 @@ export class Valhalla {
   }
 
   /**
+   * Ascend, start to finish. Irreversible: this begins the run.
+   *
+   * The game wants two POSTs and a set of acknowledgements that vary by run;
+   * this works all that out. Use proposeAscension/confirmAscension instead only
+   * to inspect the confirmation before committing to it.
+   *
+   * @throws if the choice is not a combination the game will accept
+   */
+  async ascend(choice: AscensionChoice): Promise<Result> {
+    const confirmation = await this.proposeAscension(choice);
+    if (!confirmation) {
+      return { success: false, reason: "the game offered no confirmation" };
+    }
+    return await this.confirmAscension(confirmation);
+  }
+
+  /**
    * Step one, which does NOT start the run. Null means the game handed back
    * something other than a confirmation, which is how a refusal shows up.
    *

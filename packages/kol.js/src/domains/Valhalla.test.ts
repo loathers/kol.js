@@ -1,5 +1,6 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
+import { Client } from "../Client.js";
 import { loadFixture } from "../testUtils.js";
 import {
   Gender,
@@ -198,5 +199,87 @@ describe("parseAscendResult", () => {
     expect(
       Valhalla.parseAscendResult("<html>Welcome back to the Kingdom</html>"),
     ).toStrictEqual({ success: true });
+  });
+});
+
+describe("ascend", () => {
+  const choice = {
+    lifestyle: Lifestyle.Hardcore,
+    startingClass: StartingClass.SealClubber,
+    gender: Gender.Male,
+    sign: MoonSign.Mongoose,
+    path: 22,
+  };
+
+  const clientPosting = (...replies: string[]) => {
+    const forms: unknown[] = [];
+    const client = new Client("", "");
+    vi.spyOn(client, "fetchText").mockImplementation((_path, options) => {
+      forms.push(options?.form);
+      return Promise.resolve(replies[forms.length - 1] ?? "");
+    });
+    return { valhalla: new Valhalla(client), forms };
+  };
+
+  test("posts the choice, then the confirmation the game asked for", async () => {
+    const { valhalla, forms } = clientPosting(
+      await fixture("confirm"),
+      "<html>Welcome back to the Kingdom</html>",
+    );
+
+    expect(await valhalla.ascend(choice)).toStrictEqual({ success: true });
+
+    expect(forms[0]).toEqual({
+      action: "ascend",
+      asctype: 3,
+      whichclass: 1,
+      gender: 1,
+      whichsign: 1,
+      whichpath: 22,
+    });
+    // Every hidden field echoed back, plus the boxes that run needed ticked.
+    expect(forms[1]).toEqual({
+      action: "ascend",
+      confirmascend: "1",
+      whichsign: "1",
+      gender: "1",
+      whichclass: "1",
+      whichpath: "22",
+      asctype: "3",
+      lamepathok: "1",
+      nopetok: "1",
+      noskillsok: "1",
+    });
+  });
+
+  test("does not commit when the game offers no confirmation", async () => {
+    const { valhalla, forms } = clientPosting(await fixture("reincarnate"));
+
+    expect(await valhalla.ascend(choice)).toStrictEqual({
+      success: false,
+      reason: "the game offered no confirmation",
+    });
+    expect(forms).toHaveLength(1);
+  });
+
+  test("reports a confirmation that did not take", async () => {
+    const { valhalla } = clientPosting(
+      await fixture("confirm"),
+      await fixture("reincarnate"),
+    );
+
+    expect(await valhalla.ascend(choice)).toStrictEqual({
+      success: false,
+      reason: "still on the reincarnation form",
+    });
+  });
+
+  test("refuses a choice the game would not accept, without posting", async () => {
+    const { valhalla, forms } = clientPosting();
+
+    await expect(
+      valhalla.ascend({ ...choice, sign: MoonSign.BadMoon }),
+    ).rejects.toThrow(/Bad Moon/);
+    expect(forms).toHaveLength(0);
   });
 });
