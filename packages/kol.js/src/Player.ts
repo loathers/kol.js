@@ -156,12 +156,9 @@ export namespace Player {
         ),
         hasDisplayCase:
           html.match(/Display Case<\/b><\/a> in the Museum<\/td>/) !== null,
-        inRonin: 
-          html.match(/<b>\(In Ronin\)<\/b>/) !== null,
-        inHardcore: 
-          html.match(/<b>\(Hardcore\)<\/b>/) !== null,
-        path:
-          html.match(/>Path:<\/b><\/td><td>(.*?)<\/td>/)?.[1] ?? null,
+        inRonin: html.match(/<b>\(In Ronin\)<\/b>/) !== null,
+        inHardcore: html.match(/<b>\(Hardcore\)<\/b>/) !== null,
+        path: html.match(/>Path:<\/b><\/td><td>(.*?)<\/td>/)?.[1] ?? null,
       };
     }
   }
