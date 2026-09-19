@@ -1,7 +1,7 @@
 import type { Client } from "../Client.js";
-import { Lifestyle } from "../Lifestyle.js";
-import { type MoonSign, toMoonSign } from "../MoonSign.js";
 import { parseKoLNumber, trim } from "../utils/utils.js";
+import { Lifestyle } from "./Lifestyle.js";
+import { type MoonSign, toMoonSign } from "./MoonSign.js";
 
 export type Ascension = {
   ascensionNumber: number;

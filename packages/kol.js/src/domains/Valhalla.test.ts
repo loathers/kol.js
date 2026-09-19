@@ -2,10 +2,10 @@ import type { AscensionClass } from "data-of-loathing";
 import { describe, expect, test, vi } from "vitest";
 
 import { Client } from "../Client.js";
-import { Gender } from "../Gender.js";
-import { Lifestyle } from "../Lifestyle.js";
-import { MoonSign } from "../MoonSign.js";
 import { loadFixture } from "../testUtils.js";
+import { Gender } from "./Gender.js";
+import { Lifestyle } from "./Lifestyle.js";
+import { MoonSign } from "./MoonSign.js";
 import { Valhalla } from "./Valhalla.js";
 
 const fixture = (name: string) =>

@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { loadFixture } from "../testUtils.js";
 import { ApiStatusSchema } from "./ApiStatus.js";
 import { Effects } from "./Effects.js";
+import { MoonSign } from "./MoonSign.js";
 
 const minimalStatus = (overrides: Record<string, unknown> = {}) => ({
   playerid: "1",
@@ -83,6 +84,14 @@ describe("ApiStatusSchema", () => {
       7,
     ]);
     expect(Effects.parseEntries(status)).toEqual([{ id: 7, duration: 3 }]);
+  });
+
+  it.each([
+    ["Mongoose", MoonSign.Mongoose],
+    ["Bad Moon", MoonSign.BadMoon],
+    ["None", null],
+  ])("resolves the sign %j", (sign, expected) => {
+    expect(ApiStatusSchema.parse(minimalStatus({ sign })).sign).toBe(expected);
   });
 
   it("accepts a null intrinsic slot too", () => {

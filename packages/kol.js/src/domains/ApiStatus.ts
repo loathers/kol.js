@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { toMoonSign } from "./MoonSign.js";
+
 /**
  * A string slot KoL fills in only sometimes, sending "" or null for the same
  * absent value. Both normalise to "".
@@ -19,7 +21,8 @@ export const ApiStatusSchema = z.object({
   level: z.coerce.number(),
   roninleft: z.coerce.number(),
   path: z.coerce.number(),
-  sign: z.string(),
+  /** Null for a character with no sign, which api.php spells "None". */
+  sign: z.string().transform(toMoonSign),
   adventures: z.coerce.number(),
   class: z.coerce.number(),
   hp: z.coerce.number(),

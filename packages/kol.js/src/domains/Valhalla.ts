@@ -2,10 +2,10 @@ import type { AscensionClass } from "data-of-loathing";
 import { decodeHTML } from "entities";
 
 import type { Client, Result } from "../Client.js";
-import { Gender, genderId } from "../Gender.js";
-import { Lifestyle, lifestyleId } from "../Lifestyle.js";
-import { MoonSign, moonSignId } from "../MoonSign.js";
 import { parseKoLNumber, resolveEntityId } from "../utils/utils.js";
+import { Gender, genderId } from "./Gender.js";
+import { Lifestyle, lifestyleId } from "./Lifestyle.js";
+import { MoonSign, moonSignId } from "./MoonSign.js";
 
 /**
  * Valhalla — afterlife.php.
