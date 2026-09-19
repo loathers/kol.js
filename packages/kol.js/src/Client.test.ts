@@ -43,7 +43,7 @@ function statusPayload({ daynumber = "1", ascensions = "0" } = {}) {
 
 class TestClient extends Client {
   agent = new MockAgent();
-  valhalla = false;
+  simulatingValhalla = false;
 
   constructor() {
     super("testuser", "testpass");
@@ -120,12 +120,12 @@ class TestClient extends Client {
   }
 
   simulateValhalla() {
-    this.valhalla = true;
+    this.simulatingValhalla = true;
     this.mock()
       .intercept({ path: /\/api\.php/, method: "GET" })
       .reply(
         200,
-        () => (this.valhalla ? "" : JSON.stringify(statusPayload())),
+        () => (this.simulatingValhalla ? "" : JSON.stringify(statusPayload())),
         {
           headers: { "content-type": "application/json" },
         },
@@ -141,7 +141,7 @@ class TestClient extends Client {
   }
 
   leaveValhalla() {
-    this.valhalla = false;
+    this.simulatingValhalla = false;
     return this;
   }
 }

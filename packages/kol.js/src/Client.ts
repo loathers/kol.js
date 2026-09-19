@@ -27,6 +27,7 @@ import { Modifiers } from "./domains/Modifiers.js";
 import { Players } from "./domains/Players.js";
 import { Skills } from "./domains/Skills.js";
 import { Storage } from "./domains/Storage.js";
+import { Valhalla } from "./domains/Valhalla.js";
 import { AuthError, JoinClanError, RolloverError } from "./errors.js";
 import { Flags, type FlagsBackend } from "./flags/Flags.js";
 import { defineAction } from "./interceptors/action.js";
@@ -195,6 +196,7 @@ export class Client extends Emittery<Events> {
   inventory = new Inventory(this);
   players = new Players(this);
   storage = new Storage(this);
+  valhalla = new Valhalla(this);
   chat = new ChatMailbox(this);
   kmail = new KmailMailbox(this);
   flags: Flags;
@@ -528,13 +530,9 @@ export class Client extends Emittery<Events> {
       return false;
     }
 
-    if (
-      !charpane.includes("otherimages/spirit.gif") &&
-      !charpane.includes("<br>Lvl. <img")
-    )
-      return false;
+    if (!Valhalla.parseInValhalla(charpane)) return false;
 
-    this.#pwd = charpane.match(/var pwdhash = "([0-9a-f]+)"/)?.[1] ?? "";
+    this.#pwd = Valhalla.parsePasswordHash(charpane) ?? "";
     this.#resetCharacterState();
     this.#markLoggedIn(true);
     return true;
