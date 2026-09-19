@@ -1,7 +1,8 @@
+import type { AscensionClass } from "data-of-loathing";
 import { decodeHTML } from "entities";
 
 import type { Client, Result } from "../Client.js";
-import { parseKoLNumber } from "../utils/utils.js";
+import { parseKoLNumber, resolveEntityId } from "../utils/utils.js";
 
 /**
  * Valhalla — afterlife.php.
@@ -31,16 +32,6 @@ export const MoonSign = {
 } as const;
 export type MoonSign = (typeof MoonSign)[keyof typeof MoonSign];
 
-export const StartingClass = {
-  SealClubber: 1,
-  TurtleTamer: 2,
-  Pastamancer: 3,
-  Sauceror: 4,
-  DiscoBandit: 5,
-  AccordionThief: 6,
-} as const;
-export type StartingClass = (typeof StartingClass)[keyof typeof StartingClass];
-
 export type ValhallaPlace = "permery" | "deli" | "armory" | "reincarnate";
 
 /** Ids only; the names for them live in data-of-loathing. */
@@ -66,7 +57,7 @@ export type AscensionConfirmation = {
 
 export type AscensionChoice = {
   lifestyle: Lifestyle;
-  startingClass: StartingClass;
+  class: AscensionClass | number;
   gender: Gender;
   sign: MoonSign;
   path: number;
@@ -120,21 +111,23 @@ export class Valhalla {
   /** The form's own preview endpoint. Class and lifestyle only affect wording. */
   async describePath(
     path: number,
-    startingClass: StartingClass = StartingClass.SealClubber,
+    playerClass: AscensionClass | number = 1,
     lifestyle: Lifestyle = Lifestyle.Hardcore,
   ): Promise<PathDescription> {
     return await this.#client.fetchJson<PathDescription>("afterlife.php", {
       method: "GET",
-      query: { info: 1, hc: lifestyle, playerclass: startingClass, path },
+      query: {
+        info: 1,
+        hc: lifestyle,
+        playerclass: resolveEntityId(playerClass),
+        path,
+      },
     });
   }
 
   /**
-   * Ascend, start to finish. Irreversible: this begins the run.
-   *
-   * The game wants two POSTs and a set of acknowledgements that vary by run;
-   * this works all that out. Use proposeAscension/confirmAscension instead only
-   * to inspect the confirmation before committing to it.
+   * Ascend. Irreversible — this starts the run. Use proposeAscension and
+   * confirmAscension instead to read the confirmation before committing.
    *
    * @throws if the choice is not a combination the game will accept
    */
@@ -162,7 +155,7 @@ export class Valhalla {
       form: {
         action: "ascend",
         asctype: choice.lifestyle,
-        whichclass: choice.startingClass,
+        whichclass: resolveEntityId(choice.class),
         gender: choice.gender,
         whichsign: choice.sign,
         whichpath: choice.path,
@@ -226,8 +219,10 @@ export class Valhalla {
     if (!Object.values(Lifestyle).includes(choice.lifestyle)) {
       return `invalid lifestyle ${choice.lifestyle}`;
     }
-    if (!Object.values(StartingClass).includes(choice.startingClass)) {
-      return `invalid class ${choice.startingClass}`;
+    // The live set is getReincarnationOptions().classes; this rules out 0.
+    const classId = resolveEntityId(choice.class);
+    if (!Number.isInteger(classId) || classId < 1) {
+      return `invalid class ${classId}`;
     }
     if (!Object.values(Gender).includes(choice.gender)) {
       return `invalid gender ${choice.gender}`;

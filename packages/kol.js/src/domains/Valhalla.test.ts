@@ -1,14 +1,9 @@
+import type { AscensionClass } from "data-of-loathing";
 import { describe, expect, test, vi } from "vitest";
 
 import { Client } from "../Client.js";
 import { loadFixture } from "../testUtils.js";
-import {
-  Gender,
-  Lifestyle,
-  MoonSign,
-  StartingClass,
-  Valhalla,
-} from "./Valhalla.js";
+import { Gender, Lifestyle, MoonSign, Valhalla } from "./Valhalla.js";
 
 const fixture = (name: string) =>
   loadFixture(__dirname, `valhalla_${name}.html`);
@@ -93,7 +88,7 @@ describe("parseReincarnationOptions", () => {
 describe("validate", () => {
   const choice = {
     lifestyle: Lifestyle.Hardcore,
-    startingClass: StartingClass.SealClubber,
+    class: 1,
     gender: Gender.Male,
     sign: MoonSign.Mongoose,
     path: 22,
@@ -110,7 +105,7 @@ describe("validate", () => {
 
   test.each([
     ["lifestyle", { lifestyle: 9 }, /invalid lifestyle/],
-    ["class", { startingClass: 0 }, /invalid class/],
+    ["class", { class: 0 }, /invalid class/],
     ["gender", { gender: 7 }, /invalid gender/],
     ["sign", { sign: 42 }, /invalid moon sign/],
     ["path", { path: -1 }, /invalid path/],
@@ -205,7 +200,7 @@ describe("parseAscendResult", () => {
 describe("ascend", () => {
   const choice = {
     lifestyle: Lifestyle.Hardcore,
-    startingClass: StartingClass.SealClubber,
+    class: 1,
     gender: Gender.Male,
     sign: MoonSign.Mongoose,
     path: 22,
@@ -237,7 +232,6 @@ describe("ascend", () => {
       whichsign: 1,
       whichpath: 22,
     });
-    // Every hidden field echoed back, plus the boxes that run needed ticked.
     expect(forms[1]).toEqual({
       action: "ascend",
       confirmascend: "1",
@@ -250,6 +244,15 @@ describe("ascend", () => {
       nopetok: "1",
       noskillsok: "1",
     });
+  });
+
+  test("takes a class entity as readily as an id", async () => {
+    const { valhalla, forms } = clientPosting(await fixture("confirm"), "");
+    const sauceror = { id: 4, name: "Sauceror" } as AscensionClass;
+
+    await valhalla.ascend({ ...choice, class: sauceror });
+
+    expect(forms[0]).toMatchObject({ whichclass: 4 });
   });
 
   test("does not commit when the game offers no confirmation", async () => {
