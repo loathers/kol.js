@@ -3,6 +3,33 @@ import { describe, expect, it } from "vitest";
 
 import { loadFixture } from "../testUtils.js";
 import { ApiStatusSchema } from "./ApiStatus.js";
+import { Effects } from "./Effects.js";
+
+const minimalStatus = (overrides: Record<string, unknown> = {}) => ({
+  playerid: "1",
+  pwd: "abc",
+  hardcore: "0",
+  ascensions: "0",
+  turnsplayed: "0",
+  daynumber: "1",
+  level: "1",
+  roninleft: "0",
+  path: "0",
+  sign: "None",
+  adventures: "40",
+  class: "0",
+  hp: "10",
+  maxhp: 10,
+  mp: "10",
+  maxmp: 10,
+  spleen: "10",
+  full: "10",
+  drunk: "10",
+  effects: [],
+  intrinsics: [],
+  rollover: "1778556599",
+  ...overrides,
+});
 
 describe("ApiStatusSchema", () => {
   it("parses a real status where intrinsics is an empty array", async () => {
@@ -24,33 +51,54 @@ describe("ApiStatusSchema", () => {
   });
 
   it("treats empty-array effects and intrinsics as empty records", () => {
-    const status = ApiStatusSchema.parse({
-      playerid: "1",
-      pwd: "abc",
-      hardcore: "0",
-      ascensions: "0",
-      turnsplayed: "0",
-      daynumber: "1",
-      level: "1",
-      roninleft: "0",
-      path: "0",
-      sign: "None",
-      adventures: "40",
-      class: "0",
-      hp: "10",
-      maxhp: 10,
-      mp: "10",
-      maxmp: 10,
-      spleen: "10",
-      full: "10",
-      drunk: "10",
-      effects: [],
-      intrinsics: [],
-      rollover: "1778556599",
-    });
+    const status = ApiStatusSchema.parse(minimalStatus());
 
     expect(status.effects).toEqual({});
     expect(status.intrinsics).toEqual({});
     expect(status.rollover).toBe(1778556599);
+  });
+
+  // KoL sends both "" and null for the same absent slot, and a null used to
+  // throw a ZodError that took out every caller of fetchStatus().
+  it.each([null, ""])("accepts %j in an effect's unused slot", (slot) => {
+    const status = ApiStatusSchema.parse(
+      minimalStatus({
+        effects: {
+          acf143c704afaf7504ac07375084f79e: [
+            "Beaten Up",
+            "3",
+            "beatenup",
+            slot,
+            "7",
+          ],
+        },
+      }),
+    );
+
+    expect(status.effects.acf143c704afaf7504ac07375084f79e).toEqual([
+      "Beaten Up",
+      3,
+      "beatenup",
+      "",
+      7,
+    ]);
+    expect(Effects.parseEntries(status)).toEqual([{ id: 7, duration: 3 }]);
+  });
+
+  it("accepts a null intrinsic slot too", () => {
+    const status = ApiStatusSchema.parse(
+      minimalStatus({
+        intrinsics: {
+          d1f2: ["Chronic Indigestion", null, "sickface", "1758"],
+        },
+      }),
+    );
+
+    expect(status.intrinsics.d1f2).toEqual([
+      "Chronic Indigestion",
+      "",
+      "sickface",
+      1758,
+    ]);
   });
 });
