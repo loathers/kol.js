@@ -36,15 +36,14 @@ export function moonSignFromId(id: number): MoonSign | null {
 }
 
 /**
- * A sign from however a page happens to write it. Pages prefix the name with
- * "The" in the reincarnation dropdown, and spell the absence of one as "None",
- * "(none)" or nothing at all.
+ * A sign by name. Null for anything that is not one, which is how pages spell
+ * having no sign: "None", "(none)", or nothing at all.
  */
 export function toMoonSign(name: string | null | undefined): MoonSign | null {
-  const trimmed = name?.trim().replace(/^The\s+/i, "") ?? "";
+  const trimmed = name?.trim().toLowerCase() ?? "";
   return (
-    ((Object.values(MoonSign) as string[]).find(
-      (s) => s.toLowerCase() === trimmed.toLowerCase(),
-    ) as MoonSign | undefined) ?? null
+    (Object.values(MoonSign) as MoonSign[]).find(
+      (s) => s.toLowerCase() === trimmed,
+    ) ?? null
   );
 }

@@ -137,10 +137,6 @@ export class AscensionHistory {
     return new Date(`20${year}-${month}-${day}`);
   }
 
-  static #parseSign(sign: string): MoonSign | null {
-    return sign === "(none)" ? null : toMoonSign(sign);
-  }
-
   static #parseIndex(index: string): [number, boolean] {
     // The ascension index can have multiple asterisks:
     // 1. Dropped path
@@ -200,7 +196,7 @@ export class AscensionHistory {
       abandoned: false,
       level: parseKoLNumber(AscensionHistory.#textContent(cells[2])),
       className: AscensionHistory.#extractTitle(cells[3]) ?? "None",
-      sign: AscensionHistory.#parseSign(cells[4]),
+      sign: toMoonSign(cells[4]),
       turns: parseKoLNumber(AscensionHistory.#textContent(cells[5])),
       days: parseKoLNumber(AscensionHistory.#textContent(cells[6])),
       familiarName: familiar?.[1] ?? null,

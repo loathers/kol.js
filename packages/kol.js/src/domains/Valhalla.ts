@@ -3,9 +3,9 @@ import { decodeHTML } from "entities";
 
 import type { Client, Result } from "../Client.js";
 import { parseKoLNumber, resolveEntityId } from "../utils/utils.js";
-import { Gender, genderId } from "./Gender.js";
-import { Lifestyle, lifestyleId } from "./Lifestyle.js";
-import { MoonSign, moonSignId } from "./MoonSign.js";
+import { Gender, genderFromId, genderId } from "./Gender.js";
+import { Lifestyle, lifestyleFromId, lifestyleId } from "./Lifestyle.js";
+import { MoonSign, moonSignFromId, moonSignId } from "./MoonSign.js";
 
 /**
  * Valhalla — afterlife.php.
@@ -17,12 +17,12 @@ import { MoonSign, moonSignId } from "./MoonSign.js";
 
 export type ValhallaPlace = "permery" | "deli" | "armory" | "reincarnate";
 
-/** Ids only; the names for them live in data-of-loathing. */
+/** Classes and paths stay ids, since their names live in data-of-loathing. */
 export type ReincarnationOptions = {
-  lifestyles: number[];
+  lifestyles: Lifestyle[];
   classes: number[];
-  genders: number[];
-  signs: number[];
+  genders: Gender[];
+  signs: MoonSign[];
   paths: number[];
   defaultPath: number | null;
 };
@@ -62,6 +62,14 @@ function optionValues(html: string, selectName: string): number[] {
     if (value > 0) values.push(value);
   }
   return values;
+}
+
+/** Drops any id this version of kol.js has no name for. */
+function named<T>(ids: number[], fromId: (id: number) => T | null): T[] {
+  return ids.flatMap((id) => {
+    const value = fromId(id);
+    return value ? [value] : [];
+  });
 }
 
 export class Valhalla {
@@ -189,10 +197,10 @@ export class Valhalla {
     }
 
     return {
-      lifestyles: optionValues(html, "asctype"),
+      lifestyles: named(optionValues(html, "asctype"), lifestyleFromId),
       classes: optionValues(html, "whichclass"),
-      genders: optionValues(html, "gender"),
-      signs: optionValues(html, "whichsign"),
+      genders: named(optionValues(html, "gender"), genderFromId),
+      signs: named(optionValues(html, "whichsign"), moonSignFromId),
       paths: paths.sort((a, b) => a - b),
       defaultPath,
     };

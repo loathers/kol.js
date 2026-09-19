@@ -28,10 +28,6 @@ describe("toMoonSign", () => {
     expect(toMoonSign("Bad Moon")).toBe(MoonSign.BadMoon);
   });
 
-  test("drops the 'The' the reincarnation dropdown prefixes", () => {
-    expect(toMoonSign("The Wallaby")).toBe(MoonSign.Wallaby);
-  });
-
   test.each(["None", "(none)", "", null, undefined])(
     "reads %j as no sign",
     (input) => {

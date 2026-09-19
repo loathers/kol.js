@@ -54,15 +54,15 @@ describe("parseKarma", () => {
 });
 
 describe("parseReincarnationOptions", () => {
-  test("reads the ids the ascension POST needs", async () => {
+  test("names what the form offers, leaving classes as ids", async () => {
     const options = Valhalla.parseReincarnationOptions(
       await fixture("reincarnate"),
     );
 
-    expect(options.lifestyles).toEqual([1, 2, 3]);
+    expect(options.lifestyles).toEqual(Object.values(Lifestyle));
+    expect(options.genders).toEqual(Object.values(Gender));
+    expect(options.signs).toEqual(Object.values(MoonSign));
     expect(options.classes).toEqual([1, 2, 3, 4, 5, 6]);
-    expect(options.genders).toEqual([1, 2]);
-    expect(options.signs).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   });
 
   test("reads every path radio, including unrestricted", async () => {
