@@ -1,16 +1,14 @@
+import { decodeHTML } from "entities";
+
 import type { Client, Result } from "../Client.js";
+import { parseKoLNumber } from "../utils/utils.js";
 
 /**
- * Valhalla — afterlife.php, where you land between lives.
+ * Valhalla — afterlife.php.
  *
- * Two things make this place unlike the rest of the game:
- *
- *   1. `api.php?what=status` returns an empty body here, so charpane.php is the
- *      only page carrying `pwd`. {@link Client} sniffs for that when it logs
- *      in, using the parsers below; they live here so that what Valhalla looks
- *      like is described in one file.
- *   2. Ascending is two POSTs. The first returns a confirmation page and starts
- *      nothing; only a second carrying `confirmascend=1` commits.
+ * api.php returns an empty body here, so charpane.php is the only page carrying
+ * `pwd`; {@link Client} logs in through the parsers below. Ascending is two
+ * POSTs, and only the second, carrying `confirmascend=1`, commits.
  */
 
 export const Lifestyle = { Casual: 1, Softcore: 2, Hardcore: 3 } as const;
@@ -33,7 +31,6 @@ export const MoonSign = {
 } as const;
 export type MoonSign = (typeof MoonSign)[keyof typeof MoonSign];
 
-/** The six classes the reincarnation form offers, by its own option values. */
 export const StartingClass = {
   SealClubber: 1,
   TurtleTamer: 2,
@@ -46,32 +43,24 @@ export type StartingClass = (typeof StartingClass)[keyof typeof StartingClass];
 
 export type ValhallaPlace = "permery" | "deli" | "armory" | "reincarnate";
 
-/**
- * What the Bureau of Reincarnation is currently offering. Ids only: path and
- * class names live in data-of-loathing, which kol.js already depends on, so
- * duplicating them here would just be a second list to keep in sync.
- */
+/** Ids only; the names for them live in data-of-loathing. */
 export type ReincarnationOptions = {
   lifestyles: number[];
   classes: number[];
   genders: number[];
   signs: number[];
   paths: number[];
-  /** The path the form pre-selects — currently Standard. */
   defaultPath: number | null;
 };
 
 /**
- * The confirmation step's echoed form. The acknowledgement checkboxes are
- * conditional — you only get `nopetok` if you skipped an astral pet, and so on
- * — so they are read off the page rather than assumed.
+ * The confirmation step's echoed form. Acknowledgements are conditional — you
+ * only get `nopetok` if you skipped an astral pet — so they are read off the
+ * page rather than assumed.
  */
 export type AscensionConfirmation = {
-  /** Hidden fields to echo back verbatim. */
   fields: Record<string, string>;
-  /** Required "are you sure?" checkboxes, name to value. */
   acknowledgements: Record<string, string>;
-  /** Prose summary of what is about to happen, useful for logging. */
   summary: string;
 };
 
@@ -83,13 +72,9 @@ export type AscensionChoice = {
   path: number;
 };
 
-/** The `{image, text}` blurb the form previews a path with. */
 export type PathDescription = { image: string; text: string };
 
-/**
- * Values of a named `<select>`, skipping the zero-valued "- select a class -"
- * placeholders the form uses.
- */
+/** Values of a named `<select>`, less the zero-valued placeholder option. */
 function optionValues(html: string, selectName: string): number[] {
   const select = new RegExp(
     `<select[^>]*\\bname=['"]?${selectName}['"]?[^>]*>([\\s\\S]*?)</select>`,
@@ -98,7 +83,7 @@ function optionValues(html: string, selectName: string): number[] {
   if (!select) return [];
 
   const values: number[] = [];
-  for (const option of select[1].matchAll(/<option[^>]*value=['"]?(-?\d+)/gi)) {
+  for (const option of select[1].matchAll(/<option[^>]*value=['"]?(\d+)/gi)) {
     const value = Number(option[1]);
     if (value > 0) values.push(value);
   }
@@ -112,7 +97,7 @@ export class Valhalla {
     this.#client = client;
   }
 
-  /** Pass the Mini-Pearly Gates. Required once before Valhalla proper opens. */
+  /** Required once before Valhalla proper opens. */
   async enterPearlyGates(): Promise<{ karma: number | null }> {
     const html = await this.#client.fetchText("afterlife.php", {
       method: "GET",
@@ -132,10 +117,7 @@ export class Valhalla {
     return Valhalla.parseReincarnationOptions(await this.visit("reincarnate"));
   }
 
-  /**
-   * The form's own preview endpoint: the blurb and image for a path without
-   * committing to it. The class and lifestyle only affect the wording.
-   */
+  /** The form's own preview endpoint. Class and lifestyle only affect wording. */
   async describePath(
     path: number,
     startingClass: StartingClass = StartingClass.SealClubber,
@@ -148,8 +130,7 @@ export class Valhalla {
   }
 
   /**
-   * Step one of ascending: submit the choice and get back the confirmation
-   * page. This does NOT start the run. Returns null if the game handed back
+   * Step one, which does NOT start the run. Null means the game handed back
    * something other than a confirmation, which is how a refusal shows up.
    *
    * @throws if the choice is not a combination the game will accept
@@ -173,7 +154,7 @@ export class Valhalla {
     return Valhalla.parseAscendConfirmation(html);
   }
 
-  /** Step two: commit. Irreversible — this starts the run. */
+  /** Step two. Irreversible — this starts the run. */
   async confirmAscension(confirmation: AscensionConfirmation): Promise<Result> {
     const html = await this.#client.fetchText("afterlife.php", {
       form: { ...confirmation.fields, ...confirmation.acknowledgements },
@@ -181,12 +162,7 @@ export class Valhalla {
     return Valhalla.parseAscendResult(html);
   }
 
-  // --- pure parsers -------------------------------------------------------
-
-  /**
-   * Whether a charpane belongs to a spirit in Valhalla. The same two markers
-   * KoLmafia looks for, in its order of preference.
-   */
+  /** The two markers KoLmafia looks for, in its order of preference. */
   static parseInValhalla(charpane: string): boolean {
     return (
       charpane.includes("otherimages/spirit.gif") ||
@@ -194,7 +170,7 @@ export class Valhalla {
     );
   }
 
-  /** The `pwd` api.php would normally supply. Only charpane.php has it here. */
+  /** Only charpane.php carries this up here. */
   static parsePasswordHash(charpane: string): string | null {
     return (
       /var\s+pwdhash\s*=\s*["']([0-9a-f]+)["']/i.exec(charpane)?.[1] ?? null
@@ -203,7 +179,7 @@ export class Valhalla {
 
   static parseKarma(html: string): number | null {
     const match = /You gain ([\d,]+) Karma/i.exec(html);
-    return match ? Number(match[1].replace(/,/g, "")) : null;
+    return match ? parseKoLNumber(match[1]) : null;
   }
 
   static parseReincarnationOptions(html: string): ReincarnationOptions {
@@ -224,12 +200,11 @@ export class Valhalla {
       classes: optionValues(html, "whichclass"),
       genders: optionValues(html, "gender"),
       signs: optionValues(html, "whichsign"),
-      paths: [...new Set(paths)].sort((a, b) => a - b),
+      paths: paths.sort((a, b) => a - b),
       defaultPath,
     };
   }
 
-  /** Catches the mistakes that would otherwise start the wrong run. */
   static validate(choice: AscensionChoice): string | null {
     if (!Object.values(Lifestyle).includes(choice.lifestyle)) {
       return `invalid lifestyle ${choice.lifestyle}`;
@@ -253,10 +228,7 @@ export class Valhalla {
     return null;
   }
 
-  /**
-   * Reads the confirmation form back into the exact second POST the game wants.
-   * Returns null when the page is not a confirmation.
-   */
+  /** Null when the page is not a confirmation. */
   static parseAscendConfirmation(html: string): AscensionConfirmation | null {
     const form = /<form[^>]*id=["']?confirmascend["']?[\s\S]*?<\/form>/i.exec(
       html,
@@ -283,9 +255,10 @@ export class Valhalla {
 
     if (!("confirmascend" in fields)) return null;
 
-    const text = html
+    // Not cleanString(): it drops tags without a separator, and the summary
+    // runs straight through a </b><p> boundary.
+    const text = decodeHTML(html)
       .replace(/<[^>]+>/g, " ")
-      .replace(/&quot;/g, '"')
       .replace(/\s+/g, " ");
     const summary =
       /You are about to step into[\s\S]{0,400}?Path\./i.exec(text)?.[0] ?? "";
@@ -298,7 +271,11 @@ export class Valhalla {
     if (/name=ascform/i.test(html)) {
       return { success: false, reason: "still on the reincarnation form" };
     }
-    if (/Valhalla|Beyond the Pale/i.test(html) && !/Welcome back/i.test(html)) {
+    // Valhalla's art stays under otherimages/valhalla/ even where the Beyond
+    // the Pale heading is replaced.
+    const stillUpHere =
+      /Beyond the Pale/i.test(html) || html.includes("otherimages/valhalla/");
+    if (stillUpHere && !/Welcome back/i.test(html)) {
       return { success: false, reason: "still in Valhalla" };
     }
     return { success: true };

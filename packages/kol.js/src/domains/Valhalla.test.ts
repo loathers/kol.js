@@ -35,7 +35,6 @@ describe("parsePasswordHash", () => {
     );
   });
 
-  // This is why an empty api.php hurts: nothing else here carries pwd.
   test.each(["afterlife", "reincarnate"])("%s carries none", async (name) => {
     expect(Valhalla.parsePasswordHash(await fixture(name))).toBeNull();
   });
@@ -99,8 +98,8 @@ describe("validate", () => {
     path: 22,
   };
 
-  // The whole point of validate is to catch values the types already forbid,
-  // so the overrides come in loosely typed.
+  // validate exists to catch values the types already forbid, so the overrides
+  // come in loosely typed.
   const validateWith = (override: Record<string, number>) =>
     Valhalla.validate({ ...choice, ...override });
 
@@ -149,8 +148,7 @@ describe("parseAscendConfirmation", () => {
   });
 
   test("picks up the conditional acknowledgements", async () => {
-    // These three are what a live run produced; a different run gets a
-    // different subset, which is why they are read off the page.
+    // What one live run produced; another gets a different subset.
     const confirmation = Valhalla.parseAscendConfirmation(
       await fixture("confirm"),
     );
