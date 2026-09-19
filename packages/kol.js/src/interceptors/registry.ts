@@ -6,6 +6,11 @@ export function registerInterceptor(interceptor: Interceptor): void {
   interceptors.push(interceptor);
 }
 
+export function unregisterInterceptor(interceptor: Interceptor): void {
+  const i = interceptors.indexOf(interceptor);
+  if (i >= 0) interceptors.splice(i, 1);
+}
+
 export function getMatchingInterceptors(req: KolRequest): Interceptor[] {
   return interceptors.filter((i) => {
     if (i.matches) return i.matches(req);

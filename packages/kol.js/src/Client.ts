@@ -54,7 +54,10 @@ export type Result<T = void> =
 
 class LoginRedirectError extends Error {}
 
-type FormData = Record<string, string | number | boolean>;
+export type FormValue = string | number | boolean;
+
+/** An array value repeats the field, named `key[]` so PHP collects it. */
+export type FormData = Record<string, FormValue | FormValue[]>;
 
 export type RequestOptions = {
   method?: string;
@@ -64,9 +67,18 @@ export type RequestOptions = {
 };
 
 function formToBody(form: FormData): URLSearchParams {
-  return new URLSearchParams(
-    Object.entries(form).map(([k, v]) => [k, String(v)]),
-  );
+  const body = new URLSearchParams();
+  for (const [k, v] of Object.entries(form)) {
+    if (!Array.isArray(v)) {
+      body.append(k, String(v));
+      continue;
+    }
+    const key = k.endsWith("[]") ? k : `${k}[]`;
+    for (const item of v) {
+      body.append(key, String(item));
+    }
+  }
+  return body;
 }
 
 function buildKolRequest(path: string, options: RequestOptions) {
@@ -77,8 +89,8 @@ function buildKolRequest(path: string, options: RequestOptions) {
     }
   }
   if (options.form) {
-    for (const [k, v] of Object.entries(options.form)) {
-      params.set(k, String(v));
+    for (const [k, v] of formToBody(options.form)) {
+      params.append(k, v);
     }
   }
   return { path, method: options.method ?? "POST", params };

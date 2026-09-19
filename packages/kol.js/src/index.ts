@@ -1,6 +1,14 @@
 export { Player, type ProfileData } from "./Player.js";
-export type { MallPrice, RequestOptions } from "./Client.js";
-export { registerInterceptor } from "./interceptors/registry.js";
+export type {
+  FormData,
+  FormValue,
+  MallPrice,
+  RequestOptions,
+} from "./Client.js";
+export {
+  registerInterceptor,
+  unregisterInterceptor,
+} from "./interceptors/registry.js";
 export type {
   Interceptor,
   KolRequest,

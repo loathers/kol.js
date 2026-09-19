@@ -175,7 +175,7 @@ export class Clan {
       form: {
         action: "modify",
         begin: 1,
-        "pids[]": playerId,
+        pids: [playerId],
         ...(rankId !== undefined && { [`level${playerId}`]: rankId }),
         ...(title !== undefined && { [`title${playerId}`]: title }),
       },

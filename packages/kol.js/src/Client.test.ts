@@ -3,6 +3,11 @@ import { describe, expect, it, test, vi } from "vitest";
 
 import { Client } from "./Client.js";
 import { AuthError } from "./errors.js";
+import {
+  registerInterceptor,
+  unregisterInterceptor,
+} from "./interceptors/registry.js";
+import type { KolRequest } from "./interceptors/types.js";
 import { loadFixture } from "./testUtils.js";
 
 const KOL = "https://www.kingdomofloathing.com";
@@ -422,5 +427,92 @@ describe("stopChatBot", () => {
       .simulateResponse(/\/api\.php/, []);
     await client.startChatBot();
     client.stopChatBot();
+  });
+});
+
+describe("form bodies", () => {
+  /** Reply once on `path`, recording the body sent. */
+  function captureBody(client: TestClient, path: RegExp) {
+    const captured = { body: "" };
+    client
+      .mock()
+      .intercept({ path, method: "POST" })
+      .reply(
+        200,
+        (opts) => {
+          captured.body = typeof opts.body === "string" ? opts.body : "";
+          return "<html>ok</html>";
+        },
+        { headers: { "content-type": "text/html" } },
+      );
+    return captured;
+  }
+
+  it("sends an array value as repeated keys, suffixing the name with []", async () => {
+    const client = new TestClient().simulateLoggedIn();
+    await client.login();
+
+    const captured = captureBody(client, /\/account\.php/);
+
+    await client.fetchText("account.php", {
+      form: { actions: ["unpath", "reset"], confirm: "on" },
+    });
+
+    const params = new URLSearchParams(captured.body);
+    expect(params.getAll("actions[]")).toEqual(["unpath", "reset"]);
+    expect(params.get("confirm")).toBe("on");
+    expect(params.get("pwd")).toBe("abc123");
+  });
+
+  it("does not double the [] on a key that already has it", async () => {
+    const client = new TestClient().simulateLoggedIn();
+    await client.login();
+
+    const captured = captureBody(client, /\/clan_whitelist\.php/);
+
+    await client.fetchText("clan_whitelist.php", {
+      form: { "pids[]": [437479, 437480] },
+    });
+
+    const params = new URLSearchParams(captured.body);
+    expect(params.getAll("pids[]")).toEqual(["437479", "437480"]);
+  });
+
+  it("leaves a scalar value's key alone", async () => {
+    const client = new TestClient().simulateLoggedIn();
+    await client.login();
+
+    const captured = captureBody(client, /\/clan_whitelist\.php/);
+
+    await client.fetchText("clan_whitelist.php", {
+      form: { action: "modify", "pids[]": 437479 },
+    });
+
+    const params = new URLSearchParams(captured.body);
+    expect(params.get("pids[]")).toBe("437479");
+    expect(params.get("action")).toBe("modify");
+  });
+
+  it("exposes repeated form keys to request interceptors", async (ctx) => {
+    const seen: string[][] = [];
+    const interceptor = {
+      path: "interceptme.php",
+      onRequest(_client: Client, req: KolRequest) {
+        seen.push(req.params.getAll("actions[]"));
+      },
+    };
+    registerInterceptor(interceptor);
+    ctx.onTestFinished(() => unregisterInterceptor(interceptor));
+
+    const client = new TestClient().simulateLoggedIn();
+    await client.login();
+
+    captureBody(client, /\/interceptme\.php/);
+
+    await client.fetchText("interceptme.php", {
+      form: { actions: ["unpath", "reset"] },
+    });
+
+    expect(seen).toEqual([["unpath", "reset"]]);
   });
 });
