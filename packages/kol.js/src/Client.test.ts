@@ -3,7 +3,11 @@ import { describe, expect, it, test, vi } from "vitest";
 
 import { Client } from "./Client.js";
 import { AuthError } from "./errors.js";
-import { registerInterceptor } from "./interceptors/registry.js";
+import {
+  registerInterceptor,
+  unregisterInterceptor,
+} from "./interceptors/registry.js";
+import type { KolRequest } from "./interceptors/types.js";
 import { loadFixture } from "./testUtils.js";
 
 const KOL = "https://www.kingdomofloathing.com";
@@ -388,14 +392,16 @@ describe("form bodies", () => {
     expect(params.get("action")).toBe("modify");
   });
 
-  it("exposes repeated form keys to request interceptors", async () => {
+  it("exposes repeated form keys to request interceptors", async (ctx) => {
     const seen: string[][] = [];
-    registerInterceptor({
+    const interceptor = {
       path: "interceptme.php",
-      onRequest(_client, req) {
+      onRequest(_client: Client, req: KolRequest) {
         seen.push(req.params.getAll("actions[]"));
       },
-    });
+    };
+    registerInterceptor(interceptor);
+    ctx.onTestFinished(() => unregisterInterceptor(interceptor));
 
     const client = new TestClient().simulateLoggedIn();
     await client.login();

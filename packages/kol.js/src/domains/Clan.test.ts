@@ -203,7 +203,7 @@ describe("setPlayerRank", () => {
     await clan.setPlayerRank(437479);
     expect(spy).toHaveBeenCalledWith("clan_members.php", {
       method: "POST",
-      form: { action: "modify", begin: 1, "pids[]": 437479 },
+      form: { action: "modify", begin: 1, pids: [437479] },
     });
   });
 
@@ -219,7 +219,7 @@ describe("setPlayerRank", () => {
       form: {
         action: "modify",
         begin: 1,
-        "pids[]": 437479,
+        pids: [437479],
         level437479: 2,
         title437479: "Runner",
       },

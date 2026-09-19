@@ -54,10 +54,10 @@ export type Result<T = void> =
 
 class LoginRedirectError extends Error {}
 
-type FormValue = string | number | boolean;
+export type FormValue = string | number | boolean;
 
 /** An array value repeats the field, named `key[]` so PHP collects it. */
-type FormData = Record<string, FormValue | FormValue[]>;
+export type FormData = Record<string, FormValue | FormValue[]>;
 
 export type RequestOptions = {
   method?: string;
