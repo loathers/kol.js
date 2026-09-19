@@ -94,6 +94,30 @@ describe.concurrent("auth integration", () => {
     ctx.expect(count).toBe(0);
   });
 
+  it("login succeeds in valhalla, where api.php is empty", async (ctx) => {
+    const client = await createTestClient(ctx);
+    client.simulateValhalla(true);
+
+    ctx.expect(await client.login()).toBe(true);
+    ctx.expect(client.inValhalla()).toBe(true);
+    ctx
+      .expect(await client.fetchText("afterlife.php"))
+      .toContain("Beyond the Pale");
+  });
+
+  it("picks the character back up on leaving valhalla", async (ctx) => {
+    const client = await createTestClient(ctx);
+    client.simulateValhalla(true);
+    await client.login();
+
+    client.simulateValhalla(false);
+    const status = await client.fetchStatus();
+
+    ctx.expect(client.inValhalla()).toBe(false);
+    ctx.expect(status.playerid).toBe("1");
+    ctx.expect(client.level).toBe(1);
+  });
+
   it("logout emits logout event with player info", async (ctx) => {
     const client = await createTestClient(ctx);
     await client.login();

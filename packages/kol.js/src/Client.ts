@@ -142,10 +142,11 @@ export class Client extends Emittery<Events> {
         options.dispatcher = this.dispatcher;
         if (options.query) {
           const { pwd: _, ...rest } = options.query;
-          options.query = { ...rest, pwd: this.#pwd };
+          options.query = this.#pwd ? { ...rest, pwd: this.#pwd } : rest;
         }
         if (options.body instanceof URLSearchParams) {
-          options.body.set("pwd", this.#pwd);
+          if (this.#pwd) options.body.set("pwd", this.#pwd);
+          else options.body.delete("pwd");
         }
       },
       onResponse: ({ request, response }) => {
@@ -189,6 +190,8 @@ export class Client extends Emittery<Events> {
   #username: string;
   #password: string;
   #isRollover = false;
+  #inValhalla = false;
+  #loggedIn = false;
   #hardcore = false;
   #roninLeft = 0;
   #disposed = false;
@@ -230,6 +233,8 @@ export class Client extends Emittery<Events> {
   /** Clear the session token, used by the logout action. */
   clearSession(): void {
     this.#pwd = "";
+    this.#loggedIn = false;
+    this.#inValhalla = false;
   }
 
   get level() {
@@ -283,7 +288,7 @@ export class Client extends Emittery<Events> {
   async #withRecovery<T>(fn: () => Promise<T>): Promise<T> {
     if (this.#isRollover) await this.waitForRolloverEnd();
 
-    if (!this.#pwd && !(await this.login())) {
+    if ((!this.#loggedIn || this.#inValhalla) && !(await this.login())) {
       if (this.#isRollover) {
         await this.waitForRolloverEnd();
         if (!(await this.login())) throw new AuthError();
@@ -302,7 +307,7 @@ export class Client extends Emittery<Events> {
           continue;
         }
         if (error instanceof LoginRedirectError && attempt === 0) {
-          this.#pwd = "";
+          this.clearSession();
           if (!(await this.login())) {
             if (this.#isRollover) {
               await this.waitForRolloverEnd();
@@ -428,6 +433,10 @@ export class Client extends Emittery<Events> {
     return this.#isRollover;
   }
 
+  inValhalla() {
+    return this.#inValhalla;
+  }
+
   isHardcore() {
     return this.#hardcore;
   }
@@ -449,10 +458,11 @@ export class Client extends Emittery<Events> {
       const raw = await this.session<unknown>("api.php", {
         query: { what: "status", for: `${this.#username} bot` },
       });
-      if (!raw || typeof raw !== "object" || !("pwd" in raw)) return false;
+      if (!raw || typeof raw !== "object" || !("pwd" in raw)) {
+        return await this.#checkValhalla();
+      }
       const api = ApiStatusSchema.parse(raw);
       void this.emit("apiStatus", api);
-      const wasLoggedIn = !!this.#pwd;
       this.#pwd = api.pwd;
       this.#playerId = api.playerid;
       this.#hardcore = api.hardcore;
@@ -477,16 +487,62 @@ export class Client extends Emittery<Events> {
       if (api.daynumber > prevDay && prevDay > 0) {
         this.#invalidateDailyCaches();
       }
-      if (!wasLoggedIn) {
-        void this.emit("login", {
-          playerName: this.#username,
-          playerId: this.#playerId,
-        });
-      }
+      this.#markLoggedIn(false);
       return true;
     } catch {
       return false;
     }
+  }
+
+  #markLoggedIn(inValhalla: boolean): void {
+    const wasLoggedIn = this.#loggedIn;
+    this.#loggedIn = true;
+    this.#inValhalla = inValhalla;
+    if (!wasLoggedIn) {
+      void this.emit("login", {
+        playerName: this.#username,
+        playerId: this.#playerId,
+      });
+    }
+  }
+
+  async #checkValhalla(): Promise<boolean> {
+    let charpane: string;
+    try {
+      charpane = await this.session("charpane.php", {
+        responseType: "text",
+      });
+    } catch {
+      return false;
+    }
+
+    if (
+      !charpane.includes("otherimages/spirit.gif") &&
+      !charpane.includes("<br>Lvl. <img")
+    )
+      return false;
+
+    this.#pwd = charpane.match(/var pwdhash = "([0-9a-f]+)"/)?.[1] ?? "";
+    this.#resetCharacterState();
+    this.#markLoggedIn(true);
+    return true;
+  }
+
+  #resetCharacterState(): void {
+    this.#hardcore = false;
+    this.#roninLeft = 0;
+    this.#level = 0;
+    this.#class = null;
+    this.#path = null;
+    this.#location = null;
+    this.#adventures = 0;
+    this.#hp = 0;
+    this.#maxHp = 0;
+    this.#mp = 0;
+    this.#maxMp = 0;
+    this.#fullness = 0;
+    this.#inebriety = 0;
+    this.#toxicity = 0;
   }
 
   #invalidateDailyCaches(): void {

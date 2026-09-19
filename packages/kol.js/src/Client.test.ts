@@ -7,8 +7,38 @@ import { loadFixture } from "./testUtils.js";
 
 const KOL = "https://www.kingdomofloathing.com";
 
+const VALHALLA_PWD = "0123456789abcdef0123456789abcdef";
+
+const VALHALLA_CHARPANE = `<html><script>var pwdhash = "${VALHALLA_PWD}";</script><img src="otherimages/spirit.gif"></html>`;
+
+function statusPayload({ daynumber = "1", ascensions = "0" } = {}) {
+  return {
+    pwd: "abc123",
+    playerid: "1",
+    daynumber,
+    ascensions,
+    hardcore: "0",
+    turnsplayed: "0",
+    level: "1",
+    roninleft: "0",
+    path: "0",
+    sign: "None",
+    adventures: "40",
+    class: "0",
+    hp: "10",
+    maxhp: 10,
+    mp: "10",
+    maxmp: 10,
+    spleen: "10",
+    full: "10",
+    drunk: "10",
+    rollover: "1778556599",
+  };
+}
+
 class TestClient extends Client {
   agent = new MockAgent();
+  valhalla = false;
 
   constructor() {
     super("testuser", "testpass");
@@ -23,35 +53,14 @@ class TestClient extends Client {
     return this.agent.get(KOL);
   }
 
-  simulateLoggedIn({ daynumber = "1", ascensions = "0" } = {}) {
+  simulateLoggedIn(
+    overrides: { daynumber?: string; ascensions?: string } = {},
+  ) {
     this.mock()
       .intercept({ path: /\/api\.php/, method: "GET" })
-      .reply(
-        200,
-        JSON.stringify({
-          pwd: "abc123",
-          playerid: "1",
-          daynumber,
-          ascensions,
-          hardcore: "0",
-          turnsplayed: "0",
-          level: "1",
-          roninleft: "0",
-          path: "0",
-          sign: "None",
-          adventures: "40",
-          class: "0",
-          hp: "10",
-          maxhp: 10,
-          mp: "10",
-          maxmp: 10,
-          spleen: "10",
-          full: "10",
-          drunk: "10",
-          rollover: "1778556599",
-        }),
-        { headers: { "content-type": "application/json" } },
-      );
+      .reply(200, JSON.stringify(statusPayload(overrides)), {
+        headers: { "content-type": "application/json" },
+      });
     return this;
   }
 
@@ -102,6 +111,32 @@ class TestClient extends Client {
 
   simulateServerError(path: RegExp | string = /.*/) {
     this.mock().intercept({ path }).reply(500, "Internal Server Error");
+    return this;
+  }
+
+  simulateValhalla() {
+    this.valhalla = true;
+    this.mock()
+      .intercept({ path: /\/api\.php/, method: "GET" })
+      .reply(
+        200,
+        () => (this.valhalla ? "" : JSON.stringify(statusPayload())),
+        {
+          headers: { "content-type": "application/json" },
+        },
+      )
+      .persist();
+    this.mock()
+      .intercept({ path: /\/charpane\.php/ })
+      .reply(200, VALHALLA_CHARPANE, {
+        headers: { "content-type": "text/html" },
+      })
+      .persist();
+    return this;
+  }
+
+  leaveValhalla() {
+    this.valhalla = false;
     return this;
   }
 }
@@ -262,6 +297,72 @@ describe("login", () => {
     ]);
 
     expect(results).toEqual([true, true, true]);
+  });
+});
+
+describe("valhalla", () => {
+  it("counts as logged in even though api.php is empty", async () => {
+    const client = new TestClient().simulateValhalla();
+
+    expect(await client.checkLoggedIn()).toBe(true);
+    expect(client.inValhalla()).toBe(true);
+  });
+
+  it("logs in without throwing AuthError", async () => {
+    const client = new TestClient().simulateValhalla();
+
+    expect(await client.login()).toBe(true);
+  });
+
+  it("sends the pwd from the charpane", async () => {
+    const client = new TestClient().simulateValhalla();
+    await client.login();
+
+    let requestedPath = "";
+    let requestedBody = "";
+    client
+      .mock()
+      .intercept({ path: /\/afterlife\.php/, method: "POST" })
+      .reply(200, (options) => {
+        requestedPath = options.path;
+        requestedBody = typeof options.body === "string" ? options.body : "";
+        return "<html>Beyond the Pale</html>";
+      });
+
+    await client.fetchText("afterlife.php", {
+      query: { place: "reincarnate" },
+      form: { whichsign: "1" },
+    });
+
+    expect(requestedPath).toBe(
+      `/afterlife.php?place=reincarnate&pwd=${VALHALLA_PWD}`,
+    );
+    expect(requestedBody).toBe(`whichsign=1&pwd=${VALHALLA_PWD}`);
+  });
+
+  it("reports no character state", async () => {
+    const client = new TestClient().simulateLoggedIn();
+    await client.login();
+    expect(client.level).toBe(1);
+
+    client.simulateValhalla();
+    await client.checkLoggedIn();
+
+    expect(client.level).toBe(0);
+    expect(client.adventures).toBe(0);
+    expect(client.maxHp).toBe(0);
+  });
+
+  it("picks the character back up once out of valhalla", async () => {
+    const client = new TestClient().simulateValhalla();
+    await client.login();
+    expect(client.inValhalla()).toBe(true);
+
+    client.leaveValhalla().simulateResponse(/\/test\.php/, { ok: true });
+
+    expect(await client.fetchJson("test.php")).toEqual({ ok: true });
+    expect(client.inValhalla()).toBe(false);
+    expect(client.level).toBe(1);
   });
 });
 
