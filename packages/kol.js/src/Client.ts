@@ -29,6 +29,7 @@ import { Skills } from "./domains/Skills.js";
 import { Storage } from "./domains/Storage.js";
 import { AuthError, JoinClanError, RolloverError } from "./errors.js";
 import { Flags, type FlagsBackend } from "./flags/Flags.js";
+import "./interceptors/acquisitions.js";
 import { defineAction } from "./interceptors/action.js";
 import {
   runRequestPipeline,
