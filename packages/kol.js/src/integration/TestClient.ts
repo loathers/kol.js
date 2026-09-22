@@ -25,7 +25,7 @@ export class TestClient extends Client {
   private server: Server;
   private port = 0;
   private rollover = false;
-  private valhalla = false;
+  private simulatingValhalla = false;
   private accounts: Account[] = [
     { username: "testuser", password: "testpass", id: 1 },
   ];
@@ -70,7 +70,7 @@ export class TestClient extends Client {
   }
 
   simulateValhalla(valhalla: boolean) {
-    this.valhalla = valhalla;
+    this.simulatingValhalla = valhalla;
   }
 
   override dispose() {
@@ -167,8 +167,11 @@ export class TestClient extends Client {
       case "charpane.php": {
         res.writeHead(200, { "content-type": "text/html" });
         res.end(
-          `<html><script>var pwdhash = "${session.pwd}";</script>` +
-            (this.valhalla ? '<img src="otherimages/spirit.gif">' : "") +
+          `<html><script>var playerid = ${session.playerId};` +
+            `var pwdhash = "${session.pwd}";</script>` +
+            (this.simulatingValhalla
+              ? '<img src="otherimages/spirit.gif">'
+              : "") +
             "</html>",
         );
         return;
@@ -181,7 +184,7 @@ export class TestClient extends Client {
       case "api.php": {
         const what = url.searchParams.get("what");
         if (what === "status") {
-          if (this.valhalla) {
+          if (this.simulatingValhalla) {
             res.writeHead(200, { "content-type": "application/json" });
             res.end("");
             return;
