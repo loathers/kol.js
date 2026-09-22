@@ -27,7 +27,6 @@ import { Modifiers } from "./domains/Modifiers.js";
 import { Players } from "./domains/Players.js";
 import { Skills } from "./domains/Skills.js";
 import { Storage } from "./domains/Storage.js";
-import { Valhalla } from "./domains/Valhalla.js";
 import { AuthError, JoinClanError, RolloverError } from "./errors.js";
 import { Flags, type FlagsBackend } from "./flags/Flags.js";
 import "./interceptors/acquisitions.js";
@@ -37,6 +36,11 @@ import {
   runResponsePipeline,
 } from "./interceptors/pipeline.js";
 import { ProxyServer } from "./proxy/ProxyServer.js";
+import {
+  parseInValhalla,
+  parsePasswordHash,
+  parsePlayerId,
+} from "./utils/charpane.js";
 import { deduplicate } from "./utils/deduplicate.js";
 import { sanitiseBlueText, wait } from "./utils/utils.js";
 import { resolveEntityId } from "./utils/utils.js";
@@ -197,7 +201,6 @@ export class Client extends Emittery<Events> {
   inventory = new Inventory(this);
   players = new Players(this);
   storage = new Storage(this);
-  valhalla = new Valhalla(this);
   chat = new ChatMailbox(this);
   kmail = new KmailMailbox(this);
   flags: Flags;
@@ -304,7 +307,7 @@ export class Client extends Emittery<Events> {
     if (this.#isRollover) await this.waitForRolloverEnd();
 
     // Ascending is how we leave, so every request re-checks while up there.
-    if (this.#loggedIn && this.#inValhalla) await this.checkLoggedIn();
+    if (this.#inValhalla) await this.checkLoggedIn();
 
     if (!this.#loggedIn && !(await this.login())) {
       if (this.#isRollover) {
@@ -526,10 +529,7 @@ export class Client extends Emittery<Events> {
 
   async #checkValhalla(): Promise<boolean> {
     // A working hash needs no charpane to confirm it.
-    if (this.#inValhalla && this.#pwd) {
-      this.#markLoggedIn(true);
-      return true;
-    }
+    if (this.#inValhalla && this.#pwd) return true;
 
     let charpane: string;
     try {
@@ -540,11 +540,11 @@ export class Client extends Emittery<Events> {
       return false;
     }
 
-    if (!Valhalla.parseInValhalla(charpane)) return false;
+    if (!parseInValhalla(charpane)) return false;
 
     // Keep a working hash over none.
-    this.#pwd = Valhalla.parsePasswordHash(charpane) ?? this.#pwd;
-    this.#playerId = Valhalla.parsePlayerId(charpane) ?? this.#playerId;
+    this.#pwd = parsePasswordHash(charpane) ?? this.#pwd;
+    this.#playerId = parsePlayerId(charpane) ?? this.#playerId;
     this.#resetCharacterState();
     this.#markLoggedIn(true);
     return true;

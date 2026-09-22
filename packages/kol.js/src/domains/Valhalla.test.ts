@@ -3,6 +3,11 @@ import { describe, expect, test, vi } from "vitest";
 
 import { Client } from "../Client.js";
 import { loadFixture } from "../testUtils.js";
+import {
+  parseInValhalla,
+  parsePasswordHash,
+  parsePlayerId,
+} from "../utils/charpane.js";
 import { Gender } from "./Gender.js";
 import { Lifestyle } from "./Lifestyle.js";
 import { MoonSign } from "./MoonSign.js";
@@ -13,39 +18,37 @@ const fixture = (name: string) =>
 
 describe("parseInValhalla", () => {
   test("detects a spirit's charpane", async () => {
-    expect(Valhalla.parseInValhalla(await fixture("charpane"))).toBe(true);
+    expect(parseInValhalla(await fixture("charpane"))).toBe(true);
   });
 
-  test("accepts the second marker KoLmafia knows about", () => {
-    expect(Valhalla.parseInValhalla("x<br>Lvl. <img src=y>")).toBe(true);
+  test("accepts a charpane that only shows the level image", () => {
+    expect(parseInValhalla("x<br>Lvl. <img src=y>")).toBe(true);
   });
 
   test("rejects an ordinary charpane", () => {
-    expect(Valhalla.parseInValhalla("<html>ordinary charpane</html>")).toBe(
-      false,
-    );
+    expect(parseInValhalla("<html>ordinary charpane</html>")).toBe(false);
   });
 });
 
 describe("parsePasswordHash", () => {
   test("reads the hash charpane declares", async () => {
-    expect(Valhalla.parsePasswordHash(await fixture("charpane"))).toMatch(
+    expect(parsePasswordHash(await fixture("charpane"))).toMatch(
       /^[0-9a-f]{32}$/,
     );
   });
 
   test.each(["afterlife", "reincarnate"])("%s carries none", async (name) => {
-    expect(Valhalla.parsePasswordHash(await fixture(name))).toBeNull();
+    expect(parsePasswordHash(await fixture(name))).toBeNull();
   });
 });
 
 describe("parsePlayerId", () => {
   test("reads the id charpane declares", async () => {
-    expect(Valhalla.parsePlayerId(await fixture("charpane"))).toBe("24");
+    expect(parsePlayerId(await fixture("charpane"))).toBe("24");
   });
 
   test.each(["afterlife", "reincarnate"])("%s carries none", async (name) => {
-    expect(Valhalla.parsePlayerId(await fixture(name))).toBeNull();
+    expect(parsePlayerId(await fixture(name))).toBeNull();
   });
 });
 
@@ -350,8 +353,9 @@ describe("Karma vendors", () => {
   });
 
   test("does not take a row's image for a second offer", async () => {
-    expect(await fixture("deli")).toMatch(/descitem/);
-    expect(Valhalla.parseAstralOffers(await fixture("deli"))).toHaveLength(3);
+    const deli = await fixture("deli");
+    expect(deli).toMatch(/descitem/);
+    expect(Valhalla.parseAstralOffers(deli)).toHaveLength(3);
   });
 
   test("finds nothing on a page that sells nothing", async () => {
