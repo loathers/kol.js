@@ -8,6 +8,8 @@ import type {
   ModifierSource,
 } from "../modifiers/index.js";
 import { resolveModifiers } from "../modifiers/index.js";
+import { deduplicate } from "../utils/deduplicate.js";
+import type { ApiStatus } from "./ApiStatus.js";
 import { Effects } from "./Effects.js";
 import { Equipment } from "./Equipment.js";
 import { familiarBaseWeight } from "./Familiar.js";
@@ -19,21 +21,31 @@ export class Modifiers {
     this.#client = client;
   }
 
-  async getAll(): Promise<Map<string, EvaluatedModifier>> {
+  /**
+   * Every modifier the character currently has, resolved from scratch.
+   *
+   * Concurrent callers share one resolution: `get(name)` runs the whole
+   * pipeline, so asking for two dozen named modifiers in parallel would
+   * otherwise repeat all of it two dozen times over. The shared promise is
+   * dropped as soon as it settles, so a later call still reads fresh state.
+   */
+  getAll = deduplicate(async (): Promise<Map<string, EvaluatedModifier>> => {
+    // One status fetch, not two. `api.php` is a network round trip and both
+    // halves of the resolution need the same answer.
+    const status = await this.#client.fetchStatus();
     const [sources, context] = await Promise.all([
-      this.#buildSources(),
-      this.#buildContext(),
+      this.#buildSources(status),
+      this.#buildContext(status),
     ]);
     return resolveModifiers(sources, context);
-  }
+  });
 
   async get(name: string): Promise<EvaluatedModifier | null> {
     return (await this.getAll()).get(name) ?? null;
   }
 
-  async #buildContext(): Promise<ExpressionContext> {
-    const [status, skillMap, equipmentMap] = await Promise.all([
-      this.#client.fetchStatus(),
+  async #buildContext(status: ApiStatus): Promise<ExpressionContext> {
+    const [skillMap, equipmentMap] = await Promise.all([
       this.#client.charSheet.getSkills(),
       this.#client.equipment.get(),
     ]);
@@ -58,8 +70,7 @@ export class Modifiers {
     };
   }
 
-  async #buildSources(): Promise<ModifierSource[]> {
-    const status = await this.#client.fetchStatus();
+  async #buildSources(status: ApiStatus): Promise<ModifierSource[]> {
     const sources: ModifierSource[] = [];
 
     await Promise.all([
@@ -114,7 +125,7 @@ export class Modifiers {
   async evaluateItem(itemId: number): Promise<Map<string, EvaluatedModifier>> {
     const [modsMap, context] = await Promise.all([
       gameData.findModifiersForItemIds([itemId]),
-      this.#buildContext(),
+      this.#client.fetchStatus().then((status) => this.#buildContext(status)),
     ]);
     const mods = modsMap.get(itemId);
     if (!mods) return new Map();
