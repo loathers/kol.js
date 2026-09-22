@@ -1,0 +1,46 @@
+<html><head>
+<script language=Javascript>
+<!--
+if (parent.frames.length == 0) location.href="game.php";
+//-->
+</script>
+<script language=Javascript src="https://images.kingdomofloathing.com/scripts/core.js"></script>
+<script language=Javascript src="https://images.kingdomofloathing.com/scripts/keybinds.min.2.js"></script>
+<script language=Javascript src="https://images.kingdomofloathing.com/scripts/window.20111231.js"></script>
+<script language="javascript">function chatFocus(){if(top.chatpane.document.chatform.graf) top.chatpane.document.chatform.graf.focus();}
+if (typeof defaultBind != 'undefined') { defaultBind(47, 2, chatFocus); defaultBind(190, 2, chatFocus);defaultBind(191, 2, chatFocus); defaultBind(47, 8, chatFocus);defaultBind(190, 8, chatFocus); defaultBind(191, 8, chatFocus); }</script><script>
+function font(which)
+{
+   document.f.font.value = which;
+   document.f.submit();
+}
+function maxlen(textarea)
+{
+	var max = 11111;
+	var len = textarea.value.length;
+	var counter = getObj('counter');
+	if (!counter)
+		return;
+
+	if (len > max)
+		counter.className = "redbold";
+	else
+		counter.className = "";
+	counter.innerHTML = len;
+}
+</script><script language=Javascript src="https://images.kingdomofloathing.com/scripts/jquery-1.3.1.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="https://images.kingdomofloathing.com/styles.20230117d.css">
+<style type='text/css'>
+.faded {
+	zoom: 1;
+	filter: alpha(opacity=35);
+	opacity: 0.35;
+	-khtml-opacity: 0.35; 
+    -moz-opacity: 0.35;
+}
+</style>
+
+</head>
+
+<body>
+<centeR><table  width=95%  cellspacing=0 cellpadding=0><tr><td style="background-color: blue" align=center ><b style="color: white">Your Quest Log</b></td></tr><tr><td style="padding: 5px; border: 1px solid blue;"><center><table><tr><td><Center>[current quests]&nbsp;&nbsp;&nbsp;[<a href="questlog.php?which=2">completed quests</a>]&nbsp;&nbsp;&nbsp;[<a href="questlog.php?which=3">other accomplishments</a>]&nbsp;&nbsp;&nbsp;[<a href="questlog.php?which=4">notes</a>]&nbsp;&nbsp;&nbsp;[<a href="questlog.php?which=6">Monster Manuel</a>]</center><p><center><b>Current Quests:</b></center><b>Council Quests:</b><blockquote><b>Ooh, I Think I Smell a Bat.</b><br> Find and defeat the Boss Bat, in the Bat Hole on the <a class=nounder target=mainpane href=plains.php><b>Nearby Plains</b></a>.<p></blockquote><p><p><center><a href="campground.php">Back to your Campsite</a></center></td></tr></table></center></td></tr><tr><td height=4></td></tr></table></center></body></html>
