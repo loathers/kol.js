@@ -1,4 +1,4 @@
-/** How restricted a run is, spelled the way ascensionhistory.php reports it. */
+/** Spelled the way ascensionhistory.php reports it. */
 export const Lifestyle = {
   Casual: "CASUAL",
   Softcore: "SOFTCORE",
@@ -12,7 +12,7 @@ const IDS: Record<Lifestyle, number> = {
   [Lifestyle.Hardcore]: 3,
 };
 
-/** The value the reincarnation form's `asctype` select uses. */
+/** The reincarnation form's `asctype` value. */
 export function lifestyleId(lifestyle: Lifestyle): number {
   return IDS[lifestyle];
 }

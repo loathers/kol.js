@@ -302,9 +302,8 @@ export class Client extends Emittery<Events> {
   async #withRecovery<T>(fn: () => Promise<T>): Promise<T> {
     if (this.#isRollover) await this.waitForRolloverEnd();
 
-    // Ascending is how we leave Valhalla, so while we are up there every
-    // request has to re-check; api.php alone answers that. A hiccup leaves the
-    // session we already have in place for the retry loop below to sort out.
+    // Ascending is how we leave Valhalla, so every request re-checks while we
+    // are up there. A hiccup leaves the retry loop below to sort out.
     if (this.#loggedIn && this.#inValhalla) await this.checkLoggedIn();
 
     if (!this.#loggedIn && !(await this.login())) {
@@ -526,8 +525,7 @@ export class Client extends Emittery<Events> {
   }
 
   async #checkValhalla(): Promise<boolean> {
-    // Already up here with a hash that works: an empty api.php is confirmation
-    // enough, and charpane.php would only say the same thing again.
+    // A working hash up here needs no charpane to say so again.
     if (this.#inValhalla && this.#pwd) {
       this.#markLoggedIn(true);
       return true;
@@ -544,8 +542,7 @@ export class Client extends Emittery<Events> {
 
     if (!Valhalla.parseInValhalla(charpane)) return false;
 
-    // Keep what we already have if the charpane declares neither: a hash that
-    // has been working beats no hash at all.
+    // A hash that has been working beats no hash at all.
     this.#pwd = Valhalla.parsePasswordHash(charpane) ?? this.#pwd;
     this.#playerId = Valhalla.parsePlayerId(charpane) ?? this.#playerId;
     this.#resetCharacterState();

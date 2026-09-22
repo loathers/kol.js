@@ -8,16 +8,13 @@ import { Lifestyle, lifestyleFromId, lifestyleId } from "./Lifestyle.js";
 import { MoonSign, moonSignFromId, moonSignId } from "./MoonSign.js";
 
 /**
- * Valhalla — afterlife.php.
- *
- * api.php returns an empty body here, so charpane.php is the only page carrying
- * `pwd`; {@link Client} logs in through the parsers below. Ascending is two
- * POSTs, and only the second, carrying `confirmascend=1`, commits.
+ * Valhalla — afterlife.php. api.php is empty up here, so charpane.php is the
+ * only page carrying `pwd`. Ascending is two POSTs; only the second commits.
  */
 
 export type ValhallaPlace = "permery" | "deli" | "armory" | "reincarnate";
 
-/** Classes and paths stay ids, since their names live in data-of-loathing. */
+/** Classes and paths stay ids; their names live in data-of-loathing. */
 export type ReincarnationOptions = {
   lifestyles: Lifestyle[];
   classes: number[];
@@ -27,11 +24,7 @@ export type ReincarnationOptions = {
   defaultPath: number | null;
 };
 
-/**
- * The confirmation step's echoed form. Acknowledgements are conditional — you
- * only get `nopetok` if you skipped an astral pet — so they are read off the
- * page rather than assumed.
- */
+/** Acknowledgements are conditional, so they are read off the page. */
 export type AscensionConfirmation = {
   fields: Record<string, string>;
   acknowledgements: Record<string, string>;
@@ -48,16 +41,8 @@ export type AscensionChoice = {
 
 export type PathDescription = { image: string; text: string };
 
-/**
- * Something a Karma vendor is offering.
- *
- * The Deli Lama sells astral consumables, the best adventures-per-organ a
- * fresh run will see. Karma banks across ascensions and is worthless unspent,
- * so walking past these during setup throws away most of a day's turns.
- */
 export type AstralOffer = { item: number; descId: number; name: string };
 
-/** The places that sell for Karma, and the action that buys from each. */
 const VENDOR_ACTIONS: Partial<Record<ValhallaPlace, string>> = {
   deli: "buydeli",
   armory: "buyarmory",
@@ -110,16 +95,11 @@ export class Valhalla {
     });
   }
 
-  /** What a Karma vendor is currently offering. */
   async getAstralOffers(place: ValhallaPlace): Promise<AstralOffer[]> {
     return Valhalla.parseAstralOffers(await this.visit(place));
   }
 
-  /**
-   * Spend Karma on one item.
-   *
-   * @throws if the place is not one of the Karma vendors
-   */
+  /** @throws if the place is not a Karma vendor */
   async buyAstral(
     place: ValhallaPlace,
     item: AstralOffer | number,
@@ -141,7 +121,7 @@ export class Valhalla {
     return Valhalla.parseReincarnationOptions(await this.visit("reincarnate"));
   }
 
-  /** The form's own preview endpoint. Class and lifestyle only affect wording. */
+  /** Class and lifestyle only affect the wording. */
   async describePath(
     path: number,
     playerClass: AscensionClass | number = 1,
@@ -159,10 +139,10 @@ export class Valhalla {
   }
 
   /**
-   * Ascend. Irreversible — this starts the run. Use proposeAscension and
-   * confirmAscension instead to read the confirmation before committing.
+   * Irreversible: this starts the run. Use proposeAscension and
+   * confirmAscension to read the confirmation before committing.
    *
-   * @throws if the choice is not a combination the game will accept
+   * @throws if the game will not accept the choice
    */
   async ascend(choice: AscensionChoice): Promise<Result> {
     const confirmation = await this.proposeAscension(choice);
@@ -173,10 +153,9 @@ export class Valhalla {
   }
 
   /**
-   * Step one, which does NOT start the run. Null means the game handed back
-   * something other than a confirmation, which is how a refusal shows up.
+   * Does not start the run. Null is a refusal: anything but a confirmation.
    *
-   * @throws if the choice is not a combination the game will accept
+   * @throws if the game will not accept the choice
    */
   async proposeAscension(
     choice: AscensionChoice,
@@ -197,7 +176,7 @@ export class Valhalla {
     return Valhalla.parseAscendConfirmation(html);
   }
 
-  /** Step two. Irreversible — this starts the run. */
+  /** Irreversible: this starts the run. */
   async confirmAscension(confirmation: AscensionConfirmation): Promise<Result> {
     const html = await this.#client.fetchText("afterlife.php", {
       form: { ...confirmation.fields, ...confirmation.acknowledgements },
@@ -205,7 +184,6 @@ export class Valhalla {
     return Valhalla.parseAscendResult(html);
   }
 
-  /** The two markers KoLmafia looks for, in its order of preference. */
   static parseInValhalla(charpane: string): boolean {
     return (
       charpane.includes("otherimages/spirit.gif") ||
@@ -220,7 +198,7 @@ export class Valhalla {
     );
   }
 
-  /** Likewise, with api.php empty this is the only place to learn who we are. */
+  /** Likewise; api.php is empty up here. */
   static parsePlayerId(charpane: string): string | null {
     return /var\s+playerid\s*=\s*(\d+)/i.exec(charpane)?.[1] ?? null;
   }
@@ -257,7 +235,7 @@ export class Valhalla {
     if (!Object.values(Lifestyle).includes(choice.lifestyle)) {
       return `invalid lifestyle ${choice.lifestyle}`;
     }
-    // The live set is getReincarnationOptions().classes; this rules out 0.
+    // The live set is getReincarnationOptions().classes; this only rules out 0.
     const classId = resolveEntityId(choice.class);
     if (!Number.isInteger(classId) || classId < 1) {
       return `invalid class ${classId}`;
@@ -271,14 +249,13 @@ export class Valhalla {
     if (!Number.isInteger(choice.path) || choice.path < 0) {
       return `invalid path ${choice.path}`;
     }
-    // The form drops the Bad Moon option unless you are on no path at all.
+    // The form only offers Bad Moon on no path at all.
     if (choice.sign === MoonSign.BadMoon && choice.path !== 0) {
       return "Bad Moon can only be taken on an unrestricted path";
     }
     return null;
   }
 
-  /** Null when the page is not a confirmation. */
   static parseAscendConfirmation(html: string): AscensionConfirmation | null {
     const form = /<form[^>]*id=["']?confirmascend["']?[\s\S]*?<\/form>/i.exec(
       html,
@@ -306,7 +283,7 @@ export class Valhalla {
     if (!("confirmascend" in fields)) return null;
 
     // Not cleanString(): it drops tags without a separator, and the summary
-    // runs straight through a </b><p> boundary.
+    // runs straight through a </b><p>.
     const text = decodeHTML(html)
       .replace(/<[^>]+>/g, " ")
       .replace(/\s+/g, " ");
@@ -317,9 +294,8 @@ export class Valhalla {
   }
 
   /**
-   * Vendor stock. Each offer pairs a descitem() call naming the item with the
-   * whichitem its own buy form posts, which is the only handle the markup
-   * gives on that pairing.
+   * Rows carry a second descitem() on the image; only the name's sits
+   * alongside the whichitem that buys it.
    */
   static parseAstralOffers(html: string): AstralOffer[] {
     const pattern =
@@ -345,16 +321,13 @@ export class Valhalla {
   }
 
   static parseAscendResult(html: string): Result {
-    // Landing back in the Kingdom is the only thing we take for a completed
-    // ascension. The step is irreversible, so a page we cannot place is
-    // reported as a failure rather than assumed to have worked.
+    // Irreversible, so a page we cannot place is a failure, not an assumed
+    // success.
     if (/Welcome back/i.test(html)) return { success: true };
-    // Being handed the form back means nothing happened.
     if (/name=ascform/i.test(html)) {
       return { success: false, reason: "still on the reincarnation form" };
     }
-    // Valhalla's art stays under otherimages/valhalla/ even where the Beyond
-    // the Pale heading is replaced.
+    // The art stays under otherimages/valhalla/ even where the heading changes.
     const stillUpHere =
       /Beyond the Pale/i.test(html) || html.includes("otherimages/valhalla/");
     if (stillUpHere) {

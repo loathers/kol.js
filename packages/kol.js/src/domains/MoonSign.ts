@@ -1,4 +1,4 @@
-/** Moon signs, named the way api.php and ascensionhistory.php spell them. */
+/** Spelled the way api.php and ascensionhistory.php do. */
 export const MoonSign = {
   Mongoose: "Mongoose",
   Wallaby: "Wallaby",
@@ -26,7 +26,7 @@ const IDS: Record<MoonSign, number> = {
   [MoonSign.BadMoon]: 10,
 };
 
-/** The value the reincarnation form's `whichsign` select uses. */
+/** The reincarnation form's `whichsign` value. */
 export function moonSignId(sign: MoonSign): number {
   return IDS[sign];
 }
@@ -35,10 +35,7 @@ export function moonSignFromId(id: number): MoonSign | null {
   return (Object.keys(IDS) as MoonSign[]).find((s) => IDS[s] === id) ?? null;
 }
 
-/**
- * A sign by name. Null for anything that is not one, which is how pages spell
- * having no sign: "None", "(none)", or nothing at all.
- */
+/** Null for no sign, which pages spell "None", "(none)", or nothing. */
 export function toMoonSign(name: string | null | undefined): MoonSign | null {
   const trimmed = name?.trim().toLowerCase() ?? "";
   return (

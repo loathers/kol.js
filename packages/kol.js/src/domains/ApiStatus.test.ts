@@ -59,8 +59,7 @@ describe("ApiStatusSchema", () => {
     expect(status.rollover).toBe(1778556599);
   });
 
-  // KoL sends both "" and null for the same absent slot, and a null used to
-  // throw a ZodError that took out every caller of fetchStatus().
+  // A null used to throw a ZodError that took out every fetchStatus() caller.
   it.each([null, ""])("accepts %j in an effect's unused slot", (slot) => {
     const status = ApiStatusSchema.parse(
       minimalStatus({

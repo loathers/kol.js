@@ -1,4 +1,4 @@
-/** The two genders KoL's character creation offers. */
+/** As character creation spells them. */
 export const Gender = { Male: "Male", Female: "Female" } as const;
 export type Gender = (typeof Gender)[keyof typeof Gender];
 
@@ -7,7 +7,7 @@ const IDS: Record<Gender, number> = {
   [Gender.Female]: 2,
 };
 
-/** The value the reincarnation form's `gender` select uses. */
+/** The reincarnation form's `gender` value. */
 export function genderId(gender: Gender): number {
   return IDS[gender];
 }

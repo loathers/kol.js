@@ -107,8 +107,7 @@ describe("validate", () => {
     path: 22,
   };
 
-  // validate exists to catch values the types already forbid, so the overrides
-  // come in loosely typed.
+  // validate catches what the types already forbid, so overrides come in loose.
   const validateWith = (override: Record<string, number>) =>
     Valhalla.validate({ ...choice, ...override });
 
@@ -351,8 +350,6 @@ describe("Karma vendors", () => {
   });
 
   test("does not take a row's image for a second offer", async () => {
-    // Every row carries two descitem() calls, one on the image and one on the
-    // name, and only the name's sits alongside the whichitem that buys it.
     expect(await fixture("deli")).toMatch(/descitem/);
     expect(Valhalla.parseAstralOffers(await fixture("deli"))).toHaveLength(3);
   });
@@ -386,7 +383,6 @@ describe("Karma vendors", () => {
     await expect(valhalla.buyAstral("reincarnate", 5045)).rejects.toThrow(
       /not a Karma vendor/,
     );
-    // Nothing was sent: the mistake is caught before the request.
     expect(fetchText).not.toHaveBeenCalled();
   });
 
