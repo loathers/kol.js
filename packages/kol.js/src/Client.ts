@@ -228,6 +228,12 @@ export class Client extends Emittery<Events> {
   #inebriety = 0;
   #fullness = 0;
   #toxicity = 0;
+  #daysThisRun = 0;
+  #turnsThisRun = 0;
+  #baseMuscle = 0;
+  #baseMysticality = 0;
+  #baseMoxie = 0;
+  #familiarWeight = 0;
 
   constructor(
     username: string = "",
@@ -301,6 +307,30 @@ export class Client extends Emittery<Events> {
 
   get toxicity() {
     return this.#toxicity;
+  }
+
+  get daysThisRun() {
+    return this.#daysThisRun;
+  }
+
+  get turnsThisRun() {
+    return this.#turnsThisRun;
+  }
+
+  get baseMuscle() {
+    return this.#baseMuscle;
+  }
+
+  get baseMysticality() {
+    return this.#baseMysticality;
+  }
+
+  get baseMoxie() {
+    return this.#baseMoxie;
+  }
+
+  get familiarWeight() {
+    return this.#familiarWeight;
   }
 
   async #withRecovery<T>(fn: () => Promise<T>): Promise<T> {
@@ -497,6 +527,12 @@ export class Client extends Emittery<Events> {
       this.#fullness = api.full;
       this.#inebriety = api.drunk;
       this.#toxicity = api.spleen;
+      this.#daysThisRun = api.daysthisrun ?? 0;
+      this.#turnsThisRun = api.turnsthisrun ?? 0;
+      this.#baseMuscle = api.basemuscle ?? 0;
+      this.#baseMysticality = api.basemysticality ?? 0;
+      this.#baseMoxie = api.basemoxie ?? 0;
+      this.#familiarWeight = api.famlevel ?? 0;
       this.#class =
         api.class > 0 ? await gameData.findClassById(api.class) : null;
       this.#path = api.path > 0 ? await gameData.findPathById(api.path) : null;
@@ -565,6 +601,12 @@ export class Client extends Emittery<Events> {
     this.#fullness = 0;
     this.#inebriety = 0;
     this.#toxicity = 0;
+    this.#daysThisRun = 0;
+    this.#turnsThisRun = 0;
+    this.#baseMuscle = 0;
+    this.#baseMysticality = 0;
+    this.#baseMoxie = 0;
+    this.#familiarWeight = 0;
   }
 
   #invalidateDailyCaches(): void {

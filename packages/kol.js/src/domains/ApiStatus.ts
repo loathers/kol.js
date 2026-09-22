@@ -73,6 +73,15 @@ export const ApiStatusSchema = z.object({
     )
     .optional()
     .default({}),
+  /** Counters for this ascension; `daynumber` does not move within a run. */
+  daysthisrun: z.coerce.number().optional(),
+  turnsthisrun: z.coerce.number().optional(),
+  /** Base substats, which a location's stat requirement is checked against. */
+  basemuscle: z.coerce.number().optional(),
+  basemysticality: z.coerce.number().optional(),
+  basemoxie: z.coerce.number().optional(),
+  /** The familiar's weight, after equipment and effects. */
+  famlevel: z.coerce.number().optional(),
   familiarexp: z.coerce.number().optional(),
   /** Current familiar id, if any. */
   familiar: z.coerce.number().optional(),

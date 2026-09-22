@@ -84,28 +84,28 @@ export class Modifiers {
 
   async #addEquipmentSources(
     sources: ModifierSource[],
-    status: Awaited<ReturnType<Client["fetchStatus"]>>,
+    status: ApiStatus,
   ): Promise<void> {
-    const entries = Equipment.parseEntries(status).filter((e) => e.id > 0);
-    if (entries.length === 0) return;
+    // Resolved, because a folder's entry id is an offset, not an item id.
+    const resolved = await Equipment.resolveEntries(
+      Equipment.parseEntries(status),
+    );
+    if (resolved.length === 0) return;
 
-    const [items, modifierMap] = await Promise.all([
-      gameData.findItemsByIds(entries.map((e) => e.id)),
-      gameData.findModifiersForItemIds(entries.map((e) => e.id)),
-    ]);
-    const itemById = new Map(items.map((item) => [item.id, item]));
+    const modifierMap = await gameData.findModifiersForItemIds(
+      resolved.map(({ item }) => item.id),
+    );
 
-    for (const entry of entries) {
-      const item = itemById.get(entry.id);
-      const mods = modifierMap.get(entry.id);
-      if (!item || !mods) continue;
-      sources.push({ label: `${entry.slot}: ${item.name}`, modifiers: mods });
+    for (const { slot, item } of resolved) {
+      const mods = modifierMap.get(item.id);
+      if (!mods) continue;
+      sources.push({ label: `${slot}: ${item.name}`, modifiers: mods });
     }
   }
 
   async #addEffectSources(
     sources: ModifierSource[],
-    status: Awaited<ReturnType<Client["fetchStatus"]>>,
+    status: ApiStatus,
   ): Promise<void> {
     const entries = Effects.parseEntries(status);
     if (entries.length === 0) return;
