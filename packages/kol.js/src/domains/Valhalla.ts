@@ -7,11 +7,11 @@ import { Gender, genderFromId, genderId } from "./Gender.js";
 import { Lifestyle, lifestyleFromId, lifestyleId } from "./Lifestyle.js";
 import { MoonSign, moonSignFromId, moonSignId } from "./MoonSign.js";
 
-/** Valhalla — afterlife.php. api.php is empty here; charpane.php has `pwd`. */
+/** Valhalla, afterlife.php. api.php is empty here. charpane.php has `pwd`. */
 
 export type ValhallaPlace = "permery" | "deli" | "armory" | "reincarnate";
 
-/** Classes and paths stay ids; data-of-loathing has the names. */
+/** Classes and paths stay ids. data-of-loathing has the names. */
 export type ReincarnationOptions = {
   lifestyles: Lifestyle[];
   classes: number[];
@@ -135,11 +135,7 @@ export class Valhalla {
     });
   }
 
-  /**
-   * Irreversible: this starts the run.
-   *
-   * @throws if the game will not accept the choice
-   */
+  /** @throws if the game will not accept the choice */
   async ascend(choice: AscensionChoice): Promise<Result> {
     const confirmation = await this.proposeAscension(choice);
     if (!confirmation) {
@@ -172,7 +168,6 @@ export class Valhalla {
     return Valhalla.parseAscendConfirmation(html);
   }
 
-  /** Irreversible: this starts the run. */
   async confirmAscension(confirmation: AscensionConfirmation): Promise<Result> {
     const html = await this.#client.fetchText("afterlife.php", {
       form: { ...confirmation.fields, ...confirmation.acknowledgements },
@@ -229,7 +224,7 @@ export class Valhalla {
     if (!Object.values(Lifestyle).includes(choice.lifestyle)) {
       return `invalid lifestyle ${choice.lifestyle}`;
     }
-    // The live set is getReincarnationOptions().classes; this only rules out 0.
+    // The live set is getReincarnationOptions().classes. This only rules out 0.
     const classId = resolveEntityId(choice.class);
     if (!Number.isInteger(classId) || classId < 1) {
       return `invalid class ${classId}`;
@@ -276,7 +271,7 @@ export class Valhalla {
 
     if (!("confirmascend" in fields)) return null;
 
-    // Not cleanString(): it drops tags without a separator.
+    // cleanString() drops tags without a separator.
     const text = decodeHTML(html)
       .replace(/<[^>]+>/g, " ")
       .replace(/\s+/g, " ");
@@ -311,7 +306,7 @@ export class Valhalla {
   }
 
   static parseAscendResult(html: string): Result {
-    // Irreversible, so a page we cannot place is a failure, not a success.
+    // A page we cannot place is a failure, not a success.
     if (/Welcome back/i.test(html)) return { success: true };
     if (/name=ascform/i.test(html)) {
       return { success: false, reason: "still on the reincarnation form" };

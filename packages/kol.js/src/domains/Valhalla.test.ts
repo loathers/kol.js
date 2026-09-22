@@ -156,7 +156,7 @@ describe("parseAscendConfirmation", () => {
   });
 
   test("picks up the conditional acknowledgements", async () => {
-    // What one live run produced; another gets a different subset.
+    // What one live run produced. Another gets a different subset.
     const confirmation = Valhalla.parseAscendConfirmation(
       await fixture("confirm"),
     );
