@@ -3,7 +3,7 @@ import { z } from "zod";
 import { toMoonSign } from "./MoonSign.js";
 
 /** KoL sends "" or null for the same absent value. */
-const kolString = z
+const nullAsEmpty = z
   .string()
   .nullish()
   .transform((v) => v ?? "");
@@ -55,8 +55,8 @@ export const ApiStatusSchema = z.object({
         z.tuple([
           z.string(),
           z.coerce.number(),
-          kolString,
-          kolString,
+          nullAsEmpty,
+          nullAsEmpty,
           z.coerce.number(),
         ]),
       ),
@@ -68,7 +68,7 @@ export const ApiStatusSchema = z.object({
       (v) => (Array.isArray(v) ? {} : v),
       z.record(
         z.string(),
-        z.tuple([z.string(), kolString, kolString, z.coerce.number()]),
+        z.tuple([z.string(), nullAsEmpty, nullAsEmpty, z.coerce.number()]),
       ),
     )
     .optional()
