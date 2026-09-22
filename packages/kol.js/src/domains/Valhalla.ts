@@ -7,7 +7,7 @@ import { Gender, genderFromId, genderId } from "./Gender.js";
 import { Lifestyle, lifestyleFromId, lifestyleId } from "./Lifestyle.js";
 import { MoonSign, moonSignFromId, moonSignId } from "./MoonSign.js";
 
-/** Valhalla, afterlife.php. api.php is empty here. charpane.php has `pwd`. */
+/** Valhalla, afterlife.php. api.php is empty here. */
 
 export type ValhallaPlace = "permery" | "deli" | "armory" | "reincarnate";
 
@@ -173,23 +173,6 @@ export class Valhalla {
       form: { ...confirmation.fields, ...confirmation.acknowledgements },
     });
     return Valhalla.parseAscendResult(html);
-  }
-
-  static parseInValhalla(charpane: string): boolean {
-    return (
-      charpane.includes("otherimages/spirit.gif") ||
-      charpane.includes("<br>Lvl. <img")
-    );
-  }
-
-  static parsePasswordHash(charpane: string): string | null {
-    return (
-      /var\s+pwdhash\s*=\s*["']([0-9a-f]+)["']/i.exec(charpane)?.[1] ?? null
-    );
-  }
-
-  static parsePlayerId(charpane: string): string | null {
-    return /var\s+playerid\s*=\s*(\d+)/i.exec(charpane)?.[1] ?? null;
   }
 
   static parseKarma(html: string): number | null {

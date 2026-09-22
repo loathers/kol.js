@@ -35,12 +35,11 @@ export function moonSignFromId(id: number): MoonSign | null {
   return (Object.keys(IDS) as MoonSign[]).find((s) => IDS[s] === id) ?? null;
 }
 
+const BY_NAME = new Map<string, MoonSign>(
+  (Object.values(MoonSign) as MoonSign[]).map((s) => [s.toLowerCase(), s]),
+);
+
 /** No sign is spelled "None", "(none)", or nothing. */
 export function toMoonSign(name: string | null | undefined): MoonSign | null {
-  const trimmed = name?.trim().toLowerCase() ?? "";
-  return (
-    (Object.values(MoonSign) as MoonSign[]).find(
-      (s) => s.toLowerCase() === trimmed,
-    ) ?? null
-  );
+  return BY_NAME.get(name?.trim().toLowerCase() ?? "") ?? null;
 }
