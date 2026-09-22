@@ -308,3 +308,100 @@ describe("ascend", () => {
     expect(forms).toHaveLength(0);
   });
 });
+
+describe("Karma vendors", () => {
+  const clientGetting = (reply: string) => {
+    const queries: unknown[] = [];
+    const client = new Client("", "");
+    const fetchText = vi
+      .spyOn(client, "fetchText")
+      .mockImplementation((_path, options) => {
+        queries.push(options?.query);
+        return Promise.resolve(reply);
+      });
+    return { valhalla: new Valhalla(client), queries, fetchText };
+  };
+
+  test("reads what the Deli Lama is selling", async () => {
+    expect(Valhalla.parseAstralOffers(await fixture("deli"))).toEqual([
+      { descId: 725022566, name: "astral hot dog dinner", item: 5045 },
+      { descId: 507110915, name: "astral six-pack", item: 5046 },
+      {
+        descId: 824102367,
+        name: "carton of astral energy drinks",
+        item: 10882,
+      },
+    ]);
+  });
+
+  test("reads the armory's whole shelf", async () => {
+    const offers = Valhalla.parseAstralOffers(await fixture("armory"));
+
+    expect(offers).toHaveLength(13);
+    expect(offers[0]).toEqual({
+      descId: 864672857,
+      name: "astral bludgeon",
+      item: 5028,
+    });
+    expect(offers.at(-1)).toEqual({
+      descId: 645097274,
+      name: "astral belt",
+      item: 5042,
+    });
+  });
+
+  test("does not take a row's image for a second offer", async () => {
+    // Every row carries two descitem() calls, one on the image and one on the
+    // name, and only the name's sits alongside the whichitem that buys it.
+    expect(await fixture("deli")).toMatch(/descitem/);
+    expect(Valhalla.parseAstralOffers(await fixture("deli"))).toHaveLength(3);
+  });
+
+  test("finds nothing on a page that sells nothing", async () => {
+    expect(Valhalla.parseAstralOffers(await fixture("reincarnate"))).toEqual(
+      [],
+    );
+    expect(Valhalla.parseAstralOffers("<html>nothing here</html>")).toEqual([]);
+  });
+
+  test("buys with the action belonging to that vendor", async () => {
+    const { valhalla, queries } = clientGetting("You acquire an item: hot dog");
+
+    expect(await valhalla.buyAstral("deli", 5045)).toStrictEqual({
+      success: true,
+    });
+    expect(queries[0]).toEqual({ action: "buydeli", whichitem: 5045 });
+  });
+
+  test("takes an offer in place of a bare id", async () => {
+    const { valhalla, queries } = clientGetting("You acquire an item: shield");
+    const [offer] = Valhalla.parseAstralOffers(await fixture("armory"));
+
+    await valhalla.buyAstral("armory", offer);
+    expect(queries[0]).toEqual({ action: "buyarmory", whichitem: 5028 });
+  });
+
+  test("refuses a place that does not sell for Karma", async () => {
+    const { valhalla, fetchText } = clientGetting("");
+    await expect(valhalla.buyAstral("reincarnate", 5045)).rejects.toThrow(
+      /not a Karma vendor/,
+    );
+    // Nothing was sent: the mistake is caught before the request.
+    expect(fetchText).not.toHaveBeenCalled();
+  });
+
+  test("reports running out of Karma rather than claiming success", () => {
+    expect(
+      Valhalla.parseAstralPurchase("You don't have enough Karma for that."),
+    ).toStrictEqual({ success: false, reason: "not enough Karma" });
+  });
+
+  test("does not take a page it cannot place for a purchase", () => {
+    expect(
+      Valhalla.parseAstralPurchase("<html>who knows</html>"),
+    ).toStrictEqual({
+      success: false,
+      reason: "unrecognised response to the purchase",
+    });
+  });
+});

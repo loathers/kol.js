@@ -48,6 +48,21 @@ export type AscensionChoice = {
 
 export type PathDescription = { image: string; text: string };
 
+/**
+ * Something a Karma vendor is offering.
+ *
+ * The Deli Lama sells astral consumables, the best adventures-per-organ a
+ * fresh run will see. Karma banks across ascensions and is worthless unspent,
+ * so walking past these during setup throws away most of a day's turns.
+ */
+export type AstralOffer = { item: number; descId: number; name: string };
+
+/** The places that sell for Karma, and the action that buys from each. */
+const VENDOR_ACTIONS: Partial<Record<ValhallaPlace, string>> = {
+  deli: "buydeli",
+  armory: "buyarmory",
+};
+
 /** Values of a named `<select>`, less the zero-valued placeholder option. */
 function optionValues(html: string, selectName: string): number[] {
   const select = new RegExp(
@@ -93,6 +108,33 @@ export class Valhalla {
       method: "GET",
       query: { place },
     });
+  }
+
+  /** What a Karma vendor is currently offering. */
+  async getAstralOffers(place: ValhallaPlace): Promise<AstralOffer[]> {
+    return Valhalla.parseAstralOffers(await this.visit(place));
+  }
+
+  /**
+   * Spend Karma on one item.
+   *
+   * @throws if the place is not one of the Karma vendors
+   */
+  async buyAstral(
+    place: ValhallaPlace,
+    item: AstralOffer | number,
+  ): Promise<Result> {
+    const action = VENDOR_ACTIONS[place];
+    if (!action) throw new Error(`${place} is not a Karma vendor`);
+
+    const html = await this.#client.fetchText("afterlife.php", {
+      method: "GET",
+      query: {
+        action,
+        whichitem: typeof item === "number" ? item : item.item,
+      },
+    });
+    return Valhalla.parseAstralPurchase(html);
   }
 
   async getReincarnationOptions(): Promise<ReincarnationOptions> {
@@ -272,6 +314,34 @@ export class Valhalla {
       /You are about to step into[\s\S]{0,400}?Path\./i.exec(text)?.[0] ?? "";
 
     return { fields, acknowledgements, summary: summary.trim() };
+  }
+
+  /**
+   * Vendor stock. Each offer pairs a descitem() call naming the item with the
+   * whichitem its own buy form posts, which is the only handle the markup
+   * gives on that pairing.
+   */
+  static parseAstralOffers(html: string): AstralOffer[] {
+    const pattern =
+      /<span onclick=['"]?descitem\((\d+)\)['"]?>([^<]*)<[\s\S]*?name=["']?whichitem["']? value=["']?(\d+)/gi;
+
+    const offers: AstralOffer[] = [];
+    for (const match of html.matchAll(pattern)) {
+      offers.push({
+        descId: Number(match[1]),
+        name: decodeHTML(match[2]).trim(),
+        item: Number(match[3]),
+      });
+    }
+    return offers;
+  }
+
+  static parseAstralPurchase(html: string): Result {
+    if (/You acquire an item/i.test(html)) return { success: true };
+    if (/don't have enough/i.test(html)) {
+      return { success: false, reason: "not enough Karma" };
+    }
+    return { success: false, reason: "unrecognised response to the purchase" };
   }
 
   static parseAscendResult(html: string): Result {
