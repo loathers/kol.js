@@ -109,4 +109,37 @@ describe("ApiStatusSchema", () => {
       1758,
     ]);
   });
+
+  describe("against a live capture", () => {
+    const liveStatus = async () =>
+      JSON.parse(
+        await loadFixture(__dirname, "api_status_live.json"),
+      ) as Record<string, unknown>;
+
+    it("keeps the in-run counters, which daynumber cannot stand in for", async () => {
+      const status = ApiStatusSchema.parse(await liveStatus());
+      expect(status.daysthisrun).toBe(1);
+      expect(status.turnsthisrun).toBe(40);
+      // The global clock is a different number entirely, and does not move
+      // within a run.
+      expect(status.daynumber).toBe(8624);
+    });
+
+    it("keeps the base substats that zone entry gates on", async () => {
+      const status = ApiStatusSchema.parse(await liveStatus());
+      expect(status.basemuscle).toBe(10000);
+      expect(status.basemysticality).toBe(7071);
+      expect(status.basemoxie).toBe(7071);
+    });
+
+    it("keeps the familiar's weight", async () => {
+      const status = ApiStatusSchema.parse(await liveStatus());
+      expect(status.famlevel).toBe(1);
+    });
+
+    it("reads folder_holder as the zero-padded offsets KoL sends", async () => {
+      const status = ApiStatusSchema.parse(await liveStatus());
+      expect(status.folder_holder).toEqual([1, 22, 20, 0, 0]);
+    });
+  });
 });

@@ -29,7 +29,12 @@ export type EquipmentSlot =
 
 export type EquipmentMap = Map<EquipmentSlot, Item>;
 
-type ParsedEntry = { slot: EquipmentSlot; id: number };
+/** A folder's number is an offset into the folder items, not an item id. */
+type ParsedEntry = {
+  slot: EquipmentSlot;
+  id: number;
+  kind: "item" | "folder";
+};
 
 type AccessorySlotNumber = 1 | 2 | 3;
 
@@ -116,7 +121,7 @@ export class Equipment {
   static parseEntries(status: ApiStatus): ParsedEntry[] {
     const eq = status.equipment;
     if (!eq) return [];
-    const main: Array<readonly [EquipmentSlot, number]> = [
+    const items: Array<readonly [EquipmentSlot, number]> = [
       ["hat", eq.hat],
       ["shirt", eq.shirt],
       ["pants", eq.pants],
@@ -130,23 +135,56 @@ export class Equipment {
       ...status.stickers.map(
         (id, i) => [`sticker${i + 1}` as EquipmentSlot, id] as const,
       ),
-      ...status.folder_holder.map(
-        (id, i) => [`folder${i + 1}` as EquipmentSlot, id] as const,
-      ),
     ];
-    return main.filter(([, id]) => id > 0).map(([slot, id]) => ({ slot, id }));
+
+    return [
+      ...items
+        .filter(([, id]) => id > 0)
+        .map(([slot, id]) => ({ slot, id, kind: "item" as const })),
+      ...status.folder_holder
+        .map(
+          (offset, i) =>
+            ({
+              slot: `folder${i + 1}` as EquipmentSlot,
+              id: offset,
+              kind: "folder" as const,
+            }) satisfies ParsedEntry,
+        )
+        .filter(({ id }) => id > 0),
+    ];
+  }
+
+  /** Entries that resolve to nothing are dropped rather than guessed at. */
+  static async resolveEntries(
+    entries: ParsedEntry[],
+  ): Promise<Array<{ slot: EquipmentSlot; item: Item }>> {
+    const itemEntries = entries.filter((e) => e.kind === "item");
+    const items = await gameData.findItemsByIds(itemEntries.map((e) => e.id));
+    const byId = new Map(items.map((item) => [item.id, item]));
+
+    const folders = await Promise.all(
+      entries
+        .filter((e) => e.kind === "folder")
+        .map(async (e) => ({
+          slot: e.slot,
+          item: await gameData.findFolderByOffset(e.id),
+        })),
+    );
+
+    return [
+      ...itemEntries.flatMap(({ slot, id }) => {
+        const item = byId.get(id);
+        return item ? [{ slot, item }] : [];
+      }),
+      ...folders.flatMap(({ slot, item }) => (item ? [{ slot, item }] : [])),
+    ];
   }
 
   static async buildMap(status: ApiStatus): Promise<Map<EquipmentSlot, Item>> {
-    const entries = Equipment.parseEntries(status);
-    const items = await gameData.findItemsByIds(entries.map((e) => e.id));
-    const byId = new Map(items.map((item) => [item.id, item]));
-    return new Map(
-      entries.flatMap(({ slot, id }) => {
-        const item = byId.get(id);
-        return item ? [[slot, item]] : [];
-      }),
+    const resolved = await Equipment.resolveEntries(
+      Equipment.parseEntries(status),
     );
+    return new Map(resolved.map(({ slot, item }) => [slot, item]));
   }
 
   get = cached(async (): Promise<Map<EquipmentSlot, Item>> => {

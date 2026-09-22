@@ -9,6 +9,7 @@ import {
   FamiliarModifiers,
   Item,
   ItemModifiers,
+  ItemUse,
   Location,
   type Modifier,
   Monster,
@@ -26,6 +27,9 @@ export type ItemWithDetail = Item & {
 };
 
 const FISHY = 549;
+
+/** `folder (red)`. */
+const FIRST_FOLDER_ITEM_ID = 6618;
 
 export class GameData {
   #client = createClient();
@@ -179,6 +183,14 @@ export class GameData {
   async getGoodEffects(latestEffectId: number): Promise<Effect[]> {
     const effects = await this.#getGoodEffects();
     return effects.filter((e) => e.id <= latestEffectId);
+  }
+
+  /** `folder_holder` gives offsets from `folder (red)`, not item ids. */
+  async findFolderByOffset(offset: number): Promise<Item | null> {
+    if (offset < 1) return null;
+    const item = await this.findItemById(FIRST_FOLDER_ITEM_ID + offset - 1);
+    // Rather than trust the arithmetic past the end of the folders.
+    return item?.uses.includes(ItemUse.Folder) ? item : null;
   }
 }
 
