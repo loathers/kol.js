@@ -7,14 +7,11 @@ import { Gender, genderFromId, genderId } from "./Gender.js";
 import { Lifestyle, lifestyleFromId, lifestyleId } from "./Lifestyle.js";
 import { MoonSign, moonSignFromId, moonSignId } from "./MoonSign.js";
 
-/**
- * Valhalla — afterlife.php. api.php is empty up here, so charpane.php is the
- * only page carrying `pwd`. Ascending is two POSTs; only the second commits.
- */
+/** Valhalla — afterlife.php. api.php is empty here; charpane.php has `pwd`. */
 
 export type ValhallaPlace = "permery" | "deli" | "armory" | "reincarnate";
 
-/** Classes and paths stay ids; their names live in data-of-loathing. */
+/** Classes and paths stay ids; data-of-loathing has the names. */
 export type ReincarnationOptions = {
   lifestyles: Lifestyle[];
   classes: number[];
@@ -24,7 +21,7 @@ export type ReincarnationOptions = {
   defaultPath: number | null;
 };
 
-/** Acknowledgements are conditional, so they are read off the page. */
+/** Acknowledgements are conditional, so read off the page. */
 export type AscensionConfirmation = {
   fields: Record<string, string>;
   acknowledgements: Record<string, string>;
@@ -48,7 +45,7 @@ const VENDOR_ACTIONS: Partial<Record<ValhallaPlace, string>> = {
   armory: "buyarmory",
 };
 
-/** Values of a named `<select>`, less the zero-valued placeholder option. */
+/** Values of a `<select>`, less the zero placeholder. */
 function optionValues(html: string, selectName: string): number[] {
   const select = new RegExp(
     `<select[^>]*\\bname=['"]?${selectName}['"]?[^>]*>([\\s\\S]*?)</select>`,
@@ -64,7 +61,7 @@ function optionValues(html: string, selectName: string): number[] {
   return values;
 }
 
-/** Drops any id this version of kol.js has no name for. */
+/** Drops ids we have no name for. */
 function named<T>(ids: number[], fromId: (id: number) => T | null): T[] {
   return ids.flatMap((id) => {
     const value = fromId(id);
@@ -139,8 +136,7 @@ export class Valhalla {
   }
 
   /**
-   * Irreversible: this starts the run. Use proposeAscension and
-   * confirmAscension to read the confirmation before committing.
+   * Irreversible: this starts the run.
    *
    * @throws if the game will not accept the choice
    */
@@ -153,7 +149,7 @@ export class Valhalla {
   }
 
   /**
-   * Does not start the run. Null is a refusal: anything but a confirmation.
+   * Does not start the run. Null is a refusal.
    *
    * @throws if the game will not accept the choice
    */
@@ -191,14 +187,12 @@ export class Valhalla {
     );
   }
 
-  /** Only charpane.php carries this up here. */
   static parsePasswordHash(charpane: string): string | null {
     return (
       /var\s+pwdhash\s*=\s*["']([0-9a-f]+)["']/i.exec(charpane)?.[1] ?? null
     );
   }
 
-  /** Likewise; api.php is empty up here. */
   static parsePlayerId(charpane: string): string | null {
     return /var\s+playerid\s*=\s*(\d+)/i.exec(charpane)?.[1] ?? null;
   }
@@ -272,7 +266,7 @@ export class Valhalla {
       const value = /\bvalue=["']?([^"'\s>]*)/i.exec(tag)?.[1] ?? "";
 
       if (/type=["']?checkbox/i.test(tag)) {
-        // Only the boxes the game marks required have to be ticked.
+        // Only the boxes marked required have to be ticked.
         if (/class=["'][^"']*\breq\b/i.test(tag))
           acknowledgements[name] = value || "1";
       } else if (/type=["']?hidden/i.test(tag)) {
@@ -282,8 +276,7 @@ export class Valhalla {
 
     if (!("confirmascend" in fields)) return null;
 
-    // Not cleanString(): it drops tags without a separator, and the summary
-    // runs straight through a </b><p>.
+    // Not cleanString(): it drops tags without a separator.
     const text = decodeHTML(html)
       .replace(/<[^>]+>/g, " ")
       .replace(/\s+/g, " ");
@@ -293,10 +286,7 @@ export class Valhalla {
     return { fields, acknowledgements, summary: summary.trim() };
   }
 
-  /**
-   * Rows carry a second descitem() on the image; only the name's sits
-   * alongside the whichitem that buys it.
-   */
+  /** Only the name's descitem() sits with the whichitem that buys it. */
   static parseAstralOffers(html: string): AstralOffer[] {
     const pattern =
       /<span onclick=['"]?descitem\((\d+)\)['"]?>([^<]*)<[\s\S]*?name=["']?whichitem["']? value=["']?(\d+)/gi;
@@ -321,13 +311,12 @@ export class Valhalla {
   }
 
   static parseAscendResult(html: string): Result {
-    // Irreversible, so a page we cannot place is a failure, not an assumed
-    // success.
+    // Irreversible, so a page we cannot place is a failure, not a success.
     if (/Welcome back/i.test(html)) return { success: true };
     if (/name=ascform/i.test(html)) {
       return { success: false, reason: "still on the reincarnation form" };
     }
-    // The art stays under otherimages/valhalla/ even where the heading changes.
+    // The art stays even where the heading changes.
     const stillUpHere =
       /Beyond the Pale/i.test(html) || html.includes("otherimages/valhalla/");
     if (stillUpHere) {

@@ -411,7 +411,7 @@ describe("valhalla", () => {
     client.simulateResponse(/\/test\.php/, { ok: true });
     await client.fetchJson("test.php");
 
-    // A second charpane or a login POST would be an unclaimed interceptor.
+    // A second charpane would be an unclaimed interceptor.
     expect(client.charpaneRequests).toBe(1);
   });
 

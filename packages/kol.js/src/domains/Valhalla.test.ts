@@ -107,7 +107,7 @@ describe("validate", () => {
     path: 22,
   };
 
-  // validate catches what the types already forbid, so overrides come in loose.
+  // validate catches what the types forbid, so overrides come in loose.
   const validateWith = (override: Record<string, number>) =>
     Valhalla.validate({ ...choice, ...override });
 

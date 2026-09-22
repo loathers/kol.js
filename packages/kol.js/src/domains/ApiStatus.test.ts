@@ -59,7 +59,7 @@ describe("ApiStatusSchema", () => {
     expect(status.rollover).toBe(1778556599);
   });
 
-  // A null used to throw a ZodError that took out every fetchStatus() caller.
+  // A null used to throw, taking out every fetchStatus() caller.
   it.each([null, ""])("accepts %j in an effect's unused slot", (slot) => {
     const status = ApiStatusSchema.parse(
       minimalStatus({

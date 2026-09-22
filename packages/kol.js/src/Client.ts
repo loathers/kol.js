@@ -302,8 +302,7 @@ export class Client extends Emittery<Events> {
   async #withRecovery<T>(fn: () => Promise<T>): Promise<T> {
     if (this.#isRollover) await this.waitForRolloverEnd();
 
-    // Ascending is how we leave Valhalla, so every request re-checks while we
-    // are up there. A hiccup leaves the retry loop below to sort out.
+    // Ascending is how we leave, so every request re-checks while up there.
     if (this.#loggedIn && this.#inValhalla) await this.checkLoggedIn();
 
     if (!this.#loggedIn && !(await this.login())) {
@@ -525,7 +524,7 @@ export class Client extends Emittery<Events> {
   }
 
   async #checkValhalla(): Promise<boolean> {
-    // A working hash up here needs no charpane to say so again.
+    // A working hash needs no charpane to confirm it.
     if (this.#inValhalla && this.#pwd) {
       this.#markLoggedIn(true);
       return true;
@@ -542,7 +541,7 @@ export class Client extends Emittery<Events> {
 
     if (!Valhalla.parseInValhalla(charpane)) return false;
 
-    // A hash that has been working beats no hash at all.
+    // Keep a working hash over none.
     this.#pwd = Valhalla.parsePasswordHash(charpane) ?? this.#pwd;
     this.#playerId = Valhalla.parsePlayerId(charpane) ?? this.#playerId;
     this.#resetCharacterState();

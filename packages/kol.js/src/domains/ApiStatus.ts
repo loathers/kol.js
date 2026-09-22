@@ -18,7 +18,6 @@ export const ApiStatusSchema = z.object({
   level: z.coerce.number(),
   roninleft: z.coerce.number(),
   path: z.coerce.number(),
-  /** api.php spells no sign "None". */
   sign: z.string().transform(toMoonSign),
   adventures: z.coerce.number(),
   class: z.coerce.number(),

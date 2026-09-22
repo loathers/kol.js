@@ -1,4 +1,4 @@
-/** Spelled the way ascensionhistory.php reports it. */
+/** As ascensionhistory.php spells it. */
 export const Lifestyle = {
   Casual: "CASUAL",
   Softcore: "SOFTCORE",
@@ -12,7 +12,7 @@ const IDS: Record<Lifestyle, number> = {
   [Lifestyle.Hardcore]: 3,
 };
 
-/** The reincarnation form's `asctype` value. */
+/** The form's `asctype` value. */
 export function lifestyleId(lifestyle: Lifestyle): number {
   return IDS[lifestyle];
 }
