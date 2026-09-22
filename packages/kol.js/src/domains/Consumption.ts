@@ -94,8 +94,17 @@ export class Consumption {
   async use(item: Item | number, quantity = 1): Promise<ActionResult<object>> {
     const itemId = resolveEntityId(item);
     if (quantity > 1) {
+      // action=useitem is not optional. Without it multiuse.php answers with an
+      // ordinary page and consumes nothing, so the call looks like it worked
+      // and did not.
       return multiuseAction(this.#client, {
-        query: { which: 1, whichitem: itemId, quantity, ajax: 1 },
+        query: {
+          which: 1,
+          whichitem: itemId,
+          action: "useitem",
+          quantity,
+          ajax: 1,
+        },
       });
     }
     return useAction(this.#client, {
