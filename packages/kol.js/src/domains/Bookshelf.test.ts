@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { Client } from "../Client.js";
 import { DailyFlag } from "../flags/registry.js";
-import { runResponsePipeline } from "../interceptors/pipeline.js";
 import { loadFixture } from "../testUtils.js";
 import { Libram, Tome, candyHeart, sugarSheets } from "./Bookshelf.js";
 
@@ -43,14 +42,31 @@ describe("cast result", () => {
   });
 });
 
+describe("the domain", () => {
+  test("casts through the skill behaviour registry", async () => {
+    const html = await loadFixture(
+      import.meta.dirname,
+      "campground_summonsugarsheets_success_1.html",
+    );
+    vi.spyOn(client, "fetchText").mockResolvedValueOnce(html);
+    expect(await client.bookshelf.cast(sugarSheets)).toStrictEqual({
+      success: true,
+    });
+  });
+
+  test("reports casts made today", () => {
+    client.flags.set(DailyFlag.skillCasts, { [sugarSheets.skillId]: 2 });
+    expect(client.bookshelf.castsToday(sugarSheets)).toBe(2);
+  });
+});
+
 describe("cast recording via interceptor", () => {
   test("records a successful tome cast", async () => {
     const html = await loadFixture(
       import.meta.dirname,
       "campground_summonsugarsheets_success_1.html",
     );
-    await runResponsePipeline(
-      client,
+    await client.interceptors.response(
       campgroundResponse(html, "summonsugarsheets"),
       { status: 200, contentType: "text/html", body: html },
     );
@@ -62,8 +78,7 @@ describe("cast recording via interceptor", () => {
       import.meta.dirname,
       "campground_summonsugarsheets_fail.html",
     );
-    await runResponsePipeline(
-      client,
+    await client.interceptors.response(
       campgroundResponse(html, "summonsugarsheets"),
       { status: 200, contentType: "text/html", body: html },
     );
@@ -75,8 +90,7 @@ describe("cast recording via interceptor", () => {
       import.meta.dirname,
       "campground_summoncandyheart_success.html",
     );
-    await runResponsePipeline(
-      client,
+    await client.interceptors.response(
       campgroundResponse(html, "summoncandyheart"),
       { status: 200, contentType: "text/html", body: html },
     );

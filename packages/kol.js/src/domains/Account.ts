@@ -24,19 +24,20 @@ export class Account {
 
   constructor(client: Client) {
     this.#client = client;
+    client.interceptors.add(setFlagAction);
   }
 
   async setFlag(
     flag: AccountFlag,
     value: 0 | 1,
   ): Promise<ActionResult<object>> {
-    return setFlagAction(this.#client, {
+    return setFlagAction.perform(this.#client, {
       query: { am: 1, action: `flag_${flag}`, value, ajax: 1 },
     });
   }
 
   async setAutoattack(macroId: number): Promise<ActionResult<object>> {
-    return setFlagAction(this.#client, {
+    return setFlagAction.perform(this.#client, {
       query: { am: 1, action: "autoattack", value: macroId, ajax: 1 },
     });
   }
