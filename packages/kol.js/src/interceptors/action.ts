@@ -109,7 +109,7 @@ export function defineAction<T extends object>(
 export function defineAction(def: DecorateOnly): Interceptor;
 export function defineAction<T extends object>(
   def: AnyActionDef<T>,
-): Action<T> | Interceptor {
+): Interceptor {
   const decorateResults = new WeakMap<KolRequest, ActionResult<T>>();
   const parseFn: ParseDef<T>["parse"] | undefined = def.parse;
   // The decorate callback always receives the concrete result we build below;

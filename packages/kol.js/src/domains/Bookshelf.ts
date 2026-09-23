@@ -3,7 +3,6 @@ import createDebug from "debug";
 import type { Client, Result } from "../Client.js";
 import { DailyFlag } from "../flags/registry.js";
 import { defineAction } from "../interceptors/action.js";
-import type { Interceptor } from "../interceptors/types.js";
 import { recordSkillCast, registerSkillBehavior } from "./Skills.js";
 
 const debug = createDebug("kol.js:skills");
@@ -15,26 +14,19 @@ const TOME_IDS = [7213, 7214, 7215, 7216, 7217, 7218] as const;
  * the cast counts they read and write live in the client's flags.
  */
 export abstract class BookshelfItem {
-  /** Detects a successful cast of this item; registered by the `Bookshelf` domain. */
-  readonly interceptor: Interceptor;
+  static #byPreaction = new Map<string, BookshelfItem>();
+
+  /** The item a campground.php summon names, if it names one at all. */
+  static find(preaction: string | null): BookshelfItem | undefined {
+    return preaction ? BookshelfItem.#byPreaction.get(preaction) : undefined;
+  }
 
   constructor(
     readonly skillId: number,
     readonly preaction: string,
   ) {
     registerSkillBehavior(skillId, this);
-    this.interceptor = defineAction({
-      matches: (req) =>
-        req.path === "campground.php" &&
-        req.params.get("preaction") === preaction,
-      parse({ body, success, failure }) {
-        if (!body.includes("You acquire")) return failure("Cast failed");
-        return success({});
-      },
-      onSuccess({ client }) {
-        recordSkillCast(client, skillId);
-      },
-    });
+    BookshelfItem.#byPreaction.set(preaction, this);
   }
 
   async cast(client: Client): Promise<Result> {
@@ -81,13 +73,6 @@ export class Tome extends BookshelfItem {
 }
 
 export class Libram extends BookshelfItem {
-  static #byPreaction = new Map<string, Libram>();
-
-  constructor(skillId: number, preaction: string) {
-    super(skillId, preaction);
-    Libram.#byPreaction.set(preaction, this);
-  }
-
   /** MP cost for the nth summon today (1-indexed). */
   mpCost(n: number): number {
     return 1 + (n * (n - 1)) / 2;
@@ -99,8 +84,9 @@ export class Libram extends BookshelfItem {
     for (const [, preaction, mpStr] of html.matchAll(
       /name=preaction value="([^"]+)"[^>]*>[^<]*<input[^>]+value="[^(]+\((\d+) MP\)"/g,
     )) {
-      const instance = Libram.#byPreaction.get(preaction);
-      if (!instance) continue;
+      const instance = BookshelfItem.find(preaction);
+      // The bookshelf lists every summon; only librams price by cast count.
+      if (!(instance instanceof Libram)) continue;
       const mpCost = Number(mpStr);
       const n = Math.round((1 + Math.sqrt(1 + 8 * (mpCost - 1))) / 2);
       const castsToday = n - 1;
@@ -145,6 +131,19 @@ export const alicesArmyCards = new Grimoire(7228, "summonaa");
 export const geekyGifts = new Grimoire(7229, "summonthinknerd");
 export const confiscatedThings = new Grimoire(7230, "summonconfiscators");
 
+const castAction = defineAction({
+  path: "campground.php",
+  parse({ req, body, success, failure }) {
+    const item = BookshelfItem.find(req.params.get("preaction"));
+    if (!item) return failure("Not a bookshelf summon");
+    if (!body.includes("You acquire")) return failure("Cast failed");
+    return success({ item });
+  },
+  onSuccess({ client, result }) {
+    recordSkillCast(client, result.item.skillId);
+  },
+});
+
 const campgroundAction = defineAction({
   path: "campground.php",
   parse({ body, success, failure }) {
@@ -157,44 +156,18 @@ const campgroundAction = defineAction({
   },
 });
 
-/** Every bookshelf item, so the domain can attach all their interceptors. */
-export const bookshelfItems = [
-  snowcones,
-  stickers,
-  sugarSheets,
-  clipArt,
-  radLibs,
-  smithsness,
-  candyHeart,
-  partyFavor,
-  loveSong,
-  brickos,
-  dice,
-  resolutions,
-  taffy,
-  hilariousObjects,
-  tastefulItems,
-  alicesArmyCards,
-  geekyGifts,
-  confiscatedThings,
-] as const;
-
 export class Bookshelf {
   #client: Client;
 
   constructor(client: Client) {
     this.#client = client;
-    // Per-item cast detection first, then the campground sync. The page served
-    // after a cast already shows the post-cast MP cost, so the sync derives an
-    // absolute count and has to overwrite the increment rather than be
-    // overwritten by it.
-    client.interceptors.add(
-      ...bookshelfItems.map((item) => item.interceptor),
-      campgroundAction,
-    );
+    // Cast detection first, then the campground sync. The page served after a
+    // cast already shows the post-cast MP cost, so the sync derives an absolute
+    // count and has to overwrite the increment rather than be overwritten by it.
+    client.interceptors.add(castAction, campgroundAction);
   }
 
-  /** Summon from an item, honouring the daily limits its kind imposes. */
+  /** Summon from an item, via its own campground page rather than runskillz.php. */
   cast(item: BookshelfItem): Promise<Result> {
     return this.#client.skills.cast(item.skillId);
   }

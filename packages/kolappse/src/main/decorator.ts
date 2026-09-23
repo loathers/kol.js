@@ -1,5 +1,4 @@
-import { type DecorateCtx, defineAction } from "kol.js";
-import type { Interceptor } from "kol.js";
+import { type DecorateCtx, type Interceptor, defineAction } from "kol.js";
 
 function clientScript(): string {
   const modules = [];
@@ -21,15 +20,16 @@ export function decoratorInterceptors(
   version: string,
   commitHash: string,
 ): Interceptor[] {
-  // Inject kolappse globals + script into every HTML page
-  const injectScript = defineAction({
-    decorate({ res }: DecorateCtx<never>) {
-      const html = typeof res.body === "string" ? res.body : "";
-      const injection = `<script>
+  const injection = `<script>
 window.__KOLAPPSE_VERSION__=${JSON.stringify(version)};
 window.__KOLAPPSE_COMMIT__=${JSON.stringify(commitHash)};
 </script>
 ${clientScript()}`;
+
+  // Inject kolappse globals + script into every HTML page
+  const injectScript = defineAction({
+    decorate({ res }: DecorateCtx<never>) {
+      const html = typeof res.body === "string" ? res.body : "";
       if (html.includes("</head>"))
         return html.replace("</head>", `${injection}</head>`);
       return html + injection;
@@ -46,11 +46,7 @@ ${clientScript()}`;
 <head>
 <title>The Kingdom of Loathing</title>
 <style>html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }</style>
-<script>
-window.__KOLAPPSE_VERSION__=${JSON.stringify(version)};
-window.__KOLAPPSE_COMMIT__=${JSON.stringify(commitHash)};
-</script>
-${clientScript()}
+${injection}
 </head>
 <body></body>
 </html>`;

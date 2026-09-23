@@ -1,6 +1,5 @@
 import { app } from "electron";
 import { Client, ProxyServer, defineAction } from "kol.js";
-import type { Interceptor } from "kol.js";
 import { join } from "node:path";
 
 import { apiHandlers } from "./api.js";
@@ -11,17 +10,6 @@ import { initTray, setClient, setStatus } from "./tray.js";
 declare const __COMMIT_HASH__: string;
 
 const PORT = 8080;
-
-// Serves the logged-out session until a login swaps in a real client. Its
-// client is replaced at startup, once the app's interceptors exist.
-const proxy = new ProxyServer(new Client());
-
-/**
- * The app's own handlers, which apply to whichever account is signed in.
- * Assembled once at startup and given to every client, since interception is
- * per-client and a logout builds a fresh one.
- */
-let appInterceptors: Interceptor[] = [];
 
 function createClient(username = "", password = ""): Client {
   return new Client(username, password, { interceptors: appInterceptors });
@@ -79,17 +67,23 @@ const detectLogin = defineAction({
   },
 });
 
+/**
+ * The app's own handlers, which apply to whichever account is signed in. Given
+ * to every client, since interception is per-client and a logout builds a fresh
+ * one.
+ */
+const appInterceptors = [
+  ...decoratorInterceptors(app.getVersion(), __COMMIT_HASH__),
+  ...apiHandlers({ onLogin: switchAccount }),
+  detectLogin,
+];
+
+// Serves the logged-out session until a login swaps in a real client.
+const proxy = new ProxyServer(createClient());
+
 app.dock?.hide();
 
 app.on("ready", async () => {
-  appInterceptors = [
-    ...decoratorInterceptors(app.getVersion(), __COMMIT_HASH__),
-    ...apiHandlers({ onLogin: (username) => switchAccount(username) }),
-    detectLogin,
-  ];
-
-  proxy.setClient(createClient());
-
   initTray(join(__dirname, "../../resources/icon.png"));
   await proxy.start(PORT);
   setStatus("idle", PORT);

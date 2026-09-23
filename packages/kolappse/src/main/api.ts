@@ -28,7 +28,7 @@ export function apiHandlers(options: {
 }): Interceptor[] {
   return [
     {
-      matches: (req) => req.path === "_kolappse/kolappse.js",
+      path: "_kolappse/kolappse.js",
       async handle() {
         return {
           status: 200,
@@ -39,14 +39,14 @@ export function apiHandlers(options: {
     },
 
     {
-      matches: (req) => req.path === "_kolappse/api/flags",
+      path: "_kolappse/api/flags",
       async handle(client) {
         return json(client.flags.export());
       },
     },
 
     {
-      matches: (req) => req.path === "_kolappse/api/accounts",
+      path: "_kolappse/api/accounts",
       handle() {
         return json(
           loadAccounts().map(({ username, playerId, lastLoginAt }) => ({
@@ -59,14 +59,14 @@ export function apiHandlers(options: {
     },
 
     {
-      matches: (req) => req.path === "_kolappse/api/me",
+      path: "_kolappse/api/me",
       async handle(client) {
         return json({ username: client.username, playerId: client.playerId });
       },
     },
 
     {
-      matches: (req) => req.path === "_kolappse/api/login",
+      path: "_kolappse/api/login",
       async handle(_client, req) {
         const username = req.params.get("username");
         if (!username) return error(400, "username required");
@@ -80,7 +80,7 @@ export function apiHandlers(options: {
     },
 
     {
-      matches: (req) => req.path === "_kolappse/api/inventory",
+      path: "_kolappse/api/inventory",
       async handle(client) {
         try {
           const map = await client.inventory.get();
@@ -98,7 +98,7 @@ export function apiHandlers(options: {
     },
 
     {
-      matches: (req) => req.path === "_kolappse/api/item",
+      path: "_kolappse/api/item",
       async handle(client, req) {
         const idParam = req.params.get("id");
         if (!idParam) return error(400, "id required");
