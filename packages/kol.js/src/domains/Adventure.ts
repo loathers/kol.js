@@ -241,10 +241,11 @@ export class Adventure {
 
   constructor(client: Client) {
     this.#client = client;
+    client.interceptors.add(adventureAction, choiceAction);
   }
 
   async adventure(snarfblat: number): Promise<AdventureResult> {
-    return adventureAction(this.#client, {
+    return adventureAction.perform(this.#client, {
       query: { snarfblat },
     });
   }
@@ -263,12 +264,12 @@ export class Adventure {
     extra?: Record<string, string>,
   ): Promise<AdventureResult> {
     if (extra && Object.keys(extra).length > 0) {
-      return choiceAction(this.#client, {
+      return choiceAction.perform(this.#client, {
         method: "POST",
         form: { whichchoice, option, ...extra },
       });
     }
-    return choiceAction(this.#client, {
+    return choiceAction.perform(this.#client, {
       query: { whichchoice, option },
     });
   }

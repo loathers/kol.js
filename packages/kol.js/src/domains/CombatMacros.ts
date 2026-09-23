@@ -29,6 +29,7 @@ export class CombatMacros {
 
   constructor(client: Client) {
     this.#client = client;
+    client.interceptors.add(saveMacroAction);
   }
 
   async list(): Promise<CombatMacro[]> {
@@ -54,7 +55,7 @@ export class CombatMacros {
     text: string,
     id = 0,
   ): Promise<ActionResult<{ id: number }>> {
-    return saveMacroAction(this.#client, {
+    return saveMacroAction.perform(this.#client, {
       method: "POST",
       form: { macroid: id, name, macrotext: text, action: "save" },
     });

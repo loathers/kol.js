@@ -3,19 +3,27 @@ import createDebug from "debug";
 import type { Client, Result } from "../Client.js";
 import { DailyFlag } from "../flags/registry.js";
 import { defineAction } from "../interceptors/action.js";
+import type { Interceptor } from "../interceptors/types.js";
 import { recordSkillCast, registerSkillBehavior } from "./Skills.js";
 
 const debug = createDebug("kol.js:skills");
 
 const TOME_IDS = [7213, 7214, 7215, 7216, 7217, 7218] as const;
 
-export abstract class Bookshelf {
+/**
+ * One summonable bookshelf item. These are game data, shared across clients —
+ * the cast counts they read and write live in the client's flags.
+ */
+export abstract class BookshelfItem {
+  /** Detects a successful cast of this item; registered by the `Bookshelf` domain. */
+  readonly interceptor: Interceptor;
+
   constructor(
     readonly skillId: number,
     readonly preaction: string,
   ) {
     registerSkillBehavior(skillId, this);
-    defineAction({
+    this.interceptor = defineAction({
       matches: (req) =>
         req.path === "campground.php" &&
         req.params.get("preaction") === preaction,
@@ -39,7 +47,7 @@ export abstract class Bookshelf {
   }
 }
 
-export class Tome extends Bookshelf {
+export class Tome extends BookshelfItem {
   dailyLimit = (client: Client): Promise<number> => {
     if (!client.isRestricted()) return Promise.resolve(3);
     // In ronin/hardcore all tomes share a pool of 3 casts/day.
@@ -72,7 +80,7 @@ export class Tome extends Bookshelf {
   }
 }
 
-export class Libram extends Bookshelf {
+export class Libram extends BookshelfItem {
   static #byPreaction = new Map<string, Libram>();
 
   constructor(skillId: number, preaction: string) {
@@ -112,7 +120,7 @@ export class Libram extends Bookshelf {
   }
 }
 
-export class Grimoire extends Bookshelf {
+export class Grimoire extends BookshelfItem {
   dailyLimit = (): Promise<number> => Promise.resolve(1);
 }
 
@@ -137,7 +145,7 @@ export const alicesArmyCards = new Grimoire(7228, "summonaa");
 export const geekyGifts = new Grimoire(7229, "summonthinknerd");
 export const confiscatedThings = new Grimoire(7230, "summonconfiscators");
 
-defineAction({
+const campgroundAction = defineAction({
   path: "campground.php",
   parse({ body, success, failure }) {
     if (!body.includes("Tomes:")) return failure("No tomes section");
@@ -148,3 +156,50 @@ defineAction({
     Tome.syncFromPage(client, result.body);
   },
 });
+
+/** Every bookshelf item, so the domain can attach all their interceptors. */
+export const bookshelfItems = [
+  snowcones,
+  stickers,
+  sugarSheets,
+  clipArt,
+  radLibs,
+  smithsness,
+  candyHeart,
+  partyFavor,
+  loveSong,
+  brickos,
+  dice,
+  resolutions,
+  taffy,
+  hilariousObjects,
+  tastefulItems,
+  alicesArmyCards,
+  geekyGifts,
+  confiscatedThings,
+] as const;
+
+export class Bookshelf {
+  #client: Client;
+
+  constructor(client: Client) {
+    this.#client = client;
+    // Per-item cast detection first, then the campground sync. The page served
+    // after a cast already shows the post-cast MP cost, so the sync derives an
+    // absolute count and has to overwrite the increment rather than be
+    // overwritten by it.
+    client.interceptors.add(
+      ...bookshelfItems.map((item) => item.interceptor),
+      campgroundAction,
+    );
+  }
+
+  /** Summon from an item, honouring the daily limits its kind imposes. */
+  cast(item: BookshelfItem): Promise<Result> {
+    return this.#client.skills.cast(item.skillId);
+  }
+
+  castsToday(item: BookshelfItem): number {
+    return this.#client.skills.castsToday(item.skillId);
+  }
+}

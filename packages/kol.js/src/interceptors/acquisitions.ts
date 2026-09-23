@@ -1,4 +1,4 @@
-import { registerInterceptor } from "./registry.js";
+import type { Interceptor } from "./types.js";
 
 /**
  * KoL announces a gain in a fixed shape: "You acquire an item: <b>x</b>" for
@@ -15,7 +15,7 @@ const ACQUIRED_EFFECT = /You acquire an (?:effect|intrinsic):/;
  * a choice adventure that hands you an item leaves the inventory stale, and a
  * caller re-reads it and sees the world as it was before.
  */
-registerInterceptor({
+export const acquisitions: Interceptor = {
   onResponse(client, req, res) {
     if (typeof res.body !== "string") return;
     if (ACQUIRED_ITEM.test(res.body)) client.inventory.get.invalidate();
@@ -24,4 +24,4 @@ registerInterceptor({
     // the equip/unequip actions.
     if (req.path === "inv_equip.php") client.equipment.get.invalidate();
   },
-});
+};

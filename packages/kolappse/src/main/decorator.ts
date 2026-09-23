@@ -1,4 +1,5 @@
-import { type DecorateCtx, defineAction, registerInterceptor } from "kol.js";
+import { type DecorateCtx, defineAction } from "kol.js";
+import type { Interceptor } from "kol.js";
 
 function clientScript(): string {
   const modules = [];
@@ -16,9 +17,12 @@ function clientScript(): string {
     .join("\n");
 }
 
-export function registerDecorator(version: string, commitHash: string): void {
+export function decoratorInterceptors(
+  version: string,
+  commitHash: string,
+): Interceptor[] {
   // Inject kolappse globals + script into every HTML page
-  defineAction({
+  const injectScript = defineAction({
     decorate({ res }: DecorateCtx<never>) {
       const html = typeof res.body === "string" ? res.body : "";
       const injection = `<script>
@@ -34,7 +38,7 @@ ${clientScript()}`;
 
   // Serve game.php ourselves — the frameset layout hasn't changed in 20 years.
   // This gives us a real <body> to mount the palette overlay into.
-  registerInterceptor({
+  const serveGamePage: Interceptor = {
     path: "game.php",
     handle() {
       const html = `<!doctype html>
@@ -52,5 +56,7 @@ ${clientScript()}
 </html>`;
       return { status: 200, contentType: "text/html", body: html };
     },
-  });
+  };
+
+  return [serveGamePage, injectScript];
 }

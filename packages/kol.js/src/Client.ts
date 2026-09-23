@@ -13,7 +13,7 @@ import { gameData } from "./GameData.js";
 import { Account } from "./domains/Account.js";
 import { Adventure } from "./domains/Adventure.js";
 import { type ApiStatus, ApiStatusSchema } from "./domains/ApiStatus.js";
-import "./domains/Bookshelf.js";
+import { Bookshelf } from "./domains/Bookshelf.js";
 import { CharSheet } from "./domains/CharSheet.js";
 import { ChatMailbox, type ChatMessage } from "./domains/ChatMailbox.js";
 import { Closet } from "./domains/Closet.js";
@@ -29,12 +29,10 @@ import { Skills } from "./domains/Skills.js";
 import { Storage } from "./domains/Storage.js";
 import { AuthError, JoinClanError, RolloverError } from "./errors.js";
 import { Flags, type FlagsBackend } from "./flags/Flags.js";
-import "./interceptors/acquisitions.js";
+import { InterceptorList } from "./interceptors/InterceptorList.js";
+import { acquisitions } from "./interceptors/acquisitions.js";
 import { defineAction } from "./interceptors/action.js";
-import {
-  runRequestPipeline,
-  runResponsePipeline,
-} from "./interceptors/pipeline.js";
+import type { Interceptor } from "./interceptors/types.js";
 import { ProxyServer } from "./proxy/ProxyServer.js";
 import {
   parseInValhalla,
@@ -188,8 +186,15 @@ export class Client extends Emittery<Events> {
     },
     { fetch: makeFetchCookie(fetch, this.#cookieJar) },
   );
+  /**
+   * This client's interceptors. Each domain adds its own actions as it is
+   * constructed below, so this has to be initialised first.
+   */
+  interceptors = new InterceptorList(this);
+
   account = new Account(this);
   adventure = new Adventure(this);
+  bookshelf = new Bookshelf(this);
   charSheet = new CharSheet(this);
   combatMacros = new CombatMacros(this);
   consumption = new Consumption(this);
@@ -232,12 +237,16 @@ export class Client extends Emittery<Events> {
   constructor(
     username: string = "",
     password: string = "",
-    options: { flagsBackend?: FlagsBackend } = {},
+    options: { flagsBackend?: FlagsBackend; interceptors?: Interceptor[] } = {},
   ) {
     super();
     this.#username = username;
     this.#password = password;
     this.flags = new Flags(username, options.flagsBackend);
+    // Neither belongs to a domain: logout is the client's own, and cache
+    // invalidation watches every response whatever asked for it.
+    this.interceptors.add(Client.#logoutAction, acquisitions);
+    if (options.interceptors) this.interceptors.add(...options.interceptors);
   }
 
   get username() {
@@ -348,7 +357,7 @@ export class Client extends Emittery<Events> {
 
   async fetchText(path: string, options: RequestOptions = {}): Promise<string> {
     const req = buildKolRequest(path, options);
-    await runRequestPipeline(this, req);
+    await this.interceptors.request(req);
     const { form, ...rest } = options;
     const text = await this.#withRecovery(() =>
       this.session(path, {
@@ -359,7 +368,7 @@ export class Client extends Emittery<Events> {
       }),
     );
     const res = { status: 200, contentType: "text/html", body: text };
-    await runResponsePipeline(this, req, res);
+    await this.interceptors.response(req, res);
     return res.body;
   }
 
@@ -368,7 +377,7 @@ export class Client extends Emittery<Events> {
     options: RequestOptions = {},
   ): Promise<Result> {
     const req = buildKolRequest(path, options);
-    await runRequestPipeline(this, req);
+    await this.interceptors.request(req);
     const { form, ...rest } = options;
     const json = await this.#withRecovery(() =>
       this.session<Result>(path, {
@@ -379,7 +388,7 @@ export class Client extends Emittery<Events> {
     );
     const body = JSON.stringify(json);
     const res = { status: 200, contentType: "application/json", body };
-    await runResponsePipeline(this, req, res);
+    await this.interceptors.response(req, res);
     return json;
   }
 
@@ -423,7 +432,7 @@ export class Client extends Emittery<Events> {
   }
 
   logout = deduplicate(async () => {
-    return Client.#logoutAction(this, {});
+    return Client.#logoutAction.perform(this, {});
   });
 
   login = deduplicate(async (): Promise<boolean> => {
