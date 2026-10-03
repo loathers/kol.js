@@ -190,19 +190,26 @@ export class Clan {
     return await this.#client.actionMutex.runExclusive(async () => {
       const join = await this.#client.joinClan(clanId);
       if (!join.success) return join;
-      const result = await this.#client.fetchText("clan_members.php", {
-        query: {
-          "pids[]": playerId,
-          [`level${playerId}`]: "0",
-          [`title${playerId}`]: "",
-          [`boot${playerId}`]: "on",
-          begin: 1,
-          action: "modify",
-        },
-      });
-      if (result.includes("Modifications made:<br>Booted"))
-        return { success: true };
-      return { success: false, reason: "Unknown" };
+      try {
+        const result = await this.#client.fetchText("clan_members.php", {
+          query: {
+            "pids[]": playerId,
+            [`level${playerId}`]: "0",
+            [`title${playerId}`]: "",
+            [`boot${playerId}`]: "on",
+            begin: 1,
+            action: "modify",
+          },
+        });
+        if (result.includes("Modifications made:<br>Booted"))
+          return { success: true };
+        return { success: false, reason: "Unknown" };
+      } catch {
+        return {
+          success: false,
+          reason: "Unknown (Player possibly not in clan)",
+        };
+      }
     });
   }
 
