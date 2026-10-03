@@ -186,6 +186,26 @@ export class Clan {
     return { success: false, reason: "Unknown" };
   }
 
+  async bootPlayer(playerId: number, clanId: number): Promise<Result> {
+    return await this.#client.actionMutex.runExclusive(async () => {
+      const join = await this.#client.joinClan(clanId);
+      if (!join.success) return join;
+      const result = await this.#client.fetchText("clan_members.php", {
+        query: {
+          "pids[]": playerId,
+          [`level${playerId}`]: "0",
+          [`title${playerId}`]: "",
+          [`boot${playerId}`]: "on",
+          begin: 1,
+          action: "modify",
+        },
+      });
+      if (result.includes("Modifications made:<br>Booted"))
+        return { success: true };
+      return { success: false, reason: "Unknown" };
+    });
+  }
+
   async addPlayerToWhitelist(
     playerId: number,
     clanId: number,
@@ -204,6 +224,7 @@ export class Clan {
       return { success: true };
     });
   }
+
   async removePlayerFromWhitelist(
     playerId: number,
     clanId: number,
