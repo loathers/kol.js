@@ -204,6 +204,23 @@ export class Clan {
       return { success: true };
     });
   }
+  async removePlayerFromWhitelist(
+    playerId: number,
+    clanId: number,
+  ): Promise<Result> {
+    return await this.#client.actionMutex.runExclusive(async () => {
+      const join = await this.#client.joinClan(clanId);
+      if (!join.success) return join;
+      await this.#client.fetchText("clan_whitelist.php", {
+        query: {
+          who: playerId,
+          remove: "Remove",
+          action: "updatewl",
+        },
+      });
+      return { success: true };
+    });
+  }
 
   /**
    * Found a new clan with the logged-in player as its leader. Requires being
