@@ -192,10 +192,8 @@ export class Clan {
       if (!join.success) return join;
       try {
         const result = await this.#client.fetchText("clan_members.php", {
-          query: {
+          form: {
             "pids[]": playerId,
-            [`level${playerId}`]: "0",
-            [`title${playerId}`]: "",
             [`boot${playerId}`]: "on",
             begin: 1,
             action: "modify",
@@ -216,6 +214,7 @@ export class Clan {
   async addPlayerToWhitelist(
     playerId: number,
     clanId: number,
+    degree: number,
   ): Promise<Result> {
     return await this.#client.actionMutex.runExclusive(async () => {
       const join = await this.#client.joinClan(clanId);
@@ -223,7 +222,7 @@ export class Clan {
       await this.#client.fetchText("clan_whitelist.php", {
         query: {
           addwho: playerId,
-          level: 2,
+          level: degree,
           title: "",
           action: "add",
         },
@@ -240,7 +239,8 @@ export class Clan {
       const join = await this.#client.joinClan(clanId);
       if (!join.success) return join;
       await this.#client.fetchText("clan_whitelist.php", {
-        query: {
+        method: "POST",
+        form: {
           who: playerId,
           remove: "Remove",
           action: "updatewl",
