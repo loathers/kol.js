@@ -5,10 +5,7 @@ export type {
   MallPrice,
   RequestOptions,
 } from "./Client.js";
-export {
-  registerInterceptor,
-  unregisterInterceptor,
-} from "./interceptors/registry.js";
+export { InterceptorList } from "./interceptors/InterceptorList.js";
 export type {
   Interceptor,
   KolRequest,

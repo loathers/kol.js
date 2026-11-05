@@ -74,10 +74,11 @@ export class Consumption {
 
   constructor(client: Client) {
     this.#client = client;
+    client.interceptors.add(eatAction, drinkAction, useAction, multiuseAction);
   }
 
   async eat(item: Item | number, quantity = 1): Promise<ActionResult<object>> {
-    return eatAction(this.#client, {
+    return eatAction.perform(this.#client, {
       query: { which: 1, whichitem: resolveEntityId(item), quantity, ajax: 1 },
     });
   }
@@ -86,7 +87,7 @@ export class Consumption {
     item: Item | number,
     quantity = 1,
   ): Promise<ActionResult<object>> {
-    return drinkAction(this.#client, {
+    return drinkAction.perform(this.#client, {
       query: { which: 1, whichitem: resolveEntityId(item), quantity, ajax: 1 },
     });
   }
@@ -97,7 +98,7 @@ export class Consumption {
       // action=useitem is not optional. Without it multiuse.php answers with an
       // ordinary page and consumes nothing, so the call looks like it worked
       // and did not.
-      return multiuseAction(this.#client, {
+      return multiuseAction.perform(this.#client, {
         query: {
           which: 1,
           whichitem: itemId,
@@ -107,7 +108,7 @@ export class Consumption {
         },
       });
     }
-    return useAction(this.#client, {
+    return useAction.perform(this.#client, {
       query: { which: 1, whichitem: itemId, ajax: 1 },
     });
   }

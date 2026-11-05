@@ -1,8 +1,7 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 
 import type { Client, RequestOptions } from "../Client.js";
-import { registerInterceptor } from "./registry.js";
-import type { KolRequest, KolResponse } from "./types.js";
+import type { Interceptor, KolRequest, KolResponse } from "./types.js";
 
 export type ActionSuccess<T extends object> = { success: true } & T;
 export type ActionFailure = { success: false; reason: string };
@@ -74,10 +73,14 @@ type DecorateOnly = {
   decorate: (ctx: DecorateCtx<never>) => string | Promise<string>;
 };
 
-type PerformFn<T extends object> = (
-  client: Client,
-  options?: RequestOptions,
-) => Promise<ActionResult<T>>;
+/**
+ * An interceptor that also knows how to provoke the page it parses. Both halves
+ * live on one value so a domain can register it and invoke it without holding
+ * two references to the same action.
+ */
+export type Action<T extends object> = Interceptor & {
+  perform(client: Client, options?: RequestOptions): Promise<ActionResult<T>>;
+};
 
 // Loosened shape for the implementation body — the overloads above enforce the
 // public contract, while this keeps every optional field accessible.
@@ -94,12 +97,19 @@ const actionResultStorage = new AsyncLocalStorage<{
   result?: ActionResult<object>;
 }>();
 
-export function defineAction<T extends object>(def: WithPath<T>): PerformFn<T>;
-export function defineAction<T extends object>(def: WithMatcher<T>): void;
-export function defineAction(def: DecorateOnly): void;
+/**
+ * Build an action's interceptor. Registration is the caller's job — a domain
+ * adds its actions to the client it was constructed with — so that an action
+ * only ever watches the clients that asked for it.
+ */
+export function defineAction<T extends object>(def: WithPath<T>): Action<T>;
+export function defineAction<T extends object>(
+  def: WithMatcher<T>,
+): Interceptor;
+export function defineAction(def: DecorateOnly): Interceptor;
 export function defineAction<T extends object>(
   def: AnyActionDef<T>,
-): PerformFn<T> | void {
+): Interceptor {
   const decorateResults = new WeakMap<KolRequest, ActionResult<T>>();
   const parseFn: ParseDef<T>["parse"] | undefined = def.parse;
   // The decorate callback always receives the concrete result we build below;
@@ -108,7 +118,7 @@ export function defineAction<T extends object>(
     | ((ctx: DecorateCtx<T>) => string | Promise<string>)
     | undefined = def.decorate;
 
-  registerInterceptor({
+  const interceptor: Interceptor = {
     path: def.path,
     matches: def.matches,
     onResponse: parseFn
@@ -140,14 +150,19 @@ export function defineAction<T extends object>(
           return decorateFn({ client, req, res, result: result });
         }
       : undefined,
-  });
+  };
 
-  if (parseFn && typeof def.path === "string") {
-    const path: string = def.path;
-    return async (client: Client, options: RequestOptions = {}) => {
+  if (!parseFn || typeof def.path !== "string") return interceptor;
+
+  const path: string = def.path;
+  return Object.assign(interceptor, {
+    async perform(
+      client: Client,
+      options: RequestOptions = {},
+    ): Promise<ActionResult<T>> {
       const ctx: { result?: ActionResult<T> } = {};
       await actionResultStorage.run(ctx, () => client.fetchText(path, options));
       return ctx.result ?? failure("Action produced no result");
-    };
-  }
+    },
+  });
 }

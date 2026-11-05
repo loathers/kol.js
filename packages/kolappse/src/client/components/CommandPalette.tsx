@@ -1,5 +1,11 @@
 import { Command } from "cmdk";
-import { type ComponentType, createContext, useContext, useEffect, useState } from "react";
+import {
+  type ComponentType,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 import { getCommands } from "../commands/registry";
 import styles from "./CommandPalette.module.css";
@@ -16,7 +22,8 @@ export const LayerContext = createContext<{
 
 export function useLayerContext() {
   const ctx = useContext(LayerContext);
-  if (!ctx) throw new Error("useLayerContext must be used inside CommandPalette");
+  if (!ctx)
+    throw new Error("useLayerContext must be used inside CommandPalette");
   return ctx;
 }
 
@@ -80,61 +87,61 @@ export function CommandPalette({ onPopOut }: CommandPaletteProps) {
 
   return (
     <LayerContext.Provider value={{ pushLayer }}>
-    <div className={styles.overlay} onClick={close}>
-      <div className={styles.palette} onClick={(e) => e.stopPropagation()}>
-        {activeLayer ? (
-          <>
-            <div className={styles.breadcrumb}>
-              <button className={styles.back} onClick={popLayer}>
-                &lt; Back
-              </button>
-              <span className={styles.breadcrumbTitle}>
-                {activeLayer.title}
-              </span>
-              <button
-                className={styles.popOut}
-                onClick={popOut}
-                title="Pop out"
-              >
-                Pop out
-              </button>
-            </div>
-            <div className={styles.viewBody}>
-              <activeLayer.View onClose={close} />
-            </div>
-          </>
-        ) : (
-          <Command>
-            <Command.Input placeholder="Type a command..." autoFocus />
-            <Command.List>
-              <Command.Empty>No results found.</Command.Empty>
-              {getCommands(
-                !window.location.pathname.startsWith("/login.php"),
-              ).map((cmd) => (
-                <Command.Item
-                  key={cmd.id}
-                  value={[cmd.label, ...(cmd.keywords ?? [])].join(" ")}
-                  onSelect={() => {
-                    if (cmd.view) {
-                      pushLayer({
-                        title: cmd.label,
-                        icon: cmd.icon,
-                        View: cmd.view,
-                      });
-                    } else if (cmd.action) {
-                      close();
-                      void cmd.action();
-                    }
-                  }}
+      <div className={styles.overlay} onClick={close}>
+        <div className={styles.palette} onClick={(e) => e.stopPropagation()}>
+          {activeLayer ? (
+            <>
+              <div className={styles.breadcrumb}>
+                <button className={styles.back} onClick={popLayer}>
+                  &lt; Back
+                </button>
+                <span className={styles.breadcrumbTitle}>
+                  {activeLayer.title}
+                </span>
+                <button
+                  className={styles.popOut}
+                  onClick={popOut}
+                  title="Pop out"
                 >
-                  {cmd.label}
-                </Command.Item>
-              ))}
-            </Command.List>
-          </Command>
-        )}
+                  Pop out
+                </button>
+              </div>
+              <div className={styles.viewBody}>
+                <activeLayer.View onClose={close} />
+              </div>
+            </>
+          ) : (
+            <Command>
+              <Command.Input placeholder="Type a command..." autoFocus />
+              <Command.List>
+                <Command.Empty>No results found.</Command.Empty>
+                {getCommands(
+                  !window.location.pathname.startsWith("/login.php"),
+                ).map((cmd) => (
+                  <Command.Item
+                    key={cmd.id}
+                    value={[cmd.label, ...(cmd.keywords ?? [])].join(" ")}
+                    onSelect={() => {
+                      if (cmd.view) {
+                        pushLayer({
+                          title: cmd.label,
+                          icon: cmd.icon,
+                          View: cmd.view,
+                        });
+                      } else if (cmd.action) {
+                        close();
+                        void cmd.action();
+                      }
+                    }}
+                  >
+                    {cmd.label}
+                  </Command.Item>
+                ))}
+              </Command.List>
+            </Command>
+          )}
+        </div>
       </div>
-    </div>
     </LayerContext.Provider>
   );
 }

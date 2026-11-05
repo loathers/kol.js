@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 
 import { useLayerContext } from "../components/CommandPalette";
 import shared from "../shared.module.css";
-import { ItemDetailView } from "./itemDetail";
 import styles from "./inventory.module.css";
+import { ItemDetailView } from "./itemDetail";
 import { registerCommand } from "./registry";
 
 type InventoryItem = {

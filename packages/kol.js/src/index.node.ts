@@ -2,6 +2,7 @@ export * from "./index.js";
 export { Client } from "./Client.js";
 export {
   defineAction,
+  type Action,
   failure,
   success,
   type ActionFailure,
