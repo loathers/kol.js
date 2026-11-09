@@ -27,11 +27,11 @@ export class Pvp {
       throw new Error("Could not parse PvP season number from peevpee.php");
 
     const endMatch = rulesHtml.match(
-      /current season will end on <b>(\d{4}-\d{2}-\d{2})<\/b>/i,
+      /season will end [^<]*?on <b>(\d{4}-\d{2}-\d{2})<\/b>/i,
     );
 
     const nameMatch = shopHtml.match(
-      /You've earned [\d,]+ swagger during (?:an? )?([\w ]+) season[.!]/i,
+      /You've earned -?[\d,]+ swagger during (?:an? )?([\w ]+) season[.!]/i,
     );
     if (!nameMatch)
       throw new Error("Could not parse PvP season name from peevpee.php");
