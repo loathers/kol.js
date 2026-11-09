@@ -39,6 +39,25 @@ describe("Pvp", () => {
     });
   });
 
+  it("can parse Glitch Season", async () => {
+    const rulesHtml = await loadFixture(
+      import.meta.dirname,
+      "pvp-rules-glitch.html",
+    );
+    const shopHtml = await loadFixture(
+      import.meta.dirname,
+      "pvp-shop-glitch.html",
+    );
+
+    const result = Pvp.parseSeason(rulesHtml, shopHtml);
+
+    expect(result).toMatchObject({
+      seasonNumber: 88,
+      seasonName: "Glitch Season",
+    });
+    expect(result.endsAt).toEqual(new Date("2027-01-01"));
+  });
+
   it("can fetch the current season", async () => {
     text
       .mockResolvedValueOnce(
