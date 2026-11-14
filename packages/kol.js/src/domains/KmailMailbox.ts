@@ -114,11 +114,12 @@ export class KmailMailbox extends Mailbox<KmailMessage> {
     };
   }
 
-  async fetch(): Promise<KmailMessage[]> {
+  async fetch(count?: number): Promise<KmailMessage[]> {
     const kmails = await this.client.fetchJson<RawKmail[]>("api.php", {
       query: {
         what: "kmail",
         for: `${this.client.username} bot`,
+        ...(count ? { count } : {}),
       },
     });
 
