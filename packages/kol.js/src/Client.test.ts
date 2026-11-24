@@ -3,10 +3,6 @@ import { describe, expect, it, test, vi } from "vitest";
 
 import { Client } from "./Client.js";
 import { AuthError } from "./errors.js";
-import {
-  registerInterceptor,
-  unregisterInterceptor,
-} from "./interceptors/registry.js";
 import type { KolRequest } from "./interceptors/types.js";
 import { loadFixture } from "./testUtils.js";
 
@@ -560,18 +556,16 @@ describe("form bodies", () => {
     expect(params.get("action")).toBe("modify");
   });
 
-  it("exposes repeated form keys to request interceptors", async (ctx) => {
+  it("exposes repeated form keys to request interceptors", async () => {
     const seen: string[][] = [];
-    const interceptor = {
+
+    const client = new TestClient().simulateLoggedIn();
+    client.interceptors.add({
       path: "interceptme.php",
       onRequest(_client: Client, req: KolRequest) {
         seen.push(req.params.getAll("actions[]"));
       },
-    };
-    registerInterceptor(interceptor);
-    ctx.onTestFinished(() => unregisterInterceptor(interceptor));
-
-    const client = new TestClient().simulateLoggedIn();
+    });
     await client.login();
 
     captureBody(client, /\/interceptme\.php/);

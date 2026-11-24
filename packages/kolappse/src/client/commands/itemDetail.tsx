@@ -65,10 +65,11 @@ export function ItemDetailView({ itemId }: ItemDetailViewProps) {
     return <div className={`${shared.status} ${shared.error}`}>{error}</div>;
   if (!item) return <div className={shared.status}>Loading…</div>;
 
-  const effectGrants = item.modifiers.find(
-    (m): m is Extract<SerializedModifier, { kind: "effect-grants" }> =>
-      m.kind === "effect-grants" && m.name === "Effect",
-  )?.grants ?? [];
+  const effectGrants =
+    item.modifiers.find(
+      (m): m is Extract<SerializedModifier, { kind: "effect-grants" }> =>
+        m.kind === "effect-grants" && m.name === "Effect",
+    )?.grants ?? [];
 
   const displayModifiers = item.modifiers.filter(
     (m) => m.name !== "Effect" && m.name !== "Effect Duration",

@@ -113,6 +113,7 @@ export class Equipment {
 
   constructor(client: Client) {
     this.#client = client;
+    client.interceptors.add(equipAction, unequipAction);
     client.on("apiStatus", async (status) => {
       this.get.setValue(await Equipment.buildMap(status));
     });
@@ -202,7 +203,7 @@ export class Equipment {
   ): Promise<ActionResult<EquipData>> {
     const slotNumber =
       slot !== undefined ? ACCESSORY_SLOT_NUMBER[slot] : undefined;
-    return equipAction(this.#client, {
+    return equipAction.perform(this.#client, {
       method: "POST",
       form: {
         action: "equip",
@@ -215,7 +216,7 @@ export class Equipment {
   }
 
   async unequip(slot: EquipmentSlot): Promise<ActionResult<EquipData>> {
-    return unequipAction(this.#client, {
+    return unequipAction.perform(this.#client, {
       query: { which: 2, action: "unequip", type: slot },
     });
   }

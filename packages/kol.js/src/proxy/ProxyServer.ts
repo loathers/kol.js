@@ -2,12 +2,6 @@ import createDebug from "debug";
 import * as http from "node:http";
 
 import { Client } from "../Client.js";
-import {
-  runDecoratePipeline,
-  runHandlePipeline,
-  runRequestPipeline,
-  runResponsePipeline,
-} from "../interceptors/pipeline.js";
 import type { KolRequest, KolResponse } from "../interceptors/types.js";
 
 const debug = createDebug("kol.js:proxy");
@@ -53,7 +47,7 @@ export class ProxyServer {
   #server: http.Server;
   #port = 0;
 
-  constructor(client: Client = new Client()) {
+  constructor(client: Client) {
     this.#client = client;
     this.#server = http.createServer((req, res) => {
       void this.#handleRequest(req, res);
@@ -91,9 +85,9 @@ export class ProxyServer {
         return;
       }
 
-      await runRequestPipeline(client, proxyReq);
+      await client.interceptors.request(proxyReq);
 
-      const handled = await runHandlePipeline(client, proxyReq);
+      const handled = await client.interceptors.handle(proxyReq);
       if (handled !== null) {
         outgoing.statusCode = handled.status;
         outgoing.setHeader("content-type", handled.contentType);
@@ -138,10 +132,13 @@ export class ProxyServer {
         body: isHtml ? upstream.body.toString("utf8") : upstream.body,
       };
 
-      await runResponsePipeline(client, proxyReq, proxyRes);
+      await client.interceptors.response(proxyReq, proxyRes);
 
       if (isHtml) {
-        const decorated = await runDecoratePipeline(client, proxyReq, proxyRes);
+        const decorated = await client.interceptors.decorate(
+          proxyReq,
+          proxyRes,
+        );
         proxyRes.body = rewriteHtml(decorated, this.#port);
       }
 

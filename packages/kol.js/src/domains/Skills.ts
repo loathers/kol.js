@@ -50,7 +50,7 @@ export function recordSkillCast(client: Client, skillId: number): void {
   debug("recorded cast of skill %d (total today: %d)", skillId, newCount);
 }
 
-defineAction({
+const castSkillAction = defineAction({
   path: "runskillz.php",
   parse({ req, body, success, failure }) {
     const skillId = Number(req.params.get("whichskill"));
@@ -74,6 +74,7 @@ export class Skills {
   constructor(client: Client) {
     this.#client = client;
     this.get = client.charSheet.getSkills;
+    client.interceptors.add(castSkillAction);
   }
 
   castsToday(skill: Skill | number): number {
