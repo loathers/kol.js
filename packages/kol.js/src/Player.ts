@@ -20,6 +20,9 @@ export type ProfileData = {
   inRonin: boolean;
   inHardcore: boolean;
   path: string | null;
+  goldStars: number;
+  silverMoons: number;
+  bronzeButtons: number;
 };
 
 export class Player {
@@ -98,6 +101,9 @@ export namespace Player {
     readonly inHardcore: boolean;
     readonly inRonin: boolean;
     readonly path: string | null;
+    readonly goldStars: number;
+    readonly silverMoons: number;
+    readonly bronzeButtons: number;
 
     constructor(client: Client, data: ProfileData) {
       super(client, data.id, data.name);
@@ -115,6 +121,9 @@ export namespace Player {
       this.inHardcore = data.inHardcore;
       this.inRonin = data.inRonin;
       this.path = data.path;
+      this.goldStars = data.goldStars;
+      this.silverMoons = data.silverMoons;
+      this.bronzeButtons = data.bronzeButtons;
     }
 
     override fetch(): Promise<Player.Profiled> {
@@ -159,6 +168,22 @@ export namespace Player {
         inRonin: html.match(/<b>\(In Ronin\)<\/b>/) !== null,
         inHardcore: html.match(/<b>\(Hardcore\)<\/b>/) !== null,
         path: html.match(/>Path:<\/b><\/td><td>(.*?)<\/td>/)?.[1] ?? null,
+        goldStars:
+          Number(
+            html.match(/<b>([\d,]+) Gold Stars?<\/b>/)?.[1]?.replace(/,/g, ""),
+          ) || 0,
+        silverMoons:
+          Number(
+            html
+              .match(/<b>([\d,]+) Silver Moons?<\/b>/)?.[1]
+              ?.replace(/,/g, ""),
+          ) || 0,
+        bronzeButtons:
+          Number(
+            html
+              .match(/<b>([\d,]+) Bronze Buttons?<\/b>/)?.[1]
+              ?.replace(/,/g, ""),
+          ) || 0,
       };
     }
   }

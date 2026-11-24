@@ -64,6 +64,36 @@ describe("Player.Profiled.parseProfile", () => {
     expectNotNull(result);
     expect(result.avatar).toContain("<svg");
   });
+
+  test("Parses commendations correctly; player with all 3 types", async () => {
+    const html = await loadFixture(__dirname, "showplayer_gold_star.html");
+    const result = await Player.Profiled.parseProfile(html);
+
+    expectNotNull(result);
+    expect(result.goldStars).toBe(8);
+    expect(result.silverMoons).toBe(25);
+    expect(result.bronzeButtons).toBe(2);
+  });
+
+  test("Parses commendations correctly; player with exactly 1 silver moon", async () => {
+    const html = await loadFixture(__dirname, "showplayer_dependence_day.html");
+    const result = await Player.Profiled.parseProfile(html);
+
+    expectNotNull(result);
+    expect(result.goldStars).toBe(0);
+    expect(result.silverMoons).toBe(1);
+    expect(result.bronzeButtons).toBe(2);
+  });
+
+  test("Parses commendations correctly; player with no commendations", async () => {
+    const html = await loadFixture(__dirname, "showplayer_golden_gun.html");
+    const result = await Player.Profiled.parseProfile(html);
+
+    expectNotNull(result);
+    expect(result.goldStars).toBe(0);
+    expect(result.silverMoons).toBe(0);
+    expect(result.bronzeButtons).toBe(0);
+  });
 });
 
 describe("Player class", () => {
@@ -103,6 +133,9 @@ describe("Player class", () => {
       inHardcore: false,
       inRonin: false,
       path: null,
+      goldStars: 0,
+      silverMoons: 0,
+      bronzeButtons: 0,
     });
     expect(await profiled.fetch()).toBe(profiled);
   });
