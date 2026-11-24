@@ -94,6 +94,26 @@ describe("Player.Profiled.parseProfile", () => {
     expect(result.silverMoons).toBe(0);
     expect(result.bronzeButtons).toBe(0);
   });
+
+  test("Parses commendations correctly; player with Red commendation", async () => {
+    const html = await loadFixture(__dirname, "showplayer_red_commendation.html");
+    const result = await Player.Profiled.parseProfile(html);
+
+    expectNotNull(result);
+    expect(result.goldStars).toBe(3);
+    expect(result.silverMoons).toBe(6);
+    expect(result.bronzeButtons).toBe(3);
+  });
+
+  test("Parses commendations correctly; player with Blue commendation", async () => {
+    const html = await loadFixture(__dirname, "showplayer_blue_commendation.html");
+    const result = await Player.Profiled.parseProfile(html);
+
+    expectNotNull(result);
+    expect(result.goldStars).toBe(2);
+    expect(result.silverMoons).toBe(21);
+    expect(result.bronzeButtons).toBe(18);
+  });
 });
 
 describe("Player class", () => {

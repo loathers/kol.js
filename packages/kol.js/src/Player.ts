@@ -148,7 +148,7 @@ export namespace Player {
           ) || 0,
         trophies: Number(
           html.match(/>Trophies Collected:<\/b><\/td><td>(.*?)<\/td>/)?.[1] ??
-            0,
+          0,
         ),
         tattoos: Number(
           html.match(/>Tattoos Collected:<\/b><\/td><td>(.*?)<\/td>/)?.[1] ?? 0,
@@ -170,18 +170,18 @@ export namespace Player {
         path: html.match(/>Path:<\/b><\/td><td>(.*?)<\/td>/)?.[1] ?? null,
         goldStars:
           Number(
-            html.match(/<b>([\d,]+) Gold Stars?<\/b>/)?.[1]?.replace(/,/g, ""),
+            html.match(/alt="Gold Star".*?<b[^>]*>([\d,]+) /)?.[1]?.replace(/,/g, ""),
           ) || 0,
         silverMoons:
           Number(
             html
-              .match(/<b>([\d,]+) Silver Moons?<\/b>/)?.[1]
+              .match(/alt="Silver Moon".*?<b[^>]*>([\d,]+) /)?.[1]
               ?.replace(/,/g, ""),
           ) || 0,
         bronzeButtons:
           Number(
             html
-              .match(/<b>([\d,]+) Bronze Buttons?<\/b>/)?.[1]
+              .match(/alt="Bronze Button".*?<b[^>]*>([\d,]+) /)?.[1]
               ?.replace(/,/g, ""),
           ) || 0,
       };
